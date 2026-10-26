@@ -1,0 +1,11 @@
+{
+ "contract": "approval",
+ "version": 1,
+ "id": "ap-1",
+ "operation": "op-1",
+ "params_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+ "approver": "telegram:1000001",
+ "channel": "telegram:butler",
+ "granted_at": 1790000000.0,
+ "expires_at": 1790000900.0
+}

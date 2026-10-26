@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "butler-core"
+description = "Durable tasks, shared authorization and reliable delivery for Butler"
+requires-python = ">=3.11"
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "butler_core.__version__"}
+
+[project.optional-dependencies]
+system1 = ["onnxruntime>=1.20", "tokenizers>=0.20"]
+
+[project.scripts]
+butler-core = "butler_core.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["butler_core*"]
+
+[tool.setuptools.package-data]
+butler_core = ["contracts/examples/v1/*.json"]

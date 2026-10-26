@@ -1,0 +1,16 @@
+[
+  {
+    "file": "/Users/boris/.openclaw/workspace-butler/lib/dispatch.py",
+    "before_sha256": "fd997fdfab397e6671e6e75f727d61a32fec349f1e66d41c60fbd64e9ce30f50",
+    "after_sha256": "dd3cf9c251c6c1d4a9aa22d328d3d04b27633950e07295af3e0799baeadc2a3a",
+    "changed": true,
+    "backup": "/Users/boris/.openclaw/workspace-butler/state/owner-settings-backups/dispatch.py.fd997fdfab397e6671e6e75f727d61a32fec349f1e66d41c60fbd64e9ce30f50"
+  },
+  {
+    "file": "/Users/boris/.openclaw/workspace-butler/lib/embeddings.py",
+    "before_sha256": "ac967ffbf108fad6dc3b3fe17af42a7ab656faf2d1ae5c5008caa8a31e0a360a",
+    "after_sha256": "ac967ffbf108fad6dc3b3fe17af42a7ab656faf2d1ae5c5008caa8a31e0a360a",
+    "changed": false,
+    "backup": null
+  }
+]

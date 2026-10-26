@@ -1,0 +1,69 @@
+{
+  "at": "2026-10-24T03:01:20.542328+00:00",
+  "probe_window_start": 1792810486.684838,
+  "probe_window_end": 1792810667.455838,
+  "seconds_after_probe": 213.0,
+  "probe_inputs": [
+    {
+      "source": "camera",
+      "files": 18,
+      "analyzed": 18,
+      "reclaimed": 18
+    },
+    {
+      "source": "microphone",
+      "files": 180,
+      "analyzed": 180,
+      "reclaimed": 180
+    },
+    {
+      "source": "screen",
+      "files": 3,
+      "analyzed": 3,
+      "reclaimed": 3
+    },
+    {
+      "source": "system-audio",
+      "files": 179,
+      "analyzed": 179,
+      "reclaimed": 179
+    }
+  ],
+  "spool_start_bytes": 504682131,
+  "spool_end_bytes": 506669525,
+  "spool_now_bytes": 491477893,
+  "limit_bytes": 536870912,
+  "source_footprint": [
+    {
+      "storage_class": "legacy",
+      "files": 15367,
+      "bytes": 1920700558
+    },
+    {
+      "storage_class": "spool",
+      "files": 7972,
+      "bytes": 491477893
+    }
+  ],
+  "recent_pending": [
+    {
+      "source": "camera",
+      "files": 11,
+      "oldest_age": 96.0
+    },
+    {
+      "source": "microphone",
+      "files": 19,
+      "oldest_age": 79.5
+    },
+    {
+      "source": "system-audio",
+      "files": 19,
+      "oldest_age": 78.7
+    }
+  ],
+  "analysis_error": null,
+  "capture_error": null,
+  "raw_content_exported": false,
+  "actual_owner_dialogue_verified": false
+}

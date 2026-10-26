@@ -1,0 +1,24 @@
+{
+  "name": "butler-core-bridge",
+  "version": "0.1.0",
+  "description": "Records every managed Telegram message in butler-core before the agent sees it, sets the receipt reaction and reports turn lifecycle.",
+  "private": true,
+  "type": "module",
+  "license": "UNLICENSED",
+  "peerDependencies": {
+    "openclaw": ">=2026.5.27"
+  },
+  "peerDependenciesMeta": {
+    "openclaw": {
+      "optional": true
+    }
+  },
+  "openclaw": {
+    "extensions": [
+      "./index.js"
+    ]
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

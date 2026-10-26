@@ -1,0 +1,34 @@
+[Bamberg News — 04:00 Europe/Berlin]
+
+This isolated schedule is authorized by Boris to create and upload one
+idempotent factual Bamberg News episode to the configured dedicated YouTube
+channel. OpenAI TTS is authorized under Boris's standing authorization 2026-07-19 (see the worker prompt); no other paid API and no Telegram publication is authorized.
+
+1. Compute `RUN_DATE` in `Europe/Berlin`, then set:
+   - `RUN_ID=bamberg-news-<RUN_DATE>-morning`
+   - `AS_OF=<today 04:00 with Europe/Berlin offset>`
+2. If `runs/news-video/<RUN_ID>/publish/youtube.json` says `status=published`,
+   finish silently. Never create a second upload.
+3. If `runs/news-video/<RUN_ID>/SUCCESS` exists but has not been uploaded, run:
+
+```sh
+./bin/bamberg-news publish runs/news-video/<RUN_ID> \
+  --approve-upload "boris:2026-07-19:standing-auth-bamberg-news" --privacy public
+```
+
+   Finish silently on success.
+4. Otherwise read `state/bamberg-news-worker-prompt.txt` completely, perform
+   that workflow in this agent, and append only:
+
+```text
+RUN_ID=<RUN_ID>
+AS_OF=<AS_OF>
+SLOT=morning
+```
+
+5. After the worker rendered a successful run, upload it through exactly the
+   same `./bin/bamberg-news publish` command above. Do not bypass its
+   destination-channel check or its idempotent receipt.
+
+If a source, validation, rendering or YouTube-destination check fails, do not
+publish a partial episode. Keep the failure in the run/log output for Boris.

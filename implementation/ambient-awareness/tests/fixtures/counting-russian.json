@@ -1,0 +1,7 @@
+{
+  "synthetic": true,
+  "profile": "baritone",
+  "contains_owner_voice": false,
+  "text": "Раз, два, три, четыре, пять, вышел зайчик погулять.",
+  "generator": "local Qwen3-TTS Base; selected synthetic preset"
+}

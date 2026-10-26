@@ -1,0 +1,14 @@
+{
+  "synthetic": true,
+  "live_owner_test": false,
+  "model": "gemma3:4b",
+  "stages": {
+    "asr_cold": 1.161,
+    "intent": 2.605,
+    "reply": 1.026,
+    "tts_model_load": 2.974,
+    "tts_first_full": 7.872,
+    "tts_warm_full": 2.722
+  },
+  "estimated_serial_first_audio_seconds": 15.638
+}

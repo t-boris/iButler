@@ -1,0 +1,138 @@
+// openclaw.patch-tetyana-dyck.json5
+// Wire up the FamilyBuilder.io / Tetyana-Dyck-Web orchestrator agent.
+//
+// PREREQUISITES — must be done by Boris BEFORE applying:
+//   1. Create bot in BotFather → token saved as TETYANA_DYCK_BOT_TOKEN in ~/.openclaw/.env
+//   2. Ask Tanya to message @userinfobot → get her numeric TG id → REPLACE the
+//      <TANYA_TG_ID> placeholder in `allowFrom` below with the number
+//   3. Generate CI secret: `openssl rand -hex 32` → save as TETYANA_DYCK_CI_SECRET in ~/.openclaw/.env
+//
+// Apply (after prerequisites):
+//   openclaw config patch --file ./openclaw.patch-tetyana-dyck.json5 --dry-run
+//   openclaw config patch --file ./openclaw.patch-tetyana-dyck.json5
+//   openclaw gateway restart
+//
+// Merge semantics (per openclaw config patch --help):
+//   - objects merge recursively
+//   - arrays/scalars replace
+//   - null deletes a path
+//
+// This patch does NOT touch:
+//   - existing broker-fabric agent / workspace / route (already disabled in
+//     openclaw.patch-broker-fabric-off.json5)
+//   - existing top-level channels.telegram.botToken (the legacy bot @8443482001)
+//   - existing auth profiles or codex configuration
+//
+// Reversal:
+//   To disable later: `openclaw config set channels.telegram.accounts.tetyana-dyck.enabled false && openclaw gateway restart`
+
+{
+  // ─────────────────────────────────────────────────────────────
+  // 1. New agent. Uses the same Anthropic profile as broker-fabric.
+  // ─────────────────────────────────────────────────────────────
+  agents: {
+    list: [
+      // NOTE: agents.list is an array — patch semantics REPLACE this array entirely.
+      // We must therefore re-include the existing broker-fabric entry exactly as it is
+      // in ~/.openclaw/openclaw.json (kept disabled at channel level, agent record stays).
+      {
+        // PRESERVED VERBATIM from existing openclaw.json. Do not edit fields here —
+        // any edits silently change the live agent record because agents.list is an array
+        // (patch semantics: arrays REPLACE).
+        id: "broker-fabric",
+        name: "BrokerFabric",
+        description: "BrokerFabric pipeline agent (Mobile-Mind-AI/broker-fabric)",
+        workspace: "/Users/boris/.openclaw/workspace-broker-fabric",
+        model: {
+          primary: "anthropic/claude-sonnet-5"
+        }
+      },
+      {
+        id: "tetyana-dyck",
+        name: "TetyanaDyck",
+        description: "FamilyBuilder.io / Tetyana-Dyck-Web pipeline agent (t-boris/Tetyana-Dyck-Web). Non-technical primary user (Tanya), trilingual site en/ru/uk, Firebase deploy to https://familybuilder.io.",
+        workspace: "/Users/boris/.openclaw/workspace-tetyana-dyck",
+        model: {
+          primary: "anthropic/claude-sonnet-5"
+        }
+      }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 2. Bindings — route the new TG account to the new agent.
+  //    Array REPLACES, so we re-include broker-fabric binding.
+  // ─────────────────────────────────────────────────────────────
+  bindings: [
+    {
+      // PRESERVED VERBATIM from existing openclaw.json. bindings is an array (replaces).
+      type: "route",
+      agentId: "broker-fabric",
+      comment: "broker-fabric bot → broker-fabric agent",
+      match: {
+        channel: "telegram",
+        accountId: "broker-fabric"
+      }
+    },
+    {
+      type: "route",
+      agentId: "tetyana-dyck",
+      comment: "tetyana-dyck bot → tetyana-dyck agent (FamilyBuilder.io)",
+      match: {
+        channel: "telegram",
+        accountId: "tetyana-dyck"
+      }
+    }
+  ],
+
+  // ─────────────────────────────────────────────────────────────
+  // 3. Telegram per-project account for Tanya's bot.
+  //    Allowlist: Boris first (admin), then Tanya.
+  // ─────────────────────────────────────────────────────────────
+  channels: {
+    telegram: {
+      accounts: {
+        "tetyana-dyck": {
+          enabled: true,
+          botToken: {
+            source: "env",
+            provider: "default",
+            id: "TETYANA_DYCK_BOT_TOKEN"
+          },
+          dmPolicy: "allowlist",
+          // REPLACE <TANYA_TG_ID> with the integer her @userinfobot returns.
+          // 253483520 = Boris (admin, kept first per Round 9 convention).
+          allowFrom: [253483520, 1090472826],   // Boris (admin) + Tanya
+          groupPolicy: "allowlist"
+        }
+      }
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 4. Webhook route for CI → OpenClaw bridge.
+  //    Same shape as broker-fabric-ci. Re-includes broker-fabric route
+  //    because plugins.webhooks.config.routes is an object — merges keyed
+  //    by route name, so this is additive.
+  // ─────────────────────────────────────────────────────────────
+  plugins: {
+    entries: {
+      webhooks: {
+        config: {
+          routes: {
+            "tetyana-dyck-ci": {
+              path: "/plugins/webhooks/tetyana-dyck-ci",
+              sessionKey: "agent:tetyana-dyck:main",
+              description: "FamilyBuilder.io CI deploy callback (Firebase Hosting + Functions)",
+              secret: {
+                source: "env",
+                provider: "default",
+                id: "TETYANA_DYCK_CI_SECRET"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

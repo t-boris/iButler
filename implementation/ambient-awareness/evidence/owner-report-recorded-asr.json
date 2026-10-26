@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-10-23T19:16:22.005508+00:00",
+  "scope": "unprompted local ASR of already-authorized historical microphone capture around known owner bug report; not a new live dialogue or authority check",
+  "source_segments": 182,
+  "chunks": 8,
+  "processing_seconds": 9.26,
+  "known_owner_report_exactly_recognized": true,
+  "best_known_report_aligned_words": 6,
+  "reference_word_count": 6,
+  "whisper_language": "ru",
+  "transcripts_or_media_exported": false,
+  "no_owner_reference_change": true
+}

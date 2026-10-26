@@ -1,0 +1,153 @@
+// openclaw.patch.json5
+// Patch to add the broker-fabric multi-agent pipeline on top of the existing config.
+// Apply with:  openclaw config patch --file ./openclaw.patch.json5 --dry-run
+// Then for real: openclaw config patch --file ./openclaw.patch.json5
+//
+// Merge semantics (per `openclaw config patch --help`):
+//   * objects merge recursively
+//   * arrays/scalars replace (so `bindings` here REPLACES any existing bindings)
+//   * null deletes a path
+//
+// All references like `BROKER_FABRIC_BOT_TOKEN` resolve from ~/.openclaw/.env via
+// `provider: "default"`, `source: "env"`. See .env.template at repo root.
+
+{
+  // ─────────────────────────────────────────────────────────────
+  // 1. Auth profile for Anthropic (API key mode).
+  //    Coexists with the existing openai-codex OAuth profile.
+  // ─────────────────────────────────────────────────────────────
+  auth: {
+    profiles: {
+      "anthropic-api:t.boris@gmail.com": {
+        provider: "anthropic",
+        mode: "api_key",
+        email: "t.boris@gmail.com",
+        displayName: "Anthropic API (Boris)"
+      }
+    },
+    order: {
+      // Try Anthropic first for anthropic provider calls
+      anthropic: ["anthropic-api:t.boris@gmail.com"]
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 2. Sub-agent defaults — depth-2 enabled (main → orchestrator → workers).
+  // ─────────────────────────────────────────────────────────────
+  agents: {
+    defaults: {
+      subagents: {
+        maxSpawnDepth: 2,
+        maxChildrenPerAgent: 5,
+        maxConcurrent: 8,
+        runTimeoutSeconds: 1800,
+        archiveAfterMinutes: 120,
+        delegationMode: "prefer",
+        model: "anthropic/claude-haiku-4-5"
+      }
+    },
+
+    // ─────────────────────────────────────────────────────────
+    // 3. broker-fabric agent (one per project).
+    // ─────────────────────────────────────────────────────────
+    list: [
+      {
+        id: "broker-fabric",
+        name: "BrokerFabric",
+        description: "BrokerFabric pipeline agent (Mobile-Mind-AI/broker-fabric)",
+        workspace: "/Users/boris/.openclaw/workspace-broker-fabric",
+        model: {
+          primary: "anthropic/claude-sonnet-5"
+        }
+      }
+    ]
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 4. Bindings — route the broker-fabric Telegram account to the agent.
+  //    NOTE: this REPLACES the entire bindings array (per patch semantics).
+  // ─────────────────────────────────────────────────────────────
+  bindings: [
+    {
+      type: "route",
+      agentId: "broker-fabric",
+      comment: "broker-fabric bot → broker-fabric agent",
+      match: {
+        channel: "telegram",
+        accountId: "broker-fabric"
+      }
+    }
+  ],
+
+  // ─────────────────────────────────────────────────────────────
+  // 5. Telegram per-project account (preserves existing top-level botToken).
+  // ─────────────────────────────────────────────────────────────
+  channels: {
+    telegram: {
+      accounts: {
+        "broker-fabric": {
+          enabled: true,
+          botToken: {
+            source: "env",
+            provider: "default",
+            id: "BROKER_FABRIC_BOT_TOKEN"
+          },
+          dmPolicy: "allowlist",
+          allowFrom: [253483520]
+        }
+      }
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 6. ACP runtime — Claude via acpx.
+  // ─────────────────────────────────────────────────────────────
+  acp: {
+    enabled: true,
+    backend: "acpx",
+    defaultAgent: "claude",
+    allowedAgents: ["claude"],
+    maxConcurrentSessions: 4,
+    runtime: {
+      ttlMinutes: 120
+    },
+    stream: {
+      coalesceIdleMs: 300,
+      maxChunkChars: 1200
+    }
+  },
+
+  // ─────────────────────────────────────────────────────────────
+  // 7. Plugin config — acpx + webhooks.
+  // ─────────────────────────────────────────────────────────────
+  plugins: {
+    entries: {
+      acpx: {
+        enabled: true,
+        config: {
+          // MVP: approve-all (Boris's personal box). Tighten in Phase 6 of the doc.
+          permissionMode: "approve-all",
+          nonInteractivePermissions: "deny",
+          timeoutSeconds: 600
+        }
+      },
+      webhooks: {
+        enabled: true,
+        config: {
+          routes: {
+            "broker-fabric-ci": {
+              path: "/plugins/webhooks/broker-fabric-ci",
+              sessionKey: "agent:broker-fabric:main",
+              description: "BrokerFabric CI build callback",
+              secret: {
+                source: "env",
+                provider: "default",
+                id: "BROKER_FABRIC_CI_SECRET"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

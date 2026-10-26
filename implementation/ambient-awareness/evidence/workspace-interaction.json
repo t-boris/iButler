@@ -1,0 +1,14 @@
+[
+  {
+    "file": "/Users/boris/.openclaw/workspace-butler/TOOLS.md",
+    "before_sha256": "6ebac7c2d8a042b583dbac376dea614ce6e66f99e34d4c413e4a509b6adf1747",
+    "after_sha256": "31c991ff7e7bccf0c1b4d9b5eff69f33fb96155e5f121c659a6fe9161464b1cb",
+    "backup": "/Users/boris/.local/share/butler-ambient/before-interaction-TOOLS.md"
+  },
+  {
+    "file": "/Users/boris/.openclaw/workspace-butler/AGENTS.md",
+    "before_sha256": "b6559860b0392e8e5d44318a457ca45c3a8943dfa08803192092fecde189e375",
+    "after_sha256": "2978ec2b5c80420e61df7e33b8b62bd6f0983020afcd15e5ede52eaef7df0c9b",
+    "backup": "/Users/boris/.local/share/butler-ambient/before-interaction-AGENTS.md"
+  }
+]

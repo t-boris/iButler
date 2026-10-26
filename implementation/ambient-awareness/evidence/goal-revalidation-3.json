@@ -1,0 +1,58 @@
+{
+  "at": "2026-10-24T03:48:26.879279+00:00",
+  "previous_turn_classification": "no progress:revalidation2 confirms unchanged blocker",
+  "previous_no_progress_count": 2,
+  "source_hashes_match": true,
+  "installed_sources_match": true,
+  "automated_tests_build_passed": true,
+  "microphone_fresh": true,
+  "camera_fresh": true,
+  "models": {
+    "model": "ready",
+    "vision": "ready",
+    "voice": "ready",
+    "asr": "ready"
+  },
+  "dialogue_allowed": false,
+  "participant": {
+    "fresh": true,
+    "check_age_seconds": 1.03,
+    "capture_age_seconds": 1.91,
+    "consecutive_checks": 0,
+    "required_checks": 3,
+    "owner_camera_confirmed": false,
+    "owner_voice_confirmed": false,
+    "confirmed_by": null,
+    "voice_check": null
+  },
+  "listening_counts": {
+    "batches": 857,
+    "transcription": 5,
+    "heard": 5,
+    "reply-blocked": 5
+  },
+  "voice_counts": {},
+  "last_response_timings": {},
+  "capture_error": null,
+  "analysis_error": null,
+  "questions": {
+    "Q-013": {
+      "open": true,
+      "answer_section_present": false
+    },
+    "Q-014": {
+      "open": true,
+      "answer_section_present": false
+    },
+    "Q-015": {
+      "open": true,
+      "answer_section_present": false
+    },
+    "Q-016": {
+      "open": true,
+      "answer_section_present": false
+    }
+  },
+  "actual_intended_owner_dialogue_verified": false,
+  "raw_speech_or_media_exported": false
+}

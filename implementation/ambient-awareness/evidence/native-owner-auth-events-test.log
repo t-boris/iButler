@@ -1,0 +1,6 @@
+cwd: /Users/boris/Projects/MacStudioButler/implementation/ambient-awareness
+command: ["/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/build/butler-owner-auth", "--test-events"]
+exit: 0
+
+{"authorized":true,"start":true}
+PASS native Start mouse event dispatched; no authentication or device access

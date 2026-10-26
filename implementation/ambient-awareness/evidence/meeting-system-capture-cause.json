@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-10-23T19:14:24.756297+00:00",
+  "meeting_mode": "auto",
+  "observed_external_input_bundle_ids": [
+    "com.apple.replayd"
+  ],
+  "own_sources_ignored": 2,
+  "no_actual_conferencing_input_in_this_probe": true,
+  "identified_cause": "ScreenCaptureKit OS capture broker falsely classified as external call input",
+  "content_accessed": false,
+  "fix": "exclude exact system capture broker; retain independent actual browser/call input checks",
+  "verification": "pending"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "butler-core-bridge",
+  "name": "Butler Core Bridge",
+  "version": "0.1.0",
+  "description": "Admits managed Telegram messages to the local butler-core before dispatch, sets the receipt reaction after persistence and reports agent turn lifecycle and sent replies.",
+  "activation": {
+    "onStartup": true
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "socket": {
+        "type": "string"
+      },
+      "timeoutMs": {
+        "type": "number"
+      }
+    }
+  },
+  "uiHints": {
+    "socket": {
+      "label": "Core socket",
+      "help": "Path of the butler-core Unix socket (default ~/.local/share/butler-core/core.sock)"
+    },
+    "timeoutMs": {
+      "label": "Admission timeout",
+      "help": "Milliseconds to wait for the core before the message passes through without a receipt (default 1200)"
+    }
+  }
+}

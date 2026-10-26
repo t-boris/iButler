@@ -1,0 +1,990 @@
+{
+  "samples": [
+    {
+      "at": 1792770863.66,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.82,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 0,
+        "backend": "native-avfoundation",
+        "failure": null
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770864.57,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.73,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 0,
+        "backend": "native-avfoundation",
+        "failure": null
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770865.48,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.63,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 0,
+        "backend": "native-avfoundation",
+        "failure": null
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770866.39,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.54,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 0,
+        "backend": "native-avfoundation",
+        "failure": null
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770867.3,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.46,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 0,
+        "backend": "native-avfoundation",
+        "failure": null
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770868.21,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.35,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 0,
+        "backend": "native-avfoundation",
+        "failure": null
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770869.12,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.27,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770870.03,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.18,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770870.98,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.14,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770871.9,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.05,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770872.81,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.96,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770873.72,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.87,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770874.63,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.78,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770875.54,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.7,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770876.45,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.6,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770877.36,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.51,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770878.27,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.41,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770879.18,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.34,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770880.09,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.24,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770881.01,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.17,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770881.92,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.07,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770882.84,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 1.0,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770883.76,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.91,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770884.67,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.82,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770885.57,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.72,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770886.48,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.63,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770887.39,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.55,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770888.31,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.46,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 1,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770889.22,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.37,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770890.14,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.28,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770891.05,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.19,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770891.96,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.11,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770892.87,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.02,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770893.79,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.94,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    },
+    {
+      "at": 1792770894.69,
+      "allowed": false,
+      "recording": false,
+      "phase": "idle",
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.84,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false
+      },
+      "failure": "evidence-unavailable",
+      "check_latency": 0.0,
+      "camera": {
+        "working": false,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "failure": "video-stalled"
+      },
+      "input_working": true,
+      "counts": {},
+      "cancellations": {},
+      "turns": [],
+      "context": 0,
+      "ambient": 0
+    }
+  ],
+  "raw_content_exported": false,
+  "helpers_match": {
+    "butler-camera": true,
+    "butler-audio": true,
+    "butler-panel": true
+  }
+}

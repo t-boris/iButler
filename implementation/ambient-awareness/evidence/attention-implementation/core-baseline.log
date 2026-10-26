@@ -1,0 +1,222 @@
+test_low_free_space_rejects_before_writing (test_admission.AdmissionTest.test_low_free_space_rejects_before_writing) ... ok
+test_receipt_only_after_durable_persistence (test_admission.AdmissionTest.test_receipt_only_after_durable_persistence) ... ok
+test_same_message_is_one_task (test_admission.AdmissionTest.test_same_message_is_one_task) ... ok
+test_storage_exhaustion_rejects_explicitly (test_admission.AdmissionTest.test_storage_exhaustion_rejects_explicitly) ... ok
+test_tatyana_is_recorded_in_her_isolated_persona (test_admission.AdmissionTest.test_tatyana_is_recorded_in_her_isolated_persona) ... ok
+test_unmanaged_account_and_unknown_sender (test_admission.AdmissionTest.test_unmanaged_account_and_unknown_sender) ... ok
+test_continuation_from_another_persona_is_not_disclosed (test_admission.ChatTurnTest.test_continuation_from_another_persona_is_not_disclosed) ... ok
+test_explicit_continuation_reuses_the_task_once (test_admission.ChatTurnTest.test_explicit_continuation_reuses_the_task_once) ... ok
+test_failed_turn_and_follow_up_turn (test_admission.ChatTurnTest.test_failed_turn_and_follow_up_turn) ... ok
+test_gateway_restart_interrupts_without_rerunning_and_notifies (test_admission.ChatTurnTest.test_gateway_restart_interrupts_without_rerunning_and_notifies) ... ok
+test_message_folded_into_running_turn_is_closed_after_grace (test_admission.ChatTurnTest.test_message_folded_into_running_turn_is_closed_after_grace) ... ok
+test_runs_of_other_sessions_do_not_take_over (test_admission.ChatTurnTest.test_runs_of_other_sessions_do_not_take_over) ... ok
+test_stale_turn_is_interrupted (test_admission.ChatTurnTest.test_stale_turn_is_interrupted) ... ok
+test_turn_lifecycle (test_admission.ChatTurnTest.test_turn_lifecycle) ... ok
+test_cross_channel_approval_checks_authority_and_binding (test_admission.CommandTest.test_cross_channel_approval_checks_authority_and_binding) ... ok
+test_resolution_command (test_admission.CommandTest.test_resolution_command) ... ok
+test_status_shows_progress_approval_and_uncertainty (test_admission.CommandTest.test_status_shows_progress_approval_and_uncertainty) ... ok
+test_checker_catches_a_violation (test_boundaries.BoundaryTest.test_checker_catches_a_violation) ... ok
+test_every_module_has_a_rule (test_boundaries.BoundaryTest.test_every_module_has_a_rule) ... ok
+test_prohibited_imports_are_detected (test_boundaries.BoundaryTest.test_prohibited_imports_are_detected) ... ok
+test_incompatible_input_has_a_reason (test_boundaries.ContractTest.test_incompatible_input_has_a_reason) ... ok
+test_rejections_are_recorded (test_boundaries.ContractTest.test_rejections_are_recorded) ... ok
+test_retained_examples_remain_compatible (test_boundaries.ContractTest.test_retained_examples_remain_compatible) ... ok
+test_core_starts_with_test_adapters_only (test_boundaries.TestAdapterStartupTest.test_core_starts_with_test_adapters_only) ... ok
+test_message_task_turn_reply_and_command (test_bridge_wiring.BridgeWiringTest.test_message_task_turn_reply_and_command) ... ok
+test_invalid_configuration_never_activates (test_config_store.ConfigTest.test_invalid_configuration_never_activates) ... ok
+test_preview_activate_and_rollback (test_config_store.ConfigTest.test_preview_activate_and_rollback) ... ok
+test_durability_settings_and_permissions (test_config_store.StoreTest.test_durability_settings_and_permissions) ... ok
+test_full_database_raises_storage_exhausted (test_config_store.StoreTest.test_full_database_raises_storage_exhausted) ... ok
+test_newer_schema_is_refused (test_config_store.StoreTest.test_newer_schema_is_refused) ... ok
+test_online_backup_is_consistent (test_config_store.StoreTest.test_online_backup_is_consistent) ... ok
+test_reopen_keeps_data_and_schema (test_config_store.StoreTest.test_reopen_keeps_data_and_schema) ... ok
+test_ambiguous_document_send_is_uncertain_and_released (test_delivery.AttachmentTest.test_ambiguous_document_send_is_uncertain_and_released) ... ok
+test_attachment_is_staged_privately_sent_and_released (test_delivery.AttachmentTest.test_attachment_is_staged_privately_sent_and_released) ... ok
+test_duplicate_and_denied_attachments_leave_no_staged_copy (test_delivery.AttachmentTest.test_duplicate_and_denied_attachments_leave_no_staged_copy) ... ok
+test_symlinks_and_oversized_files_are_refused (test_delivery.AttachmentTest.test_symlinks_and_oversized_files_are_refused) ... ok
+test_ambiguous_outcome_is_not_retransmitted (test_delivery.DeliveryTest.test_ambiguous_outcome_is_not_retransmitted) ... ok
+test_deduplicating_transport_may_retry_only_on_the_same_gateway (test_delivery.DeliveryTest.test_deduplicating_transport_may_retry_only_on_the_same_gateway) ... ok
+test_delivery_failure_keeps_the_completed_operation (test_delivery.DeliveryTest.test_delivery_failure_keeps_the_completed_operation) ... ok
+test_duplicate_key_is_one_delivery (test_delivery.DeliveryTest.test_duplicate_key_is_one_delivery) ... ok
+test_import_classifies_refusals_as_failed_and_the_rest_as_uncertain (test_delivery.DeliveryTest.test_import_classifies_refusals_as_failed_and_the_rest_as_uncertain) ... ok
+test_import_is_read_only (test_delivery.DeliveryTest.test_import_is_read_only) ... ok
+test_quiet_hours_defer_initiative_and_silence_replies (test_delivery.DeliveryTest.test_quiet_hours_defer_initiative_and_silence_replies) ... ok
+test_recipient_outside_the_persona_is_refused (test_delivery.DeliveryTest.test_recipient_outside_the_persona_is_refused) ... ok
+test_restart_during_transmission_is_uncertain (test_delivery.DeliveryTest.test_restart_during_transmission_is_uncertain) ... ok
+test_retry_until_success_within_bounds (test_delivery.DeliveryTest.test_retry_until_success_within_bounds) ... ok
+test_retry_window_bounds_retries (test_delivery.DeliveryTest.test_retry_window_bounds_retries) ... ok
+test_revoked_disclosure_blocks_delivery (test_delivery.DeliveryTest.test_revoked_disclosure_blocks_delivery) ... ok
+test_stale_advice_and_initiative_limits (test_delivery.DeliveryTest.test_stale_advice_and_initiative_limits) ... ok
+test_status_lines_are_silent_and_results_are_not (test_delivery.DeliveryTest.test_status_lines_are_silent_and_results_are_not) ... ok
+test_send_document_posts_multipart_and_classifies_failures (test_delivery.DocumentTransportTest.test_send_document_posts_multipart_and_classifies_failures) ... ok
+test_token_reference_is_read_from_the_env_file (test_delivery.DocumentTransportTest.test_token_reference_is_read_from_the_env_file) ... ok
+test_transport_routes_attachments_to_the_bot_api_without_the_gateway (test_delivery.DocumentTransportTest.test_transport_routes_attachments_to_the_bot_api_without_the_gateway) ... ok
+test_cancel_stops_the_worker_and_reports_partial_changes (test_dispatch.DispatchAdapterTest.test_cancel_stops_the_worker_and_reports_partial_changes) ... ok
+test_identity_check_never_trusts_a_reused_pid (test_dispatch.DispatchAdapterTest.test_identity_check_never_trusts_a_reused_pid) ... ok
+test_invalid_dispatch_id_is_rejected (test_dispatch.DispatchAdapterTest.test_invalid_dispatch_id_is_rejected) ... ok
+test_killed_worker_is_interrupted_reported_and_not_restarted (test_dispatch.DispatchAdapterTest.test_killed_worker_is_interrupted_reported_and_not_restarted) ... ok
+test_lost_response_reconciles_to_the_existing_job_without_a_second_worker (test_dispatch.DispatchAdapterTest.test_lost_response_reconciles_to_the_existing_job_without_a_second_worker) ... ok
+test_project_outside_the_roots_is_rejected_without_a_job (test_dispatch.DispatchAdapterTest.test_project_outside_the_roots_is_rejected_without_a_job) ... ok
+test_runs_tracks_and_succeeds_with_the_installed_dispatcher (test_dispatch.DispatchAdapterTest.test_runs_tracks_and_succeeds_with_the_installed_dispatcher) ... ok
+test_workers_never_inherit_the_core_environment (test_dispatch.DispatchAdapterTest.test_workers_never_inherit_the_core_environment) ... ok
+test_core_unavailable_refuses_without_starting_anything (test_dispatch.DispatchCliTest.test_core_unavailable_refuses_without_starting_anything) ... ok
+test_denied_dispatch_is_refused (test_dispatch.DispatchCliTest.test_denied_dispatch_is_refused) ... ok
+test_switch_file_follows_activation_and_rollback (test_dispatch.DispatchCliTest.test_switch_file_follows_activation_and_rollback) ... ok
+test_switch_off_keeps_the_legacy_path (test_dispatch.DispatchCliTest.test_switch_off_keeps_the_legacy_path) ... ok
+test_switch_on_records_the_dispatch_in_the_core_first (test_dispatch.DispatchCliTest.test_switch_on_records_the_dispatch_in_the_core_first) ... ok
+test_changed_route_after_review_is_rejected (test_dispatch.VoiceTaskTest.test_changed_route_after_review_is_rejected) ... ok
+test_owner_confirmed_voice_job_runs_through_the_core (test_dispatch.VoiceTaskTest.test_owner_confirmed_voice_job_runs_through_the_core) ... ok
+test_lost_answer_is_settled_from_github_without_a_second_push (test_github.GitHubTest.test_lost_answer_is_settled_from_github_without_a_second_push) ... ok
+test_pull_request_is_opened_once_per_branch_and_commit (test_github.GitHubTest.test_pull_request_is_opened_once_per_branch_and_commit) ... ok
+test_wrong_branch_is_refused_and_butler_persona_is_denied (test_github.GitHubTest.test_wrong_branch_is_refused_and_butler_persona_is_denied) ... ok
+test_core_down_keeps_the_message_and_the_next_call_catches_up (test_ingest_workspace.InboxIngestTest.test_core_down_keeps_the_message_and_the_next_call_catches_up) ... ok
+test_message_is_buffered_locally_and_admitted_to_the_core_without_its_text (test_ingest_workspace.InboxIngestTest.test_message_is_buffered_locally_and_admitted_to_the_core_without_its_text) ... ok
+test_switch_off_keeps_the_buffer_only (test_ingest_workspace.InboxIngestTest.test_switch_off_keeps_the_buffer_only) ... ok
+test_allowed_write_is_applied_by_the_installed_library_with_its_audit (test_knowledge.VaultWriteTest.test_allowed_write_is_applied_by_the_installed_library_with_its_audit) ... ok
+test_confirm_rule_waits_for_the_owner_and_a_changed_spec_is_refused (test_knowledge.VaultWriteTest.test_confirm_rule_waits_for_the_owner_and_a_changed_spec_is_refused) ... ok
+test_lost_answer_is_reconciled_from_the_vault_and_never_applied_twice (test_knowledge.VaultWriteTest.test_lost_answer_is_reconciled_from_the_vault_and_never_applied_twice) ... ok
+test_source_scope_is_checked_at_the_search_boundary (test_knowledge.VaultWriteTest.test_source_scope_is_checked_at_the_search_boundary) ... ok
+test_a_missed_slot_is_not_run_hours_late_and_the_switch_off_stops_scheduling (test_mail.ReadingTest.test_a_missed_slot_is_not_run_hours_late_and_the_switch_off_stops_scheduling) ... ok
+test_closed_mail_app_fails_visibly_and_the_next_slot_retries (test_mail.ReadingTest.test_closed_mail_app_fails_visibly_and_the_next_slot_retries) ... ok
+test_quiet_reading_sends_nothing (test_mail.ReadingTest.test_quiet_reading_sends_nothing) ... ok
+test_readings_are_scheduled_once_per_slot_and_deliver_the_digest (test_mail.ReadingTest.test_readings_are_scheduled_once_per_slot_and_deliver_the_digest) ... ok
+test_a_draft_changed_after_approval_is_refused_not_sent (test_mail.ReplyTest.test_a_draft_changed_after_approval_is_refused_not_sent) ... ok
+test_closed_mail_app_does_not_count_as_a_send (test_mail.ReplyTest.test_closed_mail_app_does_not_count_as_a_send) ... ok
+test_lost_send_absent_after_the_grace_is_retried (test_mail.ReplyTest.test_lost_send_absent_after_the_grace_is_retried) ... ok
+test_lost_send_is_settled_from_the_sent_mailbox (test_mail.ReplyTest.test_lost_send_is_settled_from_the_sent_mailbox) ... ok
+test_mail_edited_reply_sends_the_bound_outgoing_message (test_mail.ReplyTest.test_mail_edited_reply_sends_the_bound_outgoing_message) ... ok
+test_reply_waits_for_the_owner_then_sends_once (test_mail.ReplyTest.test_reply_waits_for_the_owner_then_sends_once) ... ok
+test_display_card_is_local_and_the_reply_opens_in_mail_without_sending (test_mail_workspace.MailLibraryTest.test_display_card_is_local_and_the_reply_opens_in_mail_without_sending) ... ok
+test_draft_and_send_are_local_and_a_send_runs_once (test_mail_workspace.MailLibraryTest.test_draft_and_send_are_local_and_a_send_runs_once) ... ok
+test_mail_edited_reply_is_captured_bound_by_hash_and_refused_once_changed (test_mail_workspace.MailLibraryTest.test_mail_edited_reply_is_captured_bound_by_hash_and_refused_once_changed) ... ok
+test_reading_classifies_locally_and_reports_each_message_once (test_mail_workspace.MailLibraryTest.test_reading_classifies_locally_and_reports_each_message_once) ... ok
+test_rules_skip_bulk_without_the_model_and_survive_a_missing_model (test_mail_workspace.MailLibraryTest.test_rules_skip_bulk_without_the_model_and_survive_a_missing_model) ... ok
+test_stale_mail_app_is_called_out_in_the_digest (test_mail_workspace.MailLibraryTest.test_stale_mail_app_is_called_out_in_the_digest) ... ok
+test_store_keeps_bodies_private_and_resolves_by_digest_number (test_mail_workspace.MailLibraryTest.test_store_keeps_bodies_private_and_resolves_by_digest_number) ... ok
+test_exports_are_recorded_and_policy_checked_before_anything_leaves (test_media.ExportTest.test_exports_are_recorded_and_policy_checked_before_anything_leaves) ... ok
+test_bamberg_persona_publishes_news_with_its_own_credentials (test_media.YouTubeTest.test_bamberg_persona_publishes_news_with_its_own_credentials) ... ok
+test_cli_killed_after_the_upload_is_reconciled_from_the_channel_never_re_uploaded (test_media.YouTubeTest.test_cli_killed_after_the_upload_is_reconciled_from_the_channel_never_re_uploaded) ... ok
+test_news_upload_runs_the_cli_with_the_persona_credentials_only (test_media.YouTubeTest.test_news_upload_runs_the_cli_with_the_persona_credentials_only) ... ok
+test_old_pending_upload_absent_from_the_channel_is_retried (test_media.YouTubeTest.test_old_pending_upload_absent_from_the_channel_is_retried) ... ok
+test_per_video_uploads_wait_for_the_owner (test_media.YouTubeTest.test_per_video_uploads_wait_for_the_owner) ... ok
+test_refusals_and_failed_session_init (test_media.YouTubeTest.test_refusals_and_failed_session_init) ... ok
+test_authorized_openai_narration_keeps_its_voice_and_records_the_export (test_narration_export.NarrationExportTest.test_authorized_openai_narration_keeps_its_voice_and_records_the_export) ... ok
+test_denied_or_unreachable_core_renders_offline (test_narration_export.NarrationExportTest.test_denied_or_unreachable_core_renders_offline) ... ok
+test_edge_denied_for_butler_only_blocks_the_edge_fallback (test_narration_export.NarrationExportTest.test_edge_denied_for_butler_only_blocks_the_edge_fallback) ... ok
+test_switch_off_and_local_voices_never_ask_the_core (test_narration_export.NarrationExportTest.test_switch_off_and_local_voices_never_ask_the_core) ... ok
+test_approval_is_bound_and_single_use (test_operations.ApprovalTest.test_approval_is_bound_and_single_use) ... ok
+test_approval_request_is_delivered_to_owner (test_operations.ApprovalTest.test_approval_request_is_delivered_to_owner) ... ok
+test_changed_parameters_invalidate (test_operations.ApprovalTest.test_changed_parameters_invalidate) ... ok
+test_expired_approval_cannot_authorize (test_operations.ApprovalTest.test_expired_approval_cannot_authorize) ... ok
+test_reject (test_operations.ApprovalTest.test_reject) ... ok
+test_revocation_blocks_previously_approved_work (test_operations.ApprovalTest.test_revocation_blocks_previously_approved_work) ... ok
+test_cancel_wait (test_operations.CancelTest.test_cancel_wait) ... ok
+test_effect_already_done (test_operations.CancelTest.test_effect_already_done) ... ok
+test_stop_executor (test_operations.CancelTest.test_stop_executor) ... ok
+test_tracked_work_is_stopped (test_operations.CancelTest.test_tracked_work_is_stopped) ... ok
+test_lost_response_reconciles_to_done_without_repeating (test_operations.ExecutionTest.test_lost_response_reconciles_to_done_without_repeating) ... ok
+test_lost_response_without_effect_retries (test_operations.ExecutionTest.test_lost_response_without_effect_retries) ... ok
+test_not_dispatched_retries_within_bounds (test_operations.ExecutionTest.test_not_dispatched_retries_within_bounds) ... ok
+test_owner_resolution_not_done_fails_without_retry (test_operations.ExecutionTest.test_owner_resolution_not_done_fails_without_retry) ... ok
+test_rejected_never_retries (test_operations.ExecutionTest.test_rejected_never_retries) ... ok
+test_success_records_receipt_and_task (test_operations.ExecutionTest.test_success_records_receipt_and_task) ... ok
+test_unknown_outcome_blocks_repetition_until_owner_resolves (test_operations.ExecutionTest.test_unknown_outcome_blocks_repetition_until_owner_resolves) ... ok
+test_duplicate_key_returns_existing_operation (test_operations.SubmissionTest.test_duplicate_key_returns_existing_operation) ... ok
+test_key_reuse_with_other_parameters_is_refused (test_operations.SubmissionTest.test_key_reuse_with_other_parameters_is_refused) ... ok
+test_queue_limit_rejects_explicitly (test_operations.SubmissionTest.test_queue_limit_rejects_explicitly) ... ok
+test_rules_system1_and_system2_use_the_same_path (test_operations.SubmissionTest.test_rules_system1_and_system2_use_the_same_path) ... ok
+test_approved_export_runs_and_revocation_blocks_it (test_policy.ExportTest.test_approved_export_runs_and_revocation_blocks_it) ... ok
+test_export_needs_category_and_recipient (test_policy.ExportTest.test_export_needs_category_and_recipient) ... ok
+test_operation_exception_requires_operation_specific_approval (test_policy.ExportTest.test_operation_exception_requires_operation_specific_approval) ... ok
+test_raw_observation_materials_stay_local (test_policy.ExportTest.test_raw_observation_materials_stay_local) ... ok
+test_default_isolation_across_sources_tasks_and_actions (test_policy.IsolationTest.test_default_isolation_across_sources_tasks_and_actions) ... ok
+test_every_check_is_recorded (test_policy.IsolationTest.test_every_check_is_recorded) ... ok
+test_explicit_owner_grant_opens_exactly_what_it_names (test_policy.IsolationTest.test_explicit_owner_grant_opens_exactly_what_it_names) ... ok
+test_grants_by_anyone_but_the_owner_are_invalid (test_policy.IsolationTest.test_grants_by_anyone_but_the_owner_are_invalid) ... ok
+test_principals_are_scoped_to_their_persona (test_policy.IsolationTest.test_principals_are_scoped_to_their_persona) ... ok
+test_shared_project_association_grants_nothing (test_policy.IsolationTest.test_shared_project_association_grants_nothing) ... ok
+test_corruption_is_detected_on_restore (test_runtime.BackupTest.test_corruption_is_detected_on_restore) ... ok
+test_generation_has_manifest_and_no_secrets (test_runtime.BackupTest.test_generation_has_manifest_and_no_secrets) ... ok
+test_live_sqlite_in_a_file_set_is_copied_consistently (test_runtime.BackupTest.test_live_sqlite_in_a_file_set_is_copied_consistently) ... ok
+test_staleness_alarm_and_restore_drill (test_runtime.BackupTest.test_staleness_alarm_and_restore_drill) ... ok
+test_unchanged_files_are_hard_links_and_generations_are_pruned (test_runtime.BackupTest.test_unchanged_files_are_hard_links_and_generations_are_pruned) ... ok
+test_bootstrap_activates_once (test_runtime.BootstrapAndFeedbackTest.test_bootstrap_activates_once) ... ok
+test_offline_admin_activation_is_idempotent_and_refused_while_serving (test_runtime.BootstrapAndFeedbackTest.test_offline_admin_activation_is_idempotent_and_refused_while_serving) ... ok
+test_request_and_reply_to_initiative (test_runtime.BootstrapAndFeedbackTest.test_request_and_reply_to_initiative) ... ok
+test_kill_after_effect_reconciles_without_repeating (test_runtime.CrashRecoveryTest.test_kill_after_effect_reconciles_without_repeating) ... ok
+test_kill_before_effect_retries_once (test_runtime.CrashRecoveryTest.test_kill_before_effect_retries_once) ... ok
+test_cron_tasks_are_not_listed_in_chat (test_runtime.CronTest.test_cron_tasks_are_not_listed_in_chat) ... ok
+test_running_marker_is_completed_by_finished_record (test_runtime.CronTest.test_running_marker_is_completed_by_finished_record) ... ok
+test_runs_become_tasks_once (test_runtime.CronTest.test_runs_become_tasks_once) ... ok
+test_ambient_reports_pause_as_metadata_only (test_runtime.ServerBoundaryTest.test_ambient_reports_pause_as_metadata_only) ... ok
+test_bridge_refresh_is_its_liveness_signal (test_runtime.ServerBoundaryTest.test_bridge_refresh_is_its_liveness_signal) ... ok
+test_gateway_admits_and_agents_cannot (test_runtime.ServerBoundaryTest.test_gateway_admits_and_agents_cannot) ... ok
+test_local_callers_cannot_approve_or_activate (test_runtime.ServerBoundaryTest.test_local_callers_cannot_approve_or_activate) ... ok
+test_local_programs_notify_the_owner_through_delivery (test_runtime.ServerBoundaryTest.test_local_programs_notify_the_owner_through_delivery) ... ok
+test_notify_command_queues_and_exits_3_when_the_core_is_away (test_runtime.ServerBoundaryTest.test_notify_command_queues_and_exits_3_when_the_core_is_away) ... ok
+test_socket_is_private (test_runtime.ServerBoundaryTest.test_socket_is_private) ... ok
+test_terminal_owner_can_approve_and_rejection_is_feedback (test_runtime.ServerBoundaryTest.test_terminal_owner_can_approve_and_rejection_is_feedback) ... ok
+test_failure_classes (test_runtime.TransportTest.test_failure_classes) ... ok
+test_receipt_from_gateway_json (test_runtime.TransportTest.test_receipt_from_gateway_json) ... ok
+test_timeout_is_ambiguous (test_runtime.TransportTest.test_timeout_is_ambiguous) ... ok
+test_transports_only_for_telegram_accounts (test_runtime.TransportTest.test_transports_only_for_telegram_accounts) ... ok
+test_stalled_executor_does_not_block_dialogue_or_other_work (test_runtime.WorkerTest.test_stalled_executor_does_not_block_dialogue_or_other_work) ... ok
+test_installed_model_predicts_in_milliseconds (test_system1.RouterModelTest.test_installed_model_predicts_in_milliseconds) ... ok
+test_missing_model_directory_is_silent (test_system1.RouterModelTest.test_missing_model_directory_is_silent) ... ok
+test_shadow_records_prediction_next_to_the_actual_route_without_acting (test_system1.ShadowRecordsTest.test_shadow_records_prediction_next_to_the_actual_route_without_acting) ... ok
+test_softmax_is_a_distribution_and_temperature_sharpens (test_system1.SoftmaxTest.test_softmax_is_a_distribution_and_temperature_sharpens) ... ok
+test_no_analysis_during_a_full_pause_and_model_outage_keeps_signals_for_later (test_system3.AnalysisTest.test_no_analysis_during_a_full_pause_and_model_outage_keeps_signals_for_later) ... ok
+test_schedule_respects_the_switch_and_intervals (test_system3.AnalysisTest.test_schedule_respects_the_switch_and_intervals) ... ok
+test_signals_become_candidate_lessons_with_provenance_and_metadata_only_prompts (test_system3.AnalysisTest.test_signals_become_candidate_lessons_with_provenance_and_metadata_only_prompts) ... ok
+test_unclear_cause_asks_the_owner_at_most_twice_a_week_and_the_answer_is_evidence (test_system3.AnalysisTest.test_unclear_cause_asks_the_owner_at_most_twice_a_week_and_the_answer_is_evidence) ... ok
+test_compliance_counts_repeats_and_alarms_after_three (test_system3.LessonLifecycleTest.test_compliance_counts_repeats_and_alarms_after_three) ... ok
+test_confirm_exports_to_the_persona_store_and_retire_removes_it (test_system3.LessonLifecycleTest.test_confirm_exports_to_the_persona_store_and_retire_removes_it) ... ok
+test_doctor_snapshot_is_counts_only (test_system3.LessonLifecycleTest.test_doctor_snapshot_is_counts_only) ... ok
+test_core_down_refuses_without_writing (test_tasksync.TaskSyncTest.test_core_down_refuses_without_writing) ... ok
+test_lost_response_creates_no_second_task (test_tasksync.TaskSyncTest.test_lost_response_creates_no_second_task) ... ok
+test_switch_off_keeps_the_direct_path (test_tasksync.TaskSyncTest.test_switch_off_keeps_the_direct_path) ... ok
+test_switched_add_task_is_one_core_operation_and_one_todoist_task (test_tasksync.TaskSyncTest.test_switched_add_task_is_one_core_operation_and_one_todoist_task) ... ok
+test_switched_changes_go_through_the_core_and_delete_waits_for_the_owner (test_tasksync.TaskSyncTest.test_switched_changes_go_through_the_core_and_delete_waits_for_the_owner) ... ok
+test_core_down_pushes_nothing (test_tetyana_pr.TetyanaPRTest.test_core_down_pushes_nothing) ... ok
+test_main_and_odd_branches_are_refused_before_anything_is_pushed (test_tetyana_pr.TetyanaPRTest.test_main_and_odd_branches_are_refused_before_anything_is_pushed) ... ok
+test_switch_off_runs_the_wrapper_directly (test_tetyana_pr.TetyanaPRTest.test_switch_off_runs_the_wrapper_directly) ... ok
+test_switched_open_pushes_creates_and_arms_auto_merge_once (test_tetyana_pr.TetyanaPRTest.test_switched_open_pushes_creates_and_arms_auto_merge_once) ... ok
+test_bulk_import_needs_the_owner_and_creates_each_item_once (test_todoist.ChangeTest.test_bulk_import_needs_the_owner_and_creates_each_item_once) ... ok
+test_close_reopen_update_and_comment_reconcile_from_the_task (test_todoist.ChangeTest.test_close_reopen_update_and_comment_reconcile_from_the_task) ... ok
+test_delete_needs_the_owner_and_is_reconciled_by_absence (test_todoist.ChangeTest.test_delete_needs_the_owner_and_is_reconciled_by_absence) ... ok
+test_create_runs_one_sync_command_and_returns_the_task (test_todoist.CreateTest.test_create_runs_one_sync_command_and_returns_the_task) ... ok
+test_refusals_fail_without_retry_and_missing_token_is_not_dispatched (test_todoist.CreateTest.test_refusals_fail_without_retry_and_missing_token_is_not_dispatched) ... ok
+test_repeated_command_is_never_executed_twice_even_when_the_core_forgot_the_id (test_todoist.CreateTest.test_repeated_command_is_never_executed_twice_even_when_the_core_forgot_the_id) ... ok
+test_unknown_outcome_after_the_effect_is_reconciled_without_a_second_task (test_todoist.CreateTest.test_unknown_outcome_after_the_effect_is_reconciled_without_a_second_task) ... ok
+test_unknown_outcome_before_the_effect_retries_with_the_same_uuid (test_todoist.CreateTest.test_unknown_outcome_before_the_effect_retries_with_the_same_uuid) ... ok
+test_recall_is_recorded_first_and_hits_carry_provenance (test_vault_workspace.MemoryLibraryTest.test_recall_is_recorded_first_and_hits_carry_provenance) ... ok
+test_refused_or_absent_core_means_no_search (test_vault_workspace.MemoryLibraryTest.test_refused_or_absent_core_means_no_search) ... ok
+test_allowed_write_goes_through_the_core_and_lands_with_the_audit (test_vault_workspace.VaultLibraryTest.test_allowed_write_goes_through_the_core_and_lands_with_the_audit) ... /private/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/vault-ws-cvqxi4yz/ws/lib/vault.py:93: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "created_at": dt.datetime.utcnow().isoformat() + "Z"}, ensure_ascii=False))
+ok
+test_block_rule_and_core_down_write_nothing (test_vault_workspace.VaultLibraryTest.test_block_rule_and_core_down_write_nothing) ... /private/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/vault-ws-rkb2qr1r/ws/lib/vault.py:392: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "ts": dt.datetime.utcnow().isoformat() + "Z",
+/private/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/vault-ws-rkb2qr1r/ws/lib/vault.py:93: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "created_at": dt.datetime.utcnow().isoformat() + "Z"}, ensure_ascii=False))
+ok
+test_confirm_rule_stages_and_waits_for_the_owner (test_vault_workspace.VaultLibraryTest.test_confirm_rule_stages_and_waits_for_the_owner) ... /private/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/vault-ws-n6b7_7jp/ws/lib/vault.py:696: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "created_at": dt.datetime.utcnow().isoformat() + "Z",
+/private/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/vault-ws-n6b7_7jp/ws/lib/vault.py:705: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  created_at=dt.datetime.utcnow().isoformat() + "Z",
+/private/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/vault-ws-n6b7_7jp/ws/lib/vault.py:93: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "created_at": dt.datetime.utcnow().isoformat() + "Z"}, ensure_ascii=False))
+/private/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/vault-ws-n6b7_7jp/ws/lib/vault.py:392: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "ts": dt.datetime.utcnow().isoformat() + "Z",
+ok
+test_switch_off_keeps_the_direct_path (test_vault_workspace.VaultLibraryTest.test_switch_off_keeps_the_direct_path) ... /private/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/vault-ws-71_q2fay/ws/lib/vault.py:392: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+  "ts": dt.datetime.utcnow().isoformat() + "Z",
+ok
+test_core_down_refuses_without_uploading (test_youtube_cli.YouTubeCLITest.test_core_down_refuses_without_uploading) ... ok
+test_daily_news_run_uploads_under_the_standing_authorization (test_youtube_cli.YouTubeCLITest.test_daily_news_run_uploads_under_the_standing_authorization) ... ok
+test_research_run_waits_for_the_owner_then_uploads_once (test_youtube_cli.YouTubeCLITest.test_research_run_waits_for_the_owner_then_uploads_once) ... ok
+test_switch_off_keeps_the_legacy_path_and_its_approval_reference (test_youtube_cli.YouTubeCLITest.test_switch_off_keeps_the_legacy_path_and_its_approval_reference) ... ok
+
+----------------------------------------------------------------------
+Ran 201 tests in 92.049s
+
+OK

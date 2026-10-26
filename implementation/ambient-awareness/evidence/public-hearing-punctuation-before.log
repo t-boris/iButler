@@ -1,0 +1,31 @@
+test_archive_write_failure_does_not_abort_hearing_and_recording_recovers (test_listening.ListeningTests.test_archive_write_failure_does_not_abort_hearing_and_recording_recovers) ... ok
+test_asr_sentence_punctuation_does_not_block_exact_public_hearing_status (test_listening.ListeningTests.test_asr_sentence_punctuation_does_not_block_exact_public_hearing_status) ... FAIL
+test_complete_asr_is_handed_to_authenticated_dialogue_once_without_second_asr (test_listening.ListeningTests.test_complete_asr_is_handed_to_authenticated_dialogue_once_without_second_asr) ... ok
+test_disable_archive_clears_transcript_and_stale_queue_immediately (test_listening.ListeningTests.test_disable_archive_clears_transcript_and_stale_queue_immediately) ... ok
+test_exact_public_hearing_status_needs_no_owner_and_has_no_private_side_effect (test_listening.ListeningTests.test_exact_public_hearing_status_needs_no_owner_and_has_no_private_side_effect) ... ok
+test_full_sentence_survives_three_checks_and_unverified_first_seconds (test_listening.ListeningTests.test_full_sentence_survives_three_checks_and_unverified_first_seconds) ... ok
+test_identity_cancel_does_not_stop_public_output_but_full_pause_does (test_listening.ListeningTests.test_identity_cancel_does_not_stop_public_output_but_full_pause_does) ... ok
+test_identity_cancellation_cannot_cancel_passive_asr_or_erase_its_text (test_listening.ListeningTests.test_identity_cancellation_cannot_cancel_passive_asr_or_erase_its_text) ... ok
+test_low_disk_space_pauses_recording_but_still_delivers_fresh_microphone_to_listener (test_listening.ListeningTests.test_low_disk_space_pauses_recording_but_still_delivers_fresh_microphone_to_listener) ... ok
+test_native_local_snapshot_shows_heard_words_and_reason_without_authenticating (test_listening.ListeningTests.test_native_local_snapshot_shows_heard_words_and_reason_without_authenticating) ... ok
+test_pause_erases_text_and_rejects_old_inflight_result_even_after_resume (test_listening.ListeningTests.test_pause_erases_text_and_rejects_old_inflight_result_even_after_resume) ... ok
+test_quoted_hearing_question_is_not_a_public_status_trigger (test_listening.ListeningTests.test_quoted_hearing_question_is_not_a_public_status_trigger) ... ok
+test_stale_or_gapped_microphone_cannot_supply_a_new_request (test_listening.ListeningTests.test_stale_or_gapped_microphone_cannot_supply_a_new_request) ... ok
+test_unknown_identity_keeps_complete_transcript_but_cannot_dispatch_private_work (test_listening.ListeningTests.test_unknown_identity_keeps_complete_transcript_but_cannot_dispatch_private_work) ... ok
+test_unknown_voice_in_ending_or_prefix_is_not_attributed_to_the_owner (test_listening.ListeningTests.test_unknown_voice_in_ending_or_prefix_is_not_attributed_to_the_owner) ... ok
+test_verified_silent_ending_preserves_actual_owner_but_cannot_supply_identity_alone (test_listening.ListeningTests.test_verified_silent_ending_preserves_actual_owner_but_cannot_supply_identity_alone) ... ok
+
+======================================================================
+FAIL: test_asr_sentence_punctuation_does_not_block_exact_public_hearing_status (test_listening.ListeningTests.test_asr_sentence_punctuation_does_not_block_exact_public_hearing_status)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_listening.py", line 146, in test_asr_sentence_punctuation_does_not_block_exact_public_hearing_status
+    self.s.disclosures.play_fixed.assert_called_once()
+  File "/opt/miniconda3/lib/python3.12/unittest/mock.py", line 923, in assert_called_once
+    raise AssertionError(msg)
+AssertionError: Expected 'mock' to have been called once. Called 0 times.
+
+----------------------------------------------------------------------
+Ran 16 tests in 0.141s
+
+FAILED (failures=1)

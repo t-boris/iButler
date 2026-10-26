@@ -1,0 +1,405 @@
+{
+  "schema_version": "bamberg-news-sources/v1",
+  "description": "Anchor sources for the factual Bamberg News editorial policy. The worker may discover additional sources, but unknown domains are never treated as primary evidence.",
+  "sources": [
+    {
+      "name": "Stadt Bamberg",
+      "domains": [
+        "stadt.bamberg.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "local"
+      ]
+    },
+    {
+      "name": "Landkreis Bamberg",
+      "domains": [
+        "landkreis-bamberg.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "local",
+        "garden"
+      ]
+    },
+    {
+      "name": "Polizei Bayern",
+      "domains": [
+        "polizei.bayern.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "local"
+      ]
+    },
+    {
+      "name": "Regierung von Oberfranken",
+      "domains": [
+        "regierung.oberfranken.bayern.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "local"
+      ]
+    },
+    {
+      "name": "Bayerisches Staatsministerium des Innern",
+      "domains": [
+        "stmi.bayern.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "local"
+      ]
+    },
+    {
+      "name": "VGN",
+      "domains": [
+        "vgn.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "local"
+      ]
+    },
+    {
+      "name": "Deutsche Bahn",
+      "domains": [
+        "bahn.de",
+        "int.bahn.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "local"
+      ]
+    },
+    {
+      "name": "Bamberg Service",
+      "domains": [
+        "bamberg-service.de",
+        "mhkw-ba.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "local"
+      ]
+    },
+    {
+      "name": "Bayerischer Rundfunk",
+      "domains": [
+        "br.de"
+      ],
+      "trust_tier": "secondary",
+      "topics": [
+        "local",
+        "world",
+        "ukraine-russia"
+      ]
+    },
+    {
+      "name": "Fränkischer Tag / inFranken",
+      "domains": [
+        "infranken.de",
+        "fraenkischertag.de"
+      ],
+      "trust_tier": "secondary",
+      "topics": [
+        "local"
+      ]
+    },
+    {
+      "name": "Deutscher Wetterdienst",
+      "domains": [
+        "dwd.de",
+        "opendata.dwd.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "weather",
+        "garden"
+      ]
+    },
+    {
+      "name": "Bundesinstitut für Öffentliche Gesundheit / gesund.bund.de",
+      "domains": [
+        "gesund.bund.de",
+        "bioeg.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "health"
+      ]
+    },
+    {
+      "name": "Robert Koch-Institut",
+      "domains": [
+        "rki.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "health"
+      ]
+    },
+    {
+      "name": "Bayerisches Staatsministerium für Gesundheit, Pflege und Prävention",
+      "domains": [
+        "stmgp.bayern.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "health"
+      ]
+    },
+    {
+      "name": "Bayerische Landesanstalt für Weinbau und Gartenbau",
+      "domains": [
+        "lwg.bayern.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "garden"
+      ]
+    },
+    {
+      "name": "Amt für Ernährung, Landwirtschaft und Forsten Bamberg",
+      "domains": [
+        "aelf-ba.bayern.de",
+        "aelf-ba.bayern.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "garden"
+      ]
+    },
+    {
+      "name": "Bayerischer Landesverband für Gartenbau und Landespflege",
+      "domains": [
+        "gartenbauvereine.org"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "garden"
+      ]
+    },
+    {
+      "name": "United Nations",
+      "domains": [
+        "un.org",
+        "news.un.org",
+        "ohchr.org"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "world",
+        "ukraine-russia"
+      ]
+    },
+    {
+      "name": "International Atomic Energy Agency",
+      "domains": [
+        "iaea.org"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "ukraine-russia"
+      ]
+    },
+    {
+      "name": "European Union",
+      "domains": [
+        "europa.eu",
+        "consilium.europa.eu",
+        "eeas.europa.eu"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "world",
+        "ukraine-russia"
+      ]
+    },
+    {
+      "name": "NATO",
+      "domains": [
+        "nato.int"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "world",
+        "ukraine-russia"
+      ]
+    },
+    {
+      "name": "Reuters",
+      "domains": [
+        "reuters.com"
+      ],
+      "trust_tier": "secondary",
+      "topics": [
+        "world",
+        "ukraine-russia"
+      ]
+    },
+    {
+      "name": "Associated Press",
+      "domains": [
+        "apnews.com"
+      ],
+      "trust_tier": "secondary",
+      "topics": [
+        "world",
+        "ukraine-russia"
+      ]
+    },
+    {
+      "name": "Ukrinform",
+      "domains": [
+        "ukrinform.net"
+      ],
+      "trust_tier": "secondary",
+      "topics": [
+        "world",
+        "ukraine-russia"
+      ]
+    },
+    {
+      "name": "Deutsche Welle",
+      "domains": [
+        "dw.com"
+      ],
+      "trust_tier": "secondary",
+      "topics": [
+        "world",
+        "ukraine-russia"
+      ]
+    },
+    {
+      "name": "Bundesregierung",
+      "domains": [
+        "bundesregierung.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "laws",
+        "world"
+      ]
+    },
+    {
+      "name": "Gesetze im Internet (BMJ)",
+      "domains": [
+        "gesetze-im-internet.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "laws"
+      ]
+    },
+    {
+      "name": "Bayerische Staatsregierung",
+      "domains": [
+        "bayern.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "laws",
+        "local"
+      ]
+    },
+    {
+      "name": "Deutsche Rentenversicherung",
+      "domains": [
+        "deutsche-rentenversicherung.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "laws",
+        "health"
+      ]
+    },
+    {
+      "name": "Verbraucherzentrale",
+      "domains": [
+        "verbraucherzentrale.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "laws"
+      ]
+    },
+    {
+      "name": "Spektrum der Wissenschaft",
+      "domains": [
+        "spektrum.de"
+      ],
+      "trust_tier": "secondary",
+      "topics": [
+        "science"
+      ]
+    },
+    {
+      "name": "Deutsche Herzstiftung",
+      "domains": [
+        "herzstiftung.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "medicine",
+        "health"
+      ]
+    },
+    {
+      "name": "Deutsche Hochdruckliga",
+      "domains": [
+        "hochdruckliga.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "medicine",
+        "health"
+      ]
+    },
+    {
+      "name": "diabinfo (BIÖG/DDZ/Helmholtz)",
+      "domains": [
+        "diabinfo.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "medicine",
+        "health"
+      ]
+    },
+    {
+      "name": "Deutsches Ärzteblatt",
+      "domains": [
+        "aerzteblatt.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "medicine"
+      ]
+    },
+    {
+      "name": "Deutsche Migräne- und Kopfschmerzgesellschaft",
+      "domains": [
+        "dmkg.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "medicine",
+        "health"
+      ]
+    },
+    {
+      "name": "Deutsches Zentrum für Herz-Kreislauf-Forschung",
+      "domains": [
+        "dzhk.de"
+      ],
+      "trust_tier": "primary",
+      "topics": [
+        "medicine",
+        "science"
+      ]
+    }
+  ]
+}

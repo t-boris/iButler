@@ -1,0 +1,27 @@
+{
+  "at": "2026-10-23T22:08:05.033859+00:00",
+  "refreshing": false,
+  "providers": [
+    {
+      "backend": "codex",
+      "fetched_at": 1792793268.8643909,
+      "attempted_at": 1792793268.864388,
+      "error": null,
+      "stale": false,
+      "model_count": 7
+    },
+    {
+      "backend": "claude",
+      "fetched_at": 1792793269.925768,
+      "attempted_at": 1792793269.925765,
+      "error": null,
+      "stale": false,
+      "model_count": 12
+    }
+  ],
+  "runtime": {
+    "fetched_at": 1792793280.432202,
+    "error": null,
+    "source": "OpenClaw provider registry \u00b7 runtime compatibility"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-10-23T18:47:58.115234+00:00",
+  "question": "Q-012",
+  "bug": "BUG-003",
+  "owner_setup": {
+    "stage": "saved",
+    "seconds": 0.0,
+    "error": null,
+    "method": "macOS account authentication + fresh spoken challenge; local voice templates"
+  },
+  "face_reference_count": 15,
+  "voice_reference_count": 30,
+  "before_face_count": 15,
+  "before_voice_count": 18,
+  "old_reference_preservation": "implementation keeps old voice samples and unchanged face samples; no threshold change",
+  "enrollment_pcm_bytes_after": 0,
+  "native_start_observed_live": true,
+  "contains_media_transcripts_vectors_or_challenge": false
+}

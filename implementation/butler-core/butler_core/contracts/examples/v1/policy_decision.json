@@ -1,0 +1,12 @@
+{
+ "contract": "policy_decision",
+ "version": 1,
+ "id": "pd-1",
+ "persona": "butler",
+ "boundary": "execute",
+ "resource": "action:todoist.create",
+ "outcome": "allow",
+ "reason": "action is granted",
+ "at": 1790000000.0,
+ "config_version": 1
+}

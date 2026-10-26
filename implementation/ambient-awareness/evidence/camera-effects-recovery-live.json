@@ -1,0 +1,1595 @@
+{
+  "samples": [
+    {
+      "at": 1792772799.8,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.18,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "voice-unrecognized-or-ambiguous"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772800.71,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.88,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "voice-unrecognized-or-ambiguous"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772801.62,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.8,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "voice-unrecognized-or-ambiguous"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772802.53,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.75,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772803.49,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.69,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "voice-uncertain"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772804.4,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.59,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772805.32,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.51,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772806.24,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.42,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772807.16,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.33,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772808.08,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.24,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "microphone-unavailable"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772808.99,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.12,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772809.89,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 1.02,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772810.82,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.92,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772811.74,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.82,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772812.66,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.77,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772813.56,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.55,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772814.48,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.57,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772815.39,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.37,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772816.31,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.39,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772817.22,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.29,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772818.13,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.19,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772819.05,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.07,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772819.97,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.98,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": true,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": true,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772820.89,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 1.9,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": false,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": false,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772821.8,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": false,
+        "check_age_seconds": 2.82,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": false,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": false,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772822.72,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.91,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "microphone-unavailable"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": false,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": false,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772823.64,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 1.83,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "microphone-unavailable"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": false,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": false,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772824.55,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.73,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "microphone-unavailable"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": false,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": false,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772825.46,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 1.64,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "microphone-unavailable"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": false,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": false,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": 1792772826.37,
+      "allowed": false,
+      "recording": false,
+      "state": "paused",
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.54,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": "microphone-unavailable"
+      },
+      "camera": {
+        "working": true,
+        "restarts": 2,
+        "backend": "native-avfoundation",
+        "native_status": {
+          "portrait": false,
+          "studio_light": false,
+          "background_replacement": false,
+          "center_stage": false,
+          "pixel_format": 875704438
+        },
+        "failure": null
+      },
+      "input_working": false,
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "failure": null,
+        "code": null,
+        "formats": {
+          "input_rate": 48000,
+          "input_channels": 1,
+          "output_rate": 44100
+        },
+        "input_verified": false,
+        "voice_processing_enabled": false,
+        "other_audio_ducking": "none"
+      },
+      "counts": {},
+      "turns": [],
+      "cancellations": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    }
+  ],
+  "raw_content_exported": false
+}

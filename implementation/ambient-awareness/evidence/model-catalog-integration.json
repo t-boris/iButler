@@ -1,0 +1,10 @@
+{
+  "deployed_owned_adapter_matches_verified_source": true,
+  "new_catalog_model_applied_in_isolated_effective_dispatch": true,
+  "other_route_fields_preserved": true,
+  "other_routes_preserved": true,
+  "no_live_route_changed": true,
+  "no_inference_or_task_run": true,
+  "only_owned_block_changed": true,
+  "current_dispatch_sha256": "dd3cf9c251c6c1d4a9aa22d328d3d04b27633950e07295af3e0799baeadc2a3a"
+}

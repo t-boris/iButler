@@ -1,0 +1,62 @@
+{
+  "at": "2026-10-24T03:44:30.603560+00:00",
+  "source_hashes_match": true,
+  "installed_sources_match": true,
+  "automated_tests_build_passed": true,
+  "microphone_fresh": true,
+  "camera_fresh": true,
+  "input_name": "Jabra SPEAK 410 USB",
+  "models": {
+    "model": "ready",
+    "vision": "ready",
+    "voice": "ready",
+    "asr": "ready"
+  },
+  "dialogue_allowed": false,
+  "participant": {
+    "fresh": true,
+    "check_age_seconds": 0.6,
+    "capture_age_seconds": 1.64,
+    "consecutive_checks": 0,
+    "required_checks": 3,
+    "owner_camera_confirmed": false,
+    "owner_voice_confirmed": false,
+    "confirmed_by": null,
+    "voice_check": null
+  },
+  "listening_counts": {
+    "batches": 624,
+    "transcription": 4,
+    "heard": 4,
+    "reply-blocked": 4
+  },
+  "voice_counts": {},
+  "last_response_timings": {},
+  "current_meeting": {
+    "mode": "auto",
+    "quiet": false,
+    "reason": null
+  },
+  "capture_error": null,
+  "analysis_error": null,
+  "questions": {
+    "Q-013": {
+      "open": true,
+      "answer_section_present": false
+    },
+    "Q-014": {
+      "open": true,
+      "answer_section_present": false
+    },
+    "Q-015": {
+      "open": true,
+      "answer_section_present": false
+    },
+    "Q-016": {
+      "open": true,
+      "answer_section_present": false
+    }
+  },
+  "actual_intended_owner_dialogue_verified": false,
+  "raw_speech_or_media_exported": false
+}

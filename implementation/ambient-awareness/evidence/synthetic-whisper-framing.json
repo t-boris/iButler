@@ -1,0 +1,21 @@
+{
+  "observation_source": "Independent resident Whisper tool output before DEC061, synthetic fixtures only",
+  "model_filename": "ggml-large-v3-turbo-q5_0.bin",
+  "owner_data_exported": false,
+  "samples": [
+    {
+      "fixture": "tests/fixtures/wake-bata.wav",
+      "sha256": "9f9c25374d4a7a584c3ebfb1d7de14d341347b786a36f521a1690c5efa35eba5",
+      "observed_outer_quotes": true,
+      "literal_grammar_before": false,
+      "canonical_grammar_after": true
+    },
+    {
+      "fixture": "butler_ambient/assets/voice-check.wav",
+      "sha256": "c10904123579b5e555c5948a73931b997b6cf4959d51290ab4801e4956d17b1c",
+      "observed_outer_quotes": true,
+      "literal_grammar_before": false,
+      "canonical_grammar_after": true
+    }
+  ]
+}

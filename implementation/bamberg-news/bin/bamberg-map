@@ -1,0 +1,44 @@
+#!/opt/miniconda3/bin/python
+"""Render a static OSM map snippet with a pin for a Bamberg location."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+LOCAL_ROOT = Path(__file__).resolve().parents[1]
+NEWS_VIDEO_ROOT = LOCAL_ROOT.parent / "news-video"
+LIVE_BUTLER = Path("/Users/boris/.openclaw/workspace-butler")
+if (LOCAL_ROOT / "lib" / "bamberg_maps.py").is_file() and (LOCAL_ROOT / "lib" / "bamberg_news.py").is_file():
+    for root in reversed((LOCAL_ROOT, NEWS_VIDEO_ROOT)):
+        if (root / "lib").is_dir():
+            sys.path.insert(0, str(root))
+else:
+    sys.path.insert(0, str(LIVE_BUTLER))
+
+from lib import bamberg_maps  # noqa: E402
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="bamberg-map")
+    parser.add_argument("query", help='location, e.g. "Luitpoldstraße, Bamberg"')
+    parser.add_argument("--out", required=True)
+    parser.add_argument("--zoom", type=int, default=16)
+    parser.add_argument("--label", help="optional burned-in caption")
+    parser.add_argument("--size", default="1400x900")
+    args = parser.parse_args()
+    width, height = (int(v) for v in args.size.split("x"))
+    try:
+        result = bamberg_maps.render_map(
+            args.query, args.out, zoom=args.zoom, width=width, height=height, label=args.label
+        )
+    except bamberg_maps.MapError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    print(json.dumps(result, indent=2, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

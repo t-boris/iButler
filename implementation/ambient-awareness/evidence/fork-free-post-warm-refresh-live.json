@@ -1,0 +1,82 @@
+{
+  "at": "2026-10-23T22:23:39.154052+00:00",
+  "post_warm_forced_refresh": true,
+  "all_providers_attempted_after_request": true,
+  "providers": [
+    {
+      "backend": "codex",
+      "models": 7,
+      "error": null
+    },
+    {
+      "backend": "claude",
+      "models": 12,
+      "error": null
+    }
+  ],
+  "runtime_error": null,
+  "samples": [
+    {
+      "rpc_seconds": 0.025,
+      "mic_fresh": true,
+      "listener_batches": 105,
+      "refreshing": true
+    },
+    {
+      "rpc_seconds": 0.026,
+      "mic_fresh": true,
+      "listener_batches": 106,
+      "refreshing": true
+    },
+    {
+      "rpc_seconds": 0.026,
+      "mic_fresh": true,
+      "listener_batches": 106,
+      "refreshing": true
+    },
+    {
+      "rpc_seconds": 0.067,
+      "mic_fresh": true,
+      "listener_batches": 108,
+      "refreshing": true
+    },
+    {
+      "rpc_seconds": 0.157,
+      "mic_fresh": true,
+      "listener_batches": 109,
+      "refreshing": true
+    },
+    {
+      "rpc_seconds": 0.184,
+      "mic_fresh": true,
+      "listener_batches": 110,
+      "refreshing": true
+    },
+    {
+      "rpc_seconds": 0.16,
+      "mic_fresh": true,
+      "listener_batches": 111,
+      "refreshing": true
+    },
+    {
+      "rpc_seconds": 0.184,
+      "mic_fresh": true,
+      "listener_batches": 112,
+      "refreshing": true
+    },
+    {
+      "rpc_seconds": 0.234,
+      "mic_fresh": true,
+      "listener_batches": 113,
+      "refreshing": true
+    },
+    {
+      "rpc_seconds": 0.15,
+      "mic_fresh": true,
+      "listener_batches": 115,
+      "refreshing": false
+    }
+  ],
+  "refresh_complete": true,
+  "private_content_exported": false
+}

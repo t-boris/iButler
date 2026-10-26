@@ -1,0 +1,696 @@
+{
+  "at": "2026-10-23T19:55:10.918031+00:00",
+  "samples": [
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 44,
+        "transcription": 6,
+        "heard": 6,
+        "reply-blocked": 4,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 46,
+        "transcription": 6,
+        "heard": 6,
+        "reply-blocked": 4,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 48,
+        "transcription": 6,
+        "heard": 6,
+        "reply-blocked": 4,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 50,
+        "transcription": 6,
+        "heard": 6,
+        "reply-blocked": 4,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 52,
+        "transcription": 6,
+        "heard": 6,
+        "reply-blocked": 4,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 54,
+        "transcription": 6,
+        "heard": 6,
+        "reply-blocked": 4,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 56,
+        "transcription": 7,
+        "heard": 7,
+        "reply-blocked": 5,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 58,
+        "transcription": 7,
+        "heard": 7,
+        "reply-blocked": 5,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 60,
+        "transcription": 7,
+        "heard": 7,
+        "reply-blocked": 5,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 62,
+        "transcription": 7,
+        "heard": 7,
+        "reply-blocked": 5,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 64,
+        "transcription": 8,
+        "heard": 8,
+        "reply-blocked": 6,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 66,
+        "transcription": 8,
+        "heard": 8,
+        "reply-blocked": 6,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 68,
+        "transcription": 8,
+        "heard": 8,
+        "reply-blocked": 6,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 70,
+        "transcription": 8,
+        "heard": 8,
+        "reply-blocked": 6,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 72,
+        "transcription": 8,
+        "heard": 8,
+        "reply-blocked": 6,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 74,
+        "transcription": 8,
+        "heard": 8,
+        "reply-blocked": 6,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 76,
+        "transcription": 8,
+        "heard": 8,
+        "reply-blocked": 6,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 78,
+        "transcription": 8,
+        "heard": 8,
+        "reply-blocked": 6,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "input-unavailable",
+      "counts": {
+        "batches": 79,
+        "transcription": 8,
+        "heard": 8,
+        "reply-blocked": 6,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 81,
+        "transcription": 10,
+        "heard": 10,
+        "reply-blocked": 8,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 83,
+        "transcription": 11,
+        "heard": 11,
+        "reply-blocked": 9,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "blocked",
+      "counts": {
+        "batches": 85,
+        "transcription": 11,
+        "heard": 11,
+        "reply-blocked": 9,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "waiting",
+      "counts": {
+        "batches": 87,
+        "transcription": 11,
+        "heard": 11,
+        "reply-blocked": 9,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "waiting",
+      "counts": {
+        "batches": 89,
+        "transcription": 11,
+        "heard": 11,
+        "reply-blocked": 9,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "waiting",
+      "counts": {
+        "batches": 91,
+        "transcription": 11,
+        "heard": 11,
+        "reply-blocked": 9,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "waiting",
+      "counts": {
+        "batches": 93,
+        "transcription": 11,
+        "heard": 11,
+        "reply-blocked": 9,
+        "routed": 2
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "routed",
+      "counts": {
+        "batches": 95,
+        "transcription": 12,
+        "heard": 12,
+        "reply-blocked": 9,
+        "routed": 3
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "routed",
+      "counts": {
+        "batches": 97,
+        "transcription": 13,
+        "heard": 13,
+        "reply-blocked": 9,
+        "routed": 4
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "routed",
+      "counts": {
+        "batches": 99,
+        "transcription": 15,
+        "heard": 15,
+        "reply-blocked": 9,
+        "routed": 6
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    },
+    {
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting": "available",
+      "listening_enabled": true,
+      "listening_phase": "routed",
+      "counts": {
+        "batches": 101,
+        "transcription": 15,
+        "heard": 15,
+        "reply-blocked": 9,
+        "routed": 6
+      },
+      "local_transcript_present": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "playback_state": "idle"
+    }
+  ],
+  "private_content_exported": false
+}

@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://butler.local/schemas/news-video-episode-v1.json",
+  "title": "AI Butler evidence-linked news video episode",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "episode_id",
+    "profile",
+    "title",
+    "language",
+    "as_of",
+    "window",
+    "format",
+    "coverage",
+    "sources",
+    "scenes"
+  ],
+  "properties": {
+    "schema_version": { "const": "butler.news-video/v1" },
+    "episode_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]{0,95}$"
+    },
+    "profile": { "enum": ["daily", "deep-research", "lecture"] },
+    "title": { "type": "string", "minLength": 1 },
+    "subtitle": { "type": "string" },
+    "language": { "type": "string", "minLength": 2 },
+    "as_of": { "type": "string", "format": "date-time" },
+    "window": {
+      "type": "object",
+      "required": ["from", "to", "timezone"],
+      "properties": {
+        "from": { "type": "string", "format": "date-time" },
+        "to": { "type": "string", "format": "date-time" },
+        "timezone": { "type": "string" }
+      }
+    },
+    "format": {
+      "type": "object",
+      "required": ["width", "height", "fps"],
+      "properties": {
+        "width": { "type": "integer", "minimum": 360, "maximum": 3840 },
+        "height": { "type": "integer", "minimum": 360, "maximum": 3840 },
+        "fps": { "enum": [12, 15, 24, 25, 30, 50, 60] }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["scope", "inputs_checked", "limitations"],
+      "properties": {
+        "scope": { "type": "array", "items": { "type": "string" } },
+        "inputs_checked": { "type": "array", "items": { "type": "string" } },
+        "limitations": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,95}$" },
+          "title": { "type": "string", "minLength": 1 },
+          "publisher": { "type": "string" },
+          "url": { "type": "string" },
+          "published_at": { "type": "string" },
+          "retrieved_at": { "type": "string" },
+          "trust_tier": { "enum": ["primary", "secondary", "community", "internal"] }
+        }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "headline",
+          "narration",
+          "source_ids",
+          "status",
+          "visual"
+        ],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,95}$" },
+          "kind": { "enum": ["intro", "story", "finding", "context", "outro"] },
+          "kicker": { "type": "string" },
+          "headline": { "type": "string", "minLength": 1 },
+          "body": { "type": "string" },
+          "narration": { "type": "string", "maxLength": 700 },
+          "source_ids": { "type": "array", "items": { "type": "string" } },
+          "status": { "enum": ["confirmed", "developing", "context", "not-applicable"] },
+          "duration_hint": { "type": "number", "minimum": 0.5, "maximum": 90 },
+          "visual": {
+            "type": "object",
+            "required": ["mode"],
+            "properties": {
+              "mode": { "enum": ["template", "image", "veo", "broll"] },
+              "accent": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+              "subject": { "type": "string" },
+              "brief": { "type": "string" },
+              "points": {
+                "type": "array",
+                "maxItems": 6,
+                "items": { "type": "string", "maxLength": 90 }
+              },
+              "stat": {
+                "type": "object",
+                "required": ["value"],
+                "properties": {
+                  "value": { "type": "string", "minLength": 1, "maxLength": 16 },
+                  "label": { "type": "string", "maxLength": 80 }
+                }
+              },
+              "diagram": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                  "type": { "enum": ["bars", "line", "donut", "timeline", "flow", "compare"] },
+                  "unit": { "type": "string", "maxLength": 8 },
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 6,
+                    "items": {
+                      "type": "object",
+                      "required": ["label", "value"],
+                      "properties": {
+                        "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+                        "value": { "type": "number" },
+                        "display": { "type": "string", "maxLength": 14 }
+                      }
+                    }
+                  },
+                  "points": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 10,
+                    "items": {
+                      "type": "object",
+                      "required": ["label", "value"],
+                      "properties": {
+                        "label": { "type": "string", "maxLength": 14 },
+                        "value": { "type": "number" },
+                        "display": { "type": "string", "maxLength": 14 }
+                      }
+                    }
+                  },
+                  "steps": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 6,
+                    "items": {
+                      "type": "object",
+                      "required": ["label"],
+                      "properties": {
+                        "label": { "type": "string", "minLength": 1, "maxLength": 44 },
+                        "detail": { "type": "string", "maxLength": 80 }
+                      }
+                    }
+                  },
+                  "left": {
+                    "type": "object",
+                    "required": ["title", "items"],
+                    "properties": {
+                      "title": { "type": "string", "minLength": 1, "maxLength": 32 },
+                      "items": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string", "maxLength": 44 } }
+                    }
+                  },
+                  "right": {
+                    "type": "object",
+                    "required": ["title", "items"],
+                    "properties": {
+                      "title": { "type": "string", "minLength": 1, "maxLength": 32 },
+                      "items": { "type": "array", "minItems": 1, "maxItems": 4, "items": { "type": "string", "maxLength": 44 } }
+                    }
+                  }
+                }
+              },
+              "image_path": { "type": "string" },
+              "broll_path": { "type": "string" },
+              "veo_asset": { "type": "string" },
+              "veo_prompt": { "type": "string" },
+              "veo_duration": { "enum": [4, 6, 8] },
+              "veo_resolution": { "enum": ["720p", "1080p", "4k"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

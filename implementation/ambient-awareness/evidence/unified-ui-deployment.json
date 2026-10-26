@@ -1,0 +1,47 @@
+{
+  "timestamp": "2026-10-23T13:34:38.501710+00:00",
+  "steps": [
+    {
+      "command": [
+        "launchctl",
+        "bootout",
+        "gui/501/com.boris.butler-awareness"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        "/Users/boris/.openclaw/tools/ambient-awareness/.venv/bin/python",
+        "--no-deps",
+        "--reinstall",
+        "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/build/wheels/butler_ambient-0.1.0-py3-none-any.whl"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "launchctl",
+        "bootstrap",
+        "gui/501",
+        "/Users/boris/Library/LaunchAgents/com.boris.butler-awareness.plist"
+      ],
+      "exit": 0
+    }
+  ],
+  "verified_source_report": "results.json",
+  "wheel_sha256": "a0511a72046259a0575b97b19ffe8bfc75741a4eae8bc38213918774ed7be5cd",
+  "stable_parent_unchanged": true,
+  "helpers": {
+    "butler-screen": "140e972a8c97175047bd91062ea6d48c5ce84e4c266faf6f529f875f870ab101",
+    "butler-panel": "0712c37ca45c92bfbc8dd67973516bb5e8f68d29d27bde546c259a6c2c6d1c88",
+    "butler-audio": "75f41bbf2703a56c71cc27f647516be85a4c67d301691c42060461ccc70911ac"
+  },
+  "ui_app": "/Users/boris/Applications/Butler.app",
+  "ui_executable_sha256": "0712c37ca45c92bfbc8dd67973516bb5e8f68d29d27bde546c259a6c2c6d1c88",
+  "ui_launcher_only_config_change": true,
+  "scope": "Only authorized Butler runtime. No shared gateway, global volume, owner enrollment or selected voice changes."
+}

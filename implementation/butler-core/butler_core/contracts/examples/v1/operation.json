@@ -1,0 +1,12 @@
+{
+ "contract": "operation",
+ "version": 1,
+ "id": "op-1",
+ "kind": "todoist.create",
+ "persona": "butler",
+ "params": {
+  "content": "x"
+ },
+ "target": "todoist:inbox",
+ "idempotency_key": "step:st-1"
+}

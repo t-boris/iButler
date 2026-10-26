@@ -1,0 +1,92 @@
+{
+  "at": "2026-10-23T19:40:17.248621+00:00",
+  "source": "actual known-report microphone window",
+  "template_source": "existing deliberately enrolled voice_samples only; normalized pooled vector computed transiently",
+  "threshold": 0.82,
+  "samples": [
+    {
+      "start": 1792783909.845897,
+      "short": true
+    },
+    {
+      "start": 1792783910.837881,
+      "old_owner_match": true,
+      "pooled_owner_match": true,
+      "min_old": 0.841,
+      "min_pooled": 0.866
+    },
+    {
+      "start": 1792783911.829846,
+      "old_owner_match": true,
+      "pooled_owner_match": true,
+      "min_old": 0.823,
+      "min_pooled": 0.823
+    },
+    {
+      "start": 1792783912.8538802,
+      "old_owner_match": true,
+      "pooled_owner_match": true,
+      "min_old": 0.881,
+      "min_pooled": 0.881
+    },
+    {
+      "start": 1792783913.8524868,
+      "old_owner_match": true,
+      "pooled_owner_match": true,
+      "min_old": 0.859,
+      "min_pooled": 0.859
+    },
+    {
+      "start": 1792783914.837943,
+      "old_owner_match": true,
+      "pooled_owner_match": true,
+      "min_old": 0.837,
+      "min_pooled": 0.837
+    },
+    {
+      "start": 1792783915.829886,
+      "old_owner_match": false,
+      "pooled_owner_match": false,
+      "min_old": 0.812,
+      "min_pooled": 0.812
+    },
+    {
+      "start": 1792783916.853906,
+      "old_owner_match": true,
+      "pooled_owner_match": true,
+      "min_old": 0.874,
+      "min_pooled": 0.91
+    },
+    {
+      "start": 1792783917.84586,
+      "short": true
+    },
+    {
+      "start": 1792783918.858078,
+      "old_owner_match": false,
+      "pooled_owner_match": false,
+      "min_old": 0.748,
+      "min_pooled": 0.748
+    },
+    {
+      "start": 1792783919.831389,
+      "old_owner_match": false,
+      "pooled_owner_match": false,
+      "min_old": 0.801,
+      "min_pooled": 0.801
+    },
+    {
+      "start": 1792783920.853857,
+      "short": true
+    },
+    {
+      "start": 1792783922.837888,
+      "old_owner_match": false,
+      "pooled_owner_match": false,
+      "min_old": 0.755,
+      "min_pooled": 0.755
+    }
+  ],
+  "references_changed": false,
+  "vectors_or_raw_transcripts_exported": false
+}

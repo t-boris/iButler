@@ -1,0 +1,229 @@
+#!/opt/miniconda3/bin/python
+"""Public CLI for Butler's evidence-linked news video pipeline."""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from pathlib import Path
+
+WORKSPACE = Path("/Users/boris/.openclaw/workspace-butler")
+# Works both in the live workspace and in the repository overlay/test tree.
+LOCAL_ROOT = Path(__file__).resolve().parents[1]
+for root in (WORKSPACE, LOCAL_ROOT):
+    if (root / "lib" / "news_video.py").is_file():
+        sys.path.insert(0, str(root))
+        break
+
+from lib import news_video  # noqa: E402
+
+
+def _dump(value: object) -> None:
+    print(json.dumps(value, indent=2, ensure_ascii=False))
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="butler-news-video",
+        description=(
+            "Build evidence-linked daily/deep-research videos with deterministic graphics, "
+            "voiceover and optional Veo intro/outro accents."
+        ),
+    )
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    doctor = sub.add_parser("doctor", help="check local rendering/TTS/Gemini capabilities without API calls")
+    doctor.set_defaults(handler=_doctor)
+
+    demo = sub.add_parser("demo", help="write a valid synthetic episode JSON")
+    demo.add_argument("--profile", choices=sorted(news_video.PROFILE_RULES), default="daily")
+    demo.add_argument("--out", required=True, help="output episode.json path")
+    demo.add_argument("--compact", action="store_true", help="small/fast fixture dimensions")
+    demo.set_defaults(handler=_demo)
+
+    validate = sub.add_parser("validate", help="strictly validate episode JSON and its evidence links")
+    validate.add_argument("episode")
+    validate.set_defaults(handler=_validate)
+
+    render = sub.add_parser("render", help="render episode JSON to local H.264/AAC MP4")
+    render.add_argument("episode")
+    render.add_argument("--output-dir", help="run directory; defaults to workspace runs/news-video/<episode-id>")
+    render.add_argument("--tts", choices=("edge", "macos", "openai", "none"), default="edge")
+    render.add_argument(
+        "--voice",
+        help=(
+            "edge voices like ru-RU-DmitryNeural/ru-RU-SvetlanaNeural (free, default), "
+            "Milena for macOS, or a built-in OpenAI voice such as cedar"
+        ),
+    )
+    render.add_argument("--rate", type=int, default=175, help="narration words/minute; default 175")
+    render.add_argument("--overwrite", action="store_true")
+    render.add_argument("--approve-paid-api", help="approval reference required for paid TTS")
+    render.add_argument("--max-usd", type=float, help="hard authorization cap for paid stages")
+    render.set_defaults(handler=_render)
+
+    publish = sub.add_parser("publish", help="idempotently deliver a completed run and credits to Boris on Telegram")
+    publish.add_argument("run_dir")
+    publish.add_argument("--account", default="butler")
+    publish.add_argument("--target", default="253483520")
+    publish.add_argument("--summary", help="short Telegram caption; defaults to the episode title")
+    publish.add_argument("--approve-delivery", help="user request or authorized schedule reference")
+    publish.add_argument("--dry-run", action="store_true", help="validate and preview without contacting Telegram")
+    publish.add_argument(
+        "--allow-quiet-hours",
+        action="store_true",
+        help="deliver inside 22:00-08:00; only for schedules Boris explicitly set there (e.g. 05:00 morning video)",
+    )
+    publish.set_defaults(handler=_publish)
+
+    covered = sub.add_parser(
+        "covered-research",
+        help="list research reports already covered by recent rendered runs (twice-daily de-dup)",
+    )
+    covered.add_argument("--days", type=int, default=14, help="lookback window in days; default 14")
+    covered.set_defaults(handler=_covered_research)
+
+    plan = sub.add_parser("veo-plan", help="show Veo intro/outro requests and estimated cost; never calls API")
+    plan.add_argument("episode")
+    plan.add_argument("--model", default="veo-3.1-fast-generate-preview")
+    plan.add_argument("--cost-per-second", type=float)
+    plan.set_defaults(handler=_veo_plan)
+
+    generate = sub.add_parser("veo-generate", help="generate opted-in decorative Veo clips behind a paid-API gate")
+    generate.add_argument("episode")
+    generate.add_argument("--output-dir")
+    generate.add_argument("--model", default="veo-3.1-fast-generate-preview")
+    generate.add_argument("--cost-per-second", type=float)
+    generate.add_argument("--max-usd", type=float, required=True)
+    generate.add_argument("--approve-paid-api", required=True, help="Boris approval reference; stored in run metadata")
+    generate.add_argument("--timeout", type=int, default=900)
+    generate.set_defaults(handler=_veo_generate)
+
+    status = sub.add_parser("status", help="show one rendered run.json")
+    status.add_argument("run_dir")
+    status.set_defaults(handler=_status)
+    return parser
+
+
+def _doctor(_: argparse.Namespace) -> int:
+    result = news_video.doctor()
+    _dump(result)
+    return 0 if result["ok"] else 1
+
+
+def _demo(args: argparse.Namespace) -> int:
+    episode = news_video.make_demo_episode(args.profile, compact=args.compact)
+    out = Path(args.out).expanduser().resolve()
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(episode, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    _dump({"status": "created", "episode": str(out), "episode_id": episode["episode_id"]})
+    return 0
+
+
+def _validate(args: argparse.Namespace) -> int:
+    episode, path = news_video.load_episode(args.episode)
+    warnings = news_video.validate_episode(episode, episode_path=path, strict=True)
+    _dump({"status": "valid", "episode_id": episode["episode_id"], "warnings": warnings})
+    return 0
+
+
+def _render(args: argparse.Namespace) -> int:
+    voice = args.voice or news_video.DEFAULT_TTS_VOICES.get(args.tts)
+    result = news_video.render_episode(
+        args.episode,
+        output_dir=args.output_dir,
+        tts=args.tts,
+        voice=voice,
+        rate=args.rate,
+        overwrite=args.overwrite,
+        paid_api_approval=args.approve_paid_api,
+        max_usd=args.max_usd,
+    )
+    _dump(result)
+    return 0
+
+
+def _publish(args: argparse.Namespace) -> int:
+    result = news_video.publish_run(
+        args.run_dir,
+        approval=args.approve_delivery,
+        account=args.account,
+        target=args.target,
+        summary=args.summary,
+        dry_run=args.dry_run,
+        allow_quiet_hours=args.allow_quiet_hours,
+    )
+    _dump(result)
+    return 0
+
+
+def _covered_research(args: argparse.Namespace) -> int:
+    _dump({"days": args.days, "covered": news_video.covered_research(args.days)})
+    return 0
+
+
+def _veo_plan(args: argparse.Namespace) -> int:
+    episode, path = news_video.load_episode(args.episode)
+    warnings = news_video.validate_episode(episode, episode_path=path, strict=True)
+    requests = news_video.veo_plan(
+        episode, model=args.model, cost_per_second=args.cost_per_second
+    )
+    _dump(
+        {
+            "status": "plan-only-no-api-call",
+            "requests": [vars(request) for request in requests],
+            "estimated_cost_usd": round(sum(r.estimated_cost_usd for r in requests), 2),
+            "warnings": warnings,
+        }
+    )
+    return 0
+
+
+def _veo_generate(args: argparse.Namespace) -> int:
+    result = news_video.generate_veo_assets(
+        args.episode,
+        output_dir=args.output_dir,
+        model=args.model,
+        cost_per_second=args.cost_per_second,
+        max_usd=args.max_usd,
+        paid_api_approval=args.approve_paid_api,
+        timeout_seconds=args.timeout,
+    )
+    _dump(result)
+    return 0
+
+
+def _status(args: argparse.Namespace) -> int:
+    run_dir = Path(args.run_dir).expanduser().resolve()
+    run_json = run_dir / "run.json"
+    if not run_json.is_file():
+        raise news_video.NewsVideoError(f"run.json not found: {run_json}")
+    print(run_json.read_text(encoding="utf-8"), end="")
+    return 0
+
+
+def main() -> int:
+    parser = _build_parser()
+    args = parser.parse_args()
+    try:
+        return int(args.handler(args))
+    except news_video.PaidAPIApprovalRequired as exc:
+        print(f"approval required: {exc}", file=sys.stderr)
+        return 3
+    except news_video.DeliveryApprovalRequired as exc:
+        print(f"delivery approval required: {exc}", file=sys.stderr)
+        return 3
+    except news_video.ValidationError as exc:
+        print(f"validation failed:\n{exc}", file=sys.stderr)
+        return 2
+    except news_video.RenderError as exc:
+        print(f"render failed: {exc}", file=sys.stderr)
+        return 5
+    except news_video.NewsVideoError as exc:
+        print(f"news-video failed: {exc}", file=sys.stderr)
+        return 4
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

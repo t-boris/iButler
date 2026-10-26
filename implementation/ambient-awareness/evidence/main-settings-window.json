@@ -1,0 +1,23 @@
+{
+  "metadata_only" : true,
+  "windows" : [
+    {
+      "bounds" : {
+        "Height" : 812,
+        "Width" : 1100,
+        "X" : 1170,
+        "Y" : 166
+      },
+      "name" : "Butler — основные настройки и диагностика"
+    },
+    {
+      "bounds" : {
+        "Height" : 772,
+        "Width" : 640,
+        "X" : 1400,
+        "Y" : 176
+      },
+      "name" : "Butler — вижу и слышу"
+    }
+  ]
+}

@@ -1,0 +1,257 @@
+{
+  "fixed_synthetic_preview": {
+    "played": "calm",
+    "synthetic": true,
+    "voice_activated": false
+  },
+  "samples": [
+    {
+      "at": 1792702018.61861,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "paused",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702019.7092931,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702020.7985878,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702021.882964,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702022.971545,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702024.059705,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702025.1506078,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702026.237142,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702027.322762,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702028.412626,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702029.4997451,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702030.579624,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    },
+    {
+      "at": 1792702031.675433,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active"
+      },
+      "voice": {
+        "state": "ready",
+        "echo_cancellation": true,
+        "audio": {
+          "ready": true,
+          "echo_cancellation": true
+        }
+      },
+      "addressed_text_present": false
+    }
+  ],
+  "raw_exported": false
+}

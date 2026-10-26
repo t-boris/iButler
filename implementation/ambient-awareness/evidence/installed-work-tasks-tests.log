@@ -1,0 +1,15 @@
+installed interpreter: /Users/boris/.openclaw/tools/ambient-awareness/.venv/bin/python
+exit: 0
+test_backend_failure_not_reported_as_success (test_work_tasks.WorkTests.test_backend_failure_not_reported_as_success) ... ok
+test_cancel_stops_only_exact_detached_worker (test_work_tasks.WorkTests.test_cancel_stops_only_exact_detached_worker) ... ok
+test_in_flight_dispatcher_metadata_write_does_not_lose_a_live_job (test_work_tasks.WorkTests.test_in_flight_dispatcher_metadata_write_does_not_lose_a_live_job) ... ok
+test_installed_package_does_not_put_third_party_modules_before_stdlib (test_work_tasks.WorkTests.test_installed_package_does_not_put_third_party_modules_before_stdlib) ... ok
+test_missing_ambiguous_project_route_drift_and_arbitrary_pid_are_rejected (test_work_tasks.WorkTests.test_missing_ambiguous_project_route_drift_and_arbitrary_pid_are_rejected) ... ok
+test_persistently_broken_receipt_is_unavailable_without_invented_completion (test_work_tasks.WorkTests.test_persistently_broken_receipt_is_unavailable_without_invented_completion) ... ok
+test_real_monitor_completes_without_external_notifications_and_persists_receipt (test_work_tasks.WorkTests.test_real_monitor_completes_without_external_notifications_and_persists_receipt) ... ok
+test_reviewed_voice_request_starts_only_after_fresh_owner_confirmation (test_work_tasks.WorkTests.test_reviewed_voice_request_starts_only_after_fresh_owner_confirmation) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 2.848s
+
+OK

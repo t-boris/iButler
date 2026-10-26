@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-10-24T02:30:10.611776+00:00",
+  "before": {
+    "permission_parent": "ee08b3c0736845c897cd8430caf3b4f584dbf156cb3271bce12403b565607f75",
+    "configuration": "7e2de167f84f850194b17e8502b66327d815c22e1f3dbcd777fb2ecb0171673f",
+    "global_configuration": "6b523b1cc329979ec033154625c76122ff03be210371e2183e5d23712bf34fc1",
+    "agreements": "fde07c6db88647e14d84f004143ba2bdd293869ddb7557f33776c0e201a9f4aa",
+    "preferences": "2e0f537e3336da075ee58bc9e8e6bfeb0ca8735aacb505d8e7e34a9292846d29"
+  },
+  "steps": [
+    {
+      "command": [
+        "launchctl",
+        "bootout",
+        "gui/501/com.boris.butler-awareness"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "uv",
+        "pip",
+        "install",
+        "--python",
+        "/Users/boris/.openclaw/tools/ambient-awareness/.venv/bin/python",
+        "--no-deps",
+        "--reinstall",
+        "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/build/wheels/butler_ambient-0.1.0-py3-none-any.whl"
+      ],
+      "exit": 0
+    },
+    {
+      "command": [
+        "launchctl",
+        "bootstrap",
+        "gui/501",
+        "/Users/boris/Library/LaunchAgents/com.boris.butler-awareness.plist"
+      ],
+      "exit": 0
+    }
+  ],
+  "scope": "Only Butler runtime/UI; no version, gateway, global volume, enrollment or voice choice change.",
+  "backup": "/Users/boris/.local/share/butler-ambient/backups/contextual-streaming-20261023-213010",
+  "after": {
+    "permission_parent": "ee08b3c0736845c897cd8430caf3b4f584dbf156cb3271bce12403b565607f75",
+    "configuration": "7e2de167f84f850194b17e8502b66327d815c22e1f3dbcd777fb2ecb0171673f",
+    "global_configuration": "6b523b1cc329979ec033154625c76122ff03be210371e2183e5d23712bf34fc1",
+    "agreements": "fde07c6db88647e14d84f004143ba2bdd293869ddb7557f33776c0e201a9f4aa",
+    "preferences": "2e0f537e3336da075ee58bc9e8e6bfeb0ca8735aacb505d8e7e34a9292846d29"
+  },
+  "stable_parent_config_agreements_preferences_unchanged": true,
+  "installed_sources_match": true,
+  "source_count": 39,
+  "wheel_sha256": "726df1a214860e9eee810e6e87a68f0bd6dd80466bea9f7128937e7b9a966763",
+  "ui_matches": true,
+  "icon_matches": true
+}

@@ -1,0 +1,11 @@
+{
+  "synthetic_fixture": true,
+  "actual_local_asr": true,
+  "actual_local_intent_and_reply": true,
+  "wake_accepted": true,
+  "reply_generated": true,
+  "spoken_adapter_called": true,
+  "reply_length": 23,
+  "production_state_untouched": true,
+  "audio_played": false
+}

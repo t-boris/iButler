@@ -1,0 +1,12 @@
+test_client_cancellation_disconnects_decode_without_unloading_weights (test_streaming.ResidentASRTests.test_client_cancellation_disconnects_decode_without_unloading_weights) ... ok
+test_real_resident_model_reuses_pid_and_recognizes_russian_fixtures (test_streaming.ResidentASRTests.test_real_resident_model_reuses_pid_and_recognizes_russian_fixtures) ... ok
+test_audio_starts_before_synthesis_finishes_and_uses_one_bounded_stream (test_streaming.StreamingTests.test_audio_starts_before_synthesis_finishes_and_uses_one_bounded_stream) ... ok
+test_interrupted_reply_is_not_claimed_as_completed_dialogue (test_streaming.StreamingTests.test_interrupted_reply_is_not_claimed_as_completed_dialogue) ... ok
+test_native_stream_protocol_preserves_progress_and_rejects_unready_output (test_streaming.StreamingTests.test_native_stream_protocol_preserves_progress_and_rejects_unready_output) ... ok
+test_pause_between_chunk_arrival_and_append_never_plays_stale_audio (test_streaming.StreamingTests.test_pause_between_chunk_arrival_and_append_never_plays_stale_audio) ... ok
+test_single_model_turn_includes_completed_context_and_pause_erases_it (test_streaming.StreamingTests.test_single_model_turn_includes_completed_context_and_pause_erases_it) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 1.742s
+
+OK

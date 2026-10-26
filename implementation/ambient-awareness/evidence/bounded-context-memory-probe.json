@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-23T22:05:04.386729+00:00",
+  "warm_seconds": 2.089,
+  "warm_context_tokens": 8192,
+  "loaded": [
+    {
+      "model": "qwen3.5:9b",
+      "bytes": 6292106115,
+      "vram_bytes": 6292106115,
+      "context_length": 8192
+    }
+  ],
+  "previous_unbounded_qwen_loaded_bytes": 11971225188,
+  "free_disk_bytes": 13553754112,
+  "actual_speech_or_private_prompt_used": false
+}

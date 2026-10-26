@@ -1,0 +1,8 @@
+{
+  "synthetic": true,
+  "text": "Бата, ты меня слышишь?",
+  "profile": "baritone",
+  "generator": "local Qwen3-TTS Base 1.7B 8bit with synthetic preset",
+  "audio": "PCM16 mono 16 kHz",
+  "contains_owner_voice": false
+}

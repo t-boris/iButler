@@ -1,0 +1,1 @@
+{"signature":"7579-1792766986612","collections":[{"groups":[{"name":"Functions","items":[{"line":23,"name":"write_audio","summary":"def"},{"line":40,"name":"previews","summary":"def"},{"line":59,"name":"serve","summary":"def"},{"line":81,"name":"emit","summary":"def"},{"line":85,"name":"generate","summary":"def"}]}],"name":"Declarations"}],"source":"structure"}

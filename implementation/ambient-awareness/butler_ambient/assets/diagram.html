@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Butler diagram</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; padding: 0; background: #0b1410; color: #b7f5c6; font: 13px ui-monospace, Menlo, monospace; }
+  #diagram { padding: 12px; min-height: 100px; }
+  #diagram svg { max-width: 100%; height: auto; }
+  #error { padding: 12px; white-space: pre-wrap; color: #ffb3a7; display: none; }
+  #source { padding: 12px; white-space: pre-wrap; color: #7fbf92; display: none; }
+</style>
+<script src="mermaid.min.js"></script>
+</head>
+<body>
+<div id="diagram"></div>
+<div id="error"></div>
+<pre id="source"></pre>
+<script>
+  // Offline rendering only: the page and the library are files inside Butler.app; nothing is fetched.
+  mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: "dark",
+                       themeVariables: { fontFamily: "ui-monospace, Menlo, monospace", primaryColor: "#143d2a",
+                                         primaryTextColor: "#d6ffe0", lineColor: "#7fbf92", background: "#0b1410" } });
+  let serial = 0;
+  async function render(source) {
+    const id = "d" + (++serial);
+    const diagram = document.getElementById("diagram"), error = document.getElementById("error"), text = document.getElementById("source");
+    diagram.innerHTML = ""; error.style.display = "none"; text.style.display = "none";
+    try {
+      const result = await mermaid.render(id, source);
+      diagram.innerHTML = result.svg;
+      if (result.bindFunctions) result.bindFunctions(diagram);
+      return "ok";
+    } catch (failure) {
+      // The source stays readable when Mermaid cannot parse it (REQ-006: a visible explanation, never an empty view).
+      error.textContent = "Схему не удалось отрисовать: " + (failure && failure.message ? failure.message : String(failure));
+      error.style.display = "block";
+      text.textContent = source;
+      text.style.display = "block";
+      return "error";
+    }
+  }
+  window.renderDiagram = render;
+</script>
+</body>
+</html>

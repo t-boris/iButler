@@ -1,0 +1,11 @@
+{
+ "contract": "delivery",
+ "version": 1,
+ "id": "dl-1",
+ "recipient": "telegram:1000001",
+ "channel": "telegram:butler",
+ "persona": "butler",
+ "kind": "result",
+ "content": "done",
+ "idempotency_key": "result:op-1"
+}

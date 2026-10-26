@@ -1,0 +1,128 @@
+{
+  "at": "2026-10-23T19:38:29.332237+00:00",
+  "speech_window_count": 13,
+  "voice_threshold": 0.82,
+  "per_second_scores_only": [
+    {
+      "start": 1792783909.845897,
+      "short_speech": true
+    },
+    {
+      "start": 1792783910.837881,
+      "raw_scores": [
+        0.841,
+        0.841
+      ],
+      "normalized_scores": [
+        0.841,
+        0.823
+      ]
+    },
+    {
+      "start": 1792783911.829846,
+      "raw_scores": [
+        0.823,
+        0.879
+      ],
+      "normalized_scores": [
+        0.844,
+        0.898
+      ]
+    },
+    {
+      "start": 1792783912.8538802,
+      "raw_scores": [
+        0.881
+      ],
+      "normalized_scores": [
+        0.866,
+        0.85
+      ]
+    },
+    {
+      "start": 1792783913.8524868,
+      "raw_scores": [
+        0.843,
+        0.902
+      ],
+      "normalized_scores": [
+        0.826,
+        0.849
+      ]
+    },
+    {
+      "start": 1792783914.837943,
+      "raw_scores": [
+        0.835,
+        0.861
+      ],
+      "normalized_scores": [
+        0.812,
+        0.858
+      ]
+    },
+    {
+      "start": 1792783915.829886,
+      "raw_scores": [
+        0.812,
+        0.871
+      ],
+      "normalized_scores": [
+        0.806,
+        0.876
+      ]
+    },
+    {
+      "start": 1792783916.853906,
+      "raw_scores": [
+        0.879,
+        0.908
+      ],
+      "normalized_scores": [
+        0.843,
+        0.859
+      ]
+    },
+    {
+      "start": 1792783917.84586,
+      "short_speech": true
+    },
+    {
+      "start": 1792783918.858078,
+      "raw_scores": [
+        0.748
+      ],
+      "normalized_scores": [
+        0.748
+      ]
+    },
+    {
+      "start": 1792783919.831389,
+      "raw_scores": [
+        0.801
+      ],
+      "normalized_scores": [
+        0.823
+      ]
+    },
+    {
+      "start": 1792783920.853857,
+      "short_speech": true
+    },
+    {
+      "start": 1792783922.837888,
+      "raw_scores": [
+        0.755
+      ],
+      "normalized_scores": [
+        0.753
+      ]
+    }
+  ],
+  "asr_hearing_phrase_present": true,
+  "whole_turn_matches_fast_hearing_check": false,
+  "whole_turn_explicit_address": false,
+  "asr_word_count": 26,
+  "raw_transcripts_vectors_or_media_exported": false,
+  "no_reference_change": true
+}

@@ -1,0 +1,1 @@
+{"signature":"3331-1792004511376","source":"structure","collections":[{"groups":[{"name":"Functions","items":[{"name":"toInboxRecord","summary":"function","line":9},{"name":"createInboxFeeder","summary":"function","line":29},{"name":"guardIngestOnlySocket","summary":"function","line":71}]}],"name":"Declarations"}]}

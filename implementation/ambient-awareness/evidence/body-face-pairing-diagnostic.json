@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-23T19:33:45.530242+00:00",
+  "stored_frame_samples": 30,
+  "face_body_count_and_pairing_histogram": {
+    "(0, 0, ())": 21,
+    "(0, 1, (0,))": 5,
+    "(1, 1, (np.int64(1),))": 4
+  },
+  "stored_resolution_only": true,
+  "note": "Stored640px frames; latest transient1280px check must be separately probed before changing detection. No images/coordinates/vectors exported."
+}

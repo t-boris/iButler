@@ -1,0 +1,179 @@
+{
+  "synthetic_test_only": true,
+  "rows": [
+    {
+      "at": 1792706723.35,
+      "state": "ready",
+      "phase": "idle",
+      "allowed": true,
+      "recording_allowed": false,
+      "participant_check": null,
+      "input": {
+        "working": true,
+        "rms_dbfs": -65.9,
+        "name": "Jabra SPEAK",
+        "device": "0"
+      },
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "other_audio_ducking": "none",
+        "echo_backend": "speexdsp",
+        "playback_reference": true
+      },
+      "diagnostics": {
+        "counts": {
+          "quiet_batch": 1
+        },
+        "last_event": "quiet_batch",
+        "last_completed_source": null
+      },
+      "playback_state": "idle",
+      "synthetic_check": {
+        "queued": true,
+        "synthetic": true,
+        "microphone_test": false
+      }
+    },
+    {
+      "at": 1792706724.36,
+      "state": "thinking",
+      "phase": "transcription",
+      "allowed": true,
+      "recording_allowed": true,
+      "participant_check": null,
+      "input": {
+        "working": true,
+        "rms_dbfs": -64.0,
+        "name": "Jabra SPEAK",
+        "device": "0"
+      },
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "other_audio_ducking": "none",
+        "echo_backend": "speexdsp",
+        "playback_reference": true
+      },
+      "diagnostics": {
+        "counts": {
+          "quiet_batch": 2,
+          "synthetic_check_queued": 1,
+          "transcription_started": 1
+        },
+        "last_event": "quiet_batch",
+        "last_completed_source": null
+      },
+      "playback_state": "idle"
+    },
+    {
+      "at": 1792706725.38,
+      "state": "speaking",
+      "phase": "playback",
+      "allowed": true,
+      "recording_allowed": true,
+      "participant_check": null,
+      "input": {
+        "working": true,
+        "rms_dbfs": -57.4,
+        "name": "Jabra SPEAK",
+        "device": "0"
+      },
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "other_audio_ducking": "none",
+        "echo_backend": "speexdsp",
+        "playback_reference": true
+      },
+      "diagnostics": {
+        "counts": {
+          "quiet_batch": 3,
+          "synthetic_check_queued": 1,
+          "transcription_started": 1,
+          "transcription_nonempty": 1,
+          "wake_detected": 1,
+          "address_accepted": 1,
+          "reply_generated": 1,
+          "prepared_voice": 1
+        },
+        "last_event": "prepared_voice",
+        "last_completed_source": null
+      },
+      "playback_state": "started"
+    },
+    {
+      "at": 1792706726.39,
+      "state": "speaking",
+      "phase": "playback",
+      "allowed": true,
+      "recording_allowed": true,
+      "participant_check": null,
+      "input": {
+        "working": true,
+        "rms_dbfs": -71.9,
+        "name": "Jabra SPEAK",
+        "device": "0"
+      },
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "other_audio_ducking": "none",
+        "echo_backend": "speexdsp",
+        "playback_reference": true
+      },
+      "diagnostics": {
+        "counts": {
+          "quiet_batch": 4,
+          "synthetic_check_queued": 1,
+          "transcription_started": 1,
+          "transcription_nonempty": 1,
+          "wake_detected": 1,
+          "address_accepted": 1,
+          "reply_generated": 1,
+          "prepared_voice": 1
+        },
+        "last_event": "quiet_batch",
+        "last_completed_source": null
+      },
+      "playback_state": "started"
+    },
+    {
+      "at": 1792706727.42,
+      "state": "ready",
+      "phase": "playback",
+      "allowed": true,
+      "recording_allowed": true,
+      "participant_check": null,
+      "input": {
+        "working": true,
+        "rms_dbfs": -70.8,
+        "name": "Jabra SPEAK",
+        "device": "0"
+      },
+      "audio": {
+        "ready": true,
+        "echo_cancellation": true,
+        "other_audio_ducking": "none",
+        "echo_backend": "speexdsp",
+        "playback_reference": true
+      },
+      "diagnostics": {
+        "counts": {
+          "quiet_batch": 5,
+          "synthetic_check_queued": 1,
+          "transcription_started": 1,
+          "transcription_nonempty": 1,
+          "wake_detected": 1,
+          "address_accepted": 1,
+          "reply_generated": 1,
+          "prepared_voice": 1,
+          "playback_completed": 1
+        },
+        "last_event": "playback_completed",
+        "last_completed_source": "synthetic-check"
+      },
+      "playback_state": "done"
+    }
+  ]
+}

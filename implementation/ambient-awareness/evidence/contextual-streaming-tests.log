@@ -1,0 +1,19 @@
+test_every_split_preserves_complete_metadata_and_handles_escaped_russian (test_streaming.PartialJSONTests.test_every_split_preserves_complete_metadata_and_handles_escaped_russian) ... ok
+test_unfinished_numbers_and_duplicate_address_fields_are_not_trusted (test_streaming.PartialJSONTests.test_unfinished_numbers_and_duplicate_address_fields_are_not_trusted) ... ok
+test_client_cancellation_disconnects_decode_without_unloading_weights (test_streaming.ResidentASRTests.test_client_cancellation_disconnects_decode_without_unloading_weights) ... ok
+test_real_resident_model_reuses_pid_and_recognizes_russian_fixtures (test_streaming.ResidentASRTests.test_real_resident_model_reuses_pid_and_recognizes_russian_fixtures) ... ok
+test_actual_local_model_handles_unnamed_question_followup_and_unrelated_speech (test_streaming.StreamingTests.test_actual_local_model_handles_unnamed_question_followup_and_unrelated_speech) ... ok
+test_audio_starts_before_synthesis_finishes_and_uses_one_bounded_stream (test_streaming.StreamingTests.test_audio_starts_before_synthesis_finishes_and_uses_one_bounded_stream) ... ok
+test_explicit_request_for_silence_cannot_be_overridden_by_model (test_streaming.StreamingTests.test_explicit_request_for_silence_cannot_be_overridden_by_model) ... ok
+test_first_clause_is_spoken_before_the_model_finishes_its_reply (test_streaming.StreamingTests.test_first_clause_is_spoken_before_the_model_finishes_its_reply) ... ok
+test_interrupted_reply_is_not_claimed_as_completed_dialogue (test_streaming.StreamingTests.test_interrupted_reply_is_not_claimed_as_completed_dialogue) ... ok
+test_native_stream_protocol_preserves_progress_and_rejects_unready_output (test_streaming.StreamingTests.test_native_stream_protocol_preserves_progress_and_rejects_unready_output) ... ok
+test_partial_reply_never_speaks_before_complete_confident_address_metadata (test_streaming.StreamingTests.test_partial_reply_never_speaks_before_complete_confident_address_metadata) ... ok
+test_pause_between_chunk_arrival_and_append_never_plays_stale_audio (test_streaming.StreamingTests.test_pause_between_chunk_arrival_and_append_never_plays_stale_audio) ... ok
+test_single_model_turn_includes_completed_context_and_pause_erases_it (test_streaming.StreamingTests.test_single_model_turn_includes_completed_context_and_pause_erases_it) ... ok
+test_unnamed_question_and_followup_after_twenty_seconds_can_reply (test_streaming.StreamingTests.test_unnamed_question_and_followup_after_twenty_seconds_can_reply) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 7.947s
+
+OK

@@ -1,0 +1,246 @@
+{
+  "checks" : [
+    {
+      "name" : "volatile-camera-preview-decodes-without-file",
+      "passed" : true
+    },
+    {
+      "name" : "invalid-volatile-camera-preview-is-rejected",
+      "passed" : true
+    },
+    {
+      "name" : "bundled-production-preferences-resolve",
+      "passed" : true
+    },
+    {
+      "name" : "feed-separates-kinds",
+      "passed" : true
+    },
+    {
+      "name" : "feed-follows-new-entries-at-bottom",
+      "passed" : true
+    },
+    {
+      "name" : "feed-keeps-position-while-reading-older",
+      "passed" : true
+    },
+    {
+      "name" : "feed-hides-service-events-on-request",
+      "passed" : true
+    },
+    {
+      "name" : "preview-has-reserved-area",
+      "passed" : true
+    },
+    {
+      "name" : "single-main-window",
+      "passed" : true
+    },
+    {
+      "name" : "preview-stable-1280x720",
+      "passed" : true
+    },
+    {
+      "name" : "preview-stable-300x900",
+      "passed" : true
+    },
+    {
+      "name" : "preview-stable-4000x1000",
+      "passed" : true
+    },
+    {
+      "name" : "preview-stable-on-loss",
+      "passed" : true
+    },
+    {
+      "name" : "preview-stable-resized-1120",
+      "passed" : true
+    },
+    {
+      "name" : "preview-loss-resized-1120",
+      "passed" : true
+    },
+    {
+      "name" : "preview-stable-resized-1600",
+      "passed" : true
+    },
+    {
+      "name" : "preview-loss-resized-1600",
+      "passed" : true
+    },
+    {
+      "name" : "route-selection-survives-reorder",
+      "passed" : true
+    },
+    {
+      "name" : "unsaved-route-choice-survives-refresh",
+      "passed" : true
+    },
+    {
+      "name" : "new-catalog-choice-appears-without-losing-draft",
+      "passed" : true
+    },
+    {
+      "name" : "route-save-targets-stable-id-and-choice",
+      "passed" : true
+    },
+    {
+      "name" : "removed-draft-is-visible-and-cannot-be-applied",
+      "passed" : true
+    },
+    {
+      "name" : "unsaved-component-fields-survive-refresh",
+      "passed" : true
+    },
+    {
+      "name" : "component-save-targets-stable-id",
+      "passed" : true
+    },
+    {
+      "name" : "job-selection-and-edits-survive-refresh",
+      "passed" : true
+    },
+    {
+      "name" : "table-scroll-survives-refresh",
+      "passed" : true
+    },
+    {
+      "name" : "storage-details-have-stable-geometry",
+      "passed" : true
+    },
+    {
+      "name" : "storage-paths-allow-multiple-lines",
+      "passed" : true
+    },
+    {
+      "name" : "navigation-dialogue",
+      "passed" : true
+    },
+    {
+      "name" : "navigation-observations",
+      "passed" : true
+    },
+    {
+      "name" : "navigation-voice",
+      "passed" : true
+    },
+    {
+      "name" : "navigation-images",
+      "passed" : true
+    },
+    {
+      "name" : "navigation-models",
+      "passed" : true
+    },
+    {
+      "name" : "navigation-jobs",
+      "passed" : true
+    },
+    {
+      "name" : "navigation-components",
+      "passed" : true
+    },
+    {
+      "name" : "navigation-diagnostics",
+      "passed" : true
+    },
+    {
+      "name" : "separate-model-target-agent",
+      "passed" : true
+    },
+    {
+      "name" : "separate-model-target-conversation_model",
+      "passed" : true
+    },
+    {
+      "name" : "separate-model-target-vision_model",
+      "passed" : true
+    },
+    {
+      "name" : "window-and-section-restored",
+      "passed" : true
+    },
+    {
+      "name" : "disconnect-does-not-navigate-or-resize",
+      "passed" : true
+    },
+    {
+      "name" : "disconnect-clears-feed",
+      "passed" : true
+    },
+    {
+      "name" : "disconnect-clears-transient-voice-text",
+      "passed" : true
+    },
+    {
+      "name" : "disconnect-clears-media",
+      "passed" : true
+    },
+    {
+      "name" : "test-mode-never-starts-cli",
+      "passed" : true
+    },
+    {
+      "name" : "duplicate-ui-instance-rejected",
+      "passed" : true
+    },
+    {
+      "name" : "ui-lock-released-for-reopen",
+      "passed" : true
+    }
+  ],
+  "geometry" : [
+    "{{256, 552}, {281, 158}}",
+    "{{256, 491}, {281, 24}}",
+    "{{256, 368}, {281, 24}}",
+    "{{256, 236}, {281, 18}}",
+    "{{254, 97}, {285, 18}}",
+    "{{10, 78}, {228, 655}}",
+    "{{240, 48}, {1020, 678}}",
+    "{{1080, 417}, {1280, 886}}"
+  ],
+  "passed" : true,
+  "service_or_devices_used" : false,
+  "snapshots" : [
+    {
+      "geometry" : [
+        "{{256, 552}, {281, 158}}",
+        "{{256, 491}, {281, 24}}",
+        "{{256, 368}, {281, 24}}",
+        "{{256, 236}, {281, 18}}",
+        "{{254, 97}, {285, 18}}",
+        "{{10, 78}, {228, 655}}",
+        "{{240, 48}, {1020, 678}}",
+        "{{1080, 417}, {1280, 886}}"
+      ],
+      "image" : "(1280.0, 720.0)"
+    },
+    {
+      "geometry" : [
+        "{{256, 552}, {281, 158}}",
+        "{{256, 491}, {281, 24}}",
+        "{{256, 368}, {281, 24}}",
+        "{{256, 236}, {281, 18}}",
+        "{{254, 97}, {285, 18}}",
+        "{{10, 78}, {228, 655}}",
+        "{{240, 48}, {1020, 678}}",
+        "{{1080, 417}, {1280, 886}}"
+      ],
+      "image" : "(300.0, 900.0)"
+    },
+    {
+      "geometry" : [
+        "{{256, 552}, {281, 158}}",
+        "{{256, 491}, {281, 24}}",
+        "{{256, 368}, {281, 24}}",
+        "{{256, 236}, {281, 18}}",
+        "{{254, 97}, {285, 18}}",
+        "{{10, 78}, {228, 655}}",
+        "{{240, 48}, {1020, 678}}",
+        "{{1080, 417}, {1280, 886}}"
+      ],
+      "image" : "(4000.0, 1000.0)"
+    }
+  ],
+  "synthetic_only" : true
+}

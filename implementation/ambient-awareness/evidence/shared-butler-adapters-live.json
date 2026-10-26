@@ -1,0 +1,60 @@
+{
+  "timestamp": "2026-10-23T17:39:59.021027+00:00",
+  "knowledge": {
+    "state": "timeout",
+    "adapter": "existing Butler lib.memory.recall",
+    "scopes": [
+      "all-vault",
+      "sessions",
+      "tasks"
+    ],
+    "last_hits": 0,
+    "last_seconds": 2.535,
+    "raw_content": "owner-local memory only"
+  },
+  "knowledge_hits": 0,
+  "knowledge_scopes": [],
+  "projects_discovered": 164,
+  "route_kinds": [
+    "architecture",
+    "code",
+    "review",
+    "research",
+    "documentation",
+    "tests",
+    "curate",
+    "classify",
+    "news",
+    "video"
+  ],
+  "actual_dispatch_sha256": "dd3cf9c251c6c1d4a9aa22d328d3d04b27633950e07295af3e0799baeadc2a3a",
+  "private_content_exported": false,
+  "provider_inference_run": false,
+  "owner_project_changed": false,
+  "tool_catalog": {
+    "exit": 0,
+    "available": true,
+    "tool_count": 37,
+    "groups": [
+      "fs",
+      "runtime",
+      "web",
+      "memory",
+      "sessions",
+      "ui",
+      "messaging",
+      "automation",
+      "nodes",
+      "agents",
+      "media",
+      "plugin:file-transfer"
+    ]
+  },
+  "read_only_tool": {
+    "exit": 0,
+    "ok": true,
+    "source": "core",
+    "requiresApproval": false,
+    "output_exposed": false
+  }
+}

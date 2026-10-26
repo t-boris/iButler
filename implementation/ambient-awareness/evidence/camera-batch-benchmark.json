@@ -1,0 +1,76 @@
+{
+  "local_only": true,
+  "raw_content_exported": false,
+  "no_model_device_or_authority_change": true,
+  "results": [
+    {
+      "images": 5,
+      "seconds": 13.331,
+      "facts_count": 3,
+      "diagnostic": {
+        "images": 5,
+        "prompt_characters": 6931,
+        "context_tokens": 8192,
+        "http_status": 200,
+        "first_token_ms": 11296.0,
+        "load_ms": 344.4,
+        "prompt_ms": 6340.6,
+        "generation_ms": 2029.6,
+        "total_ms": 13319.9,
+        "prompt_tokens": 3417,
+        "generated_tokens": 125,
+        "response_characters": 598,
+        "elapsed_ms": 13330.4,
+        "stage": "completed",
+        "finish_reason": "stop"
+      },
+      "records_per_second": 0.375
+    },
+    {
+      "images": 12,
+      "seconds": 25.215,
+      "facts_count": 3,
+      "diagnostic": {
+        "images": 12,
+        "prompt_characters": 6931,
+        "context_tokens": 8192,
+        "http_status": 200,
+        "first_token_ms": 23100.1,
+        "load_ms": 362.5,
+        "prompt_ms": 14330.4,
+        "generation_ms": 2110.0,
+        "total_ms": 25205.5,
+        "prompt_tokens": 5307,
+        "generated_tokens": 125,
+        "response_characters": 598,
+        "elapsed_ms": 25214.3,
+        "stage": "completed",
+        "finish_reason": "stop"
+      },
+      "records_per_second": 0.476
+    },
+    {
+      "images": 16,
+      "seconds": 28.653,
+      "facts_count": 3,
+      "diagnostic": {
+        "images": 16,
+        "prompt_characters": 6931,
+        "context_tokens": 8192,
+        "http_status": 200,
+        "first_token_ms": 26398.5,
+        "load_ms": 396.4,
+        "prompt_ms": 17787.6,
+        "generation_ms": 2250.1,
+        "total_ms": 28645.0,
+        "prompt_tokens": 6387,
+        "generated_tokens": 125,
+        "response_characters": 598,
+        "elapsed_ms": 28653.1,
+        "stage": "completed",
+        "finish_reason": "stop"
+      },
+      "records_per_second": 0.558
+    }
+  ]
+}

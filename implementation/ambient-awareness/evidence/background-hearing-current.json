@@ -1,0 +1,106 @@
+{
+  "at": 1792801274.374061,
+  "dialogue_allowed": false,
+  "voice_enabled": true,
+  "input": {
+    "working": true,
+    "muted": false,
+    "gain": 0.2857142984867096,
+    "rms_dbfs": -70.8,
+    "name": "Jabra SPEAK 410 USB",
+    "selected_name": "Jabra SPEAK 410 USB",
+    "selection_verified": true,
+    "device": "0"
+  },
+  "camera_working": true,
+  "participant": {
+    "fresh": true,
+    "check_age_seconds": 0.53,
+    "capture_age_seconds": 1.38,
+    "consecutive_checks": 0,
+    "required_checks": 3,
+    "owner_camera_confirmed": false,
+    "owner_voice_confirmed": false,
+    "confirmed_by": null,
+    "voice_check": null
+  },
+  "audio": {
+    "actual_microphone": "Jabra SPEAK 410 USB",
+    "input_muted": false,
+    "input_volume": 0.2857142984867096,
+    "input_verified": true,
+    "input_backend": "AUHAL-input-only",
+    "system_default_microphone": "Jabra SPEAK 410 USB",
+    "system_default_output": "Jabra SPEAK 410 USB",
+    "system_output_muted": false,
+    "system_output_volume": 0.6694214940071106,
+    "other_audio_ducking": "none",
+    "voice_processing_enabled": false
+  },
+  "playback": {
+    "state": "idle",
+    "id": null
+  },
+  "listener_phase": "waiting",
+  "listener_counts": {
+    "batches": 913,
+    "transcription": 72,
+    "heard": 72,
+    "participant-check-wait": 2,
+    "reply-blocked": 57,
+    "routed": 15
+  },
+  "transcript_metadata": [
+    {
+      "age": 118.48,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "has_alias": false
+    },
+    {
+      "age": 114.28,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "has_alias": false
+    },
+    {
+      "age": 113.48,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "has_alias": false
+    },
+    {
+      "age": 111.36,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "has_alias": false
+    },
+    {
+      "age": 109.15,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "has_alias": false
+    },
+    {
+      "age": 106.26,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "has_alias": false
+    },
+    {
+      "age": 74.84,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "has_alias": false
+    }
+  ],
+  "joined_hearing_check": false,
+  "private_content_exported": false
+}

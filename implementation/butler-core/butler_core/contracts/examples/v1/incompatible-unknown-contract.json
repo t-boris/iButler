@@ -1,0 +1,8 @@
+{
+ "expect_field": "contract",
+ "data": {
+  "contract": "job",
+  "version": 1,
+  "id": "j"
+ }
+}

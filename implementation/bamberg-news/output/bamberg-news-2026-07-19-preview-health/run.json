@@ -1,0 +1,43 @@
+{
+  "episode_id": "bamberg-news-2026-07-19-preview-health",
+  "episode_sha256": "bd17ac59e06c12ccaf95cbdfc9def8afb063364703f6a12ad3622b88b8b37d6e",
+  "profile": "daily",
+  "status": "rendered",
+  "rendered_at": "2026-07-19T15:36:51-05:00",
+  "run_dir": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview-health",
+  "video": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview-health/render/episode.mp4",
+  "poster": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview-health/render/poster.jpg",
+  "captions": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview-health/captions.srt",
+  "credits": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview-health/credits.md",
+  "duration_seconds": 131.854,
+  "sha256": "13ad06ab4ebebb13a062907adad8f60b7a2b0003c8b260da3983fa3d25f3e134",
+  "warnings": [],
+  "media": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "30/1"
+      },
+      {
+        "index": 1,
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "format": {
+      "duration": "131.854362"
+    }
+  },
+  "tts_provider": "edge",
+  "voice": "ru-RU-DmitryNeural",
+  "estimated_tts_cost_usd": 0.0
+}

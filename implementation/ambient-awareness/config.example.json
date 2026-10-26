@@ -1,0 +1,10 @@
+{
+  "camera": "0",
+  "microphone": "0",
+  "face_detector": "/absolute/local/path/face_detection_yunet_2023mar.onnx",
+  "face_recognizer": "/absolute/local/path/face_recognition_sface_2021dec.onnx",
+  "person_detector": "/absolute/local/path/object_detection_yolox_2022nov.onnx",
+  "whisper_model": "/absolute/local/path/ggml-base.bin",
+  "vision_model": "gemma3:4b",
+  "telegram_target": "253483520"
+}

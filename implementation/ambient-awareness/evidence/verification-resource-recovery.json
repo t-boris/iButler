@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-23T22:03:48.861841+00:00",
+  "own_launchagent_unloaded": true,
+  "temporarily_released_only_configured_butler_model": "qwen3.5:9b",
+  "model_files_deleted": false,
+  "shared_model_server_restarted": false,
+  "free_bytes_after_release": 13294772224,
+  "reason": "Actual full-disk failure in FFmpeg regression; own service already stopped for audited native deadlock recovery."
+}

@@ -1,0 +1,5 @@
+{"new_then_legacy_seconds": [2.0, 1.0, 1.0], "expected": [2.0, 2.0], "synthetic_only": true}
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/evidence/check-legacy-audio-grouping.py", line 22, in <module>
+    assert durations==[2.,2.], 'new/legacy boundary must reset aggregation timestamps'
+AssertionError: new/legacy boundary must reset aggregation timestamps

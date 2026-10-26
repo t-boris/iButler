@@ -1,0 +1,4 @@
+cwd: /Users/boris/Projects/MacStudioButler/implementation/ambient-awareness
+command: ["swiftc", "-warnings-as-errors", "butler_ambient/native/audio.swift", "-o", "build/butler-audio"]
+exit: 0
+

@@ -1,0 +1,75 @@
+{
+  "at": "2026-10-23T22:14:42.316713+00:00",
+  "microphone_name": "Jabra SPEAK 410 USB",
+  "rms_dbfs": -64.5,
+  "input_working": true,
+  "counts": {
+    "batches": 422,
+    "transcription": 124,
+    "heard": 124,
+    "reply-blocked": 96,
+    "routed": 28
+  },
+  "latest_heard_patterns": [
+    {
+      "age_seconds": 63.5,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "hearing_words": false
+    },
+    {
+      "age_seconds": 49.3,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "hearing_words": false
+    },
+    {
+      "age_seconds": 34.3,
+      "words": 5,
+      "explicit": false,
+      "hearing_check": false,
+      "hearing_words": false
+    },
+    {
+      "age_seconds": 27.7,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "hearing_words": false
+    },
+    {
+      "age_seconds": 23.2,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "hearing_words": false
+    },
+    {
+      "age_seconds": 12.7,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "hearing_words": false
+    },
+    {
+      "age_seconds": 7.1,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "hearing_words": false
+    },
+    {
+      "age_seconds": 2.1,
+      "words": 1,
+      "explicit": false,
+      "hearing_check": false,
+      "hearing_words": false
+    }
+  ],
+  "dialogue_allowed": false,
+  "meeting": "available",
+  "voice_ready": true,
+  "raw_speech_exported": false
+}

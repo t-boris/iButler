@@ -1,0 +1,6 @@
+{
+  "old_bare_runloop_test_exit": 1,
+  "old_failure_reproduced": true,
+  "fixed_native_appkit_test_exit": 0,
+  "contains_authentication_or_device_access": false
+}

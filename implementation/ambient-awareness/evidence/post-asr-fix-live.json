@@ -1,0 +1,705 @@
+{
+  "samples": [
+    {
+      "at": 1792703477.6828392,
+      "recording_allowed": false,
+      "participant_check": null,
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703478.782012,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.5,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703479.872709,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.6,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703480.962784,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.67,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703482.04911,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 0.77,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703483.13936,
+      "recording_allowed": false,
+      "participant_check": "face-unrecognized-or-ambiguous",
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703484.226548,
+      "recording_allowed": false,
+      "participant_check": "face-unrecognized-or-ambiguous",
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703485.318673,
+      "recording_allowed": false,
+      "participant_check": null,
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703486.413425,
+      "recording_allowed": false,
+      "participant_check": null,
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703487.513757,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.24,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703488.602219,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.31,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703489.695224,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.41,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703490.7869859,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.51,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703491.878104,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.61,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703492.9672132,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.67,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703494.058115,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.77,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703495.145899,
+      "recording_allowed": false,
+      "participant_check": "voice-uncertain",
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "listening",
+        "phase": "listening",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703496.236823,
+      "recording_allowed": false,
+      "participant_check": null,
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "thinking",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703497.326475,
+      "recording_allowed": false,
+      "participant_check": "face-unrecognized-or-ambiguous",
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703498.421822,
+      "recording_allowed": false,
+      "participant_check": null,
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703499.511652,
+      "recording_allowed": false,
+      "participant_check": null,
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703500.5975811,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.3,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703501.6853702,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.4,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703502.774219,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.5,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703503.863404,
+      "recording_allowed": false,
+      "participant_check": "face-unrecognized-or-ambiguous",
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703504.9554298,
+      "recording_allowed": false,
+      "participant_check": "face-unrecognized-or-ambiguous",
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703506.049124,
+      "recording_allowed": false,
+      "participant_check": "face-unrecognized-or-ambiguous",
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703507.136698,
+      "recording_allowed": false,
+      "participant_check": null,
+      "preview_age": null,
+      "voice": {
+        "selected": "baritone",
+        "state": "paused",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": false,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703508.2284071,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 0.93,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703509.323957,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.04,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703510.4235892,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.15,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703511.5233438,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.25,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703512.621808,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.33,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703513.71982,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.43,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    },
+    {
+      "at": 1792703514.812227,
+      "recording_allowed": true,
+      "participant_check": null,
+      "preview_age": 1.53,
+      "voice": {
+        "selected": "baritone",
+        "state": "ready",
+        "phase": "transcription",
+        "face_wake_dialogue": true,
+        "dialogue_allowed": true,
+        "echo_cancellation": true,
+        "playback": {
+          "state": "idle",
+          "id": null
+        }
+      },
+      "addressed_text_present": false,
+      "reply_present": false
+    }
+  ],
+  "raw_exported": false
+}

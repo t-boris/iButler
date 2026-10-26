@@ -1,0 +1,22 @@
+{
+  "pcm16_frames": 66554,
+  "input_rate": 48000,
+  "synthetic": true,
+  "output_rate": 16000,
+  "hardware_frames": 199680,
+  "original_frames": 66560,
+  "wav_frames": 66554,
+  "rms_dbfs": -22.45688715069514,
+  "timestamp": "2026-10-22T22:48:06.266254+00:00",
+  "all_expected_words_present": true,
+  "synthetic_transcript": " раз, два, три, четыре, пять, вышел зайчик погулять.\n",
+  "frame_ratio": 0.9999098557692307,
+  "command": [
+    "swift",
+    "/tmp/butler-native-resampling.swift",
+    "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/fixtures/counting-russian.wav",
+    "/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/butler-synthetic-format-_20wdg5b/converted.wav"
+  ],
+  "exit": 0,
+  "probe_sha256": "979b9e7c5917baacc82f8a7bfcfb40b8210325a75f137d98369878084bd1fe14"
+}

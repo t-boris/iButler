@@ -1,0 +1,8 @@
+#!/bin/sh
+# Always run this implementation, never a stale deployed workspace overlay.
+HERE=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+AMBIENT_PYTHON=${BUTLER_AMBIENT_PYTHON:-python3}
+if [ -z "${BUTLER_AMBIENT_PYTHON:-}" ] && [ -x "$HERE/.venv/bin/python" ]; then
+  AMBIENT_PYTHON="$HERE/.venv/bin/python"
+fi
+PYTHONPATH="$HERE${PYTHONPATH:+:$PYTHONPATH}" exec "$AMBIENT_PYTHON" -m butler_ambient.cli "$@"

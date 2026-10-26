@@ -1,0 +1,53 @@
+{
+  "samples": [
+    {
+      "at": 1792701286.666401,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "preview_age": 0.464,
+      "preview_exists": true
+    },
+    {
+      "at": 1792701287.7564,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "preview_age": 0.566,
+      "preview_exists": true
+    },
+    {
+      "at": 1792701288.843553,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "preview_age": 0.632,
+      "preview_exists": true
+    },
+    {
+      "at": 1792701289.938996,
+      "recording_allowed": true,
+      "participant_check": null,
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "paused"
+      },
+      "preview_age": 0.727,
+      "preview_exists": true
+    }
+  ],
+  "raw_exported": false
+}

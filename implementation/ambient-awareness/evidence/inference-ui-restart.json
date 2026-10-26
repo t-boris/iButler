@@ -1,0 +1,12 @@
+{
+  "exact_own_ui_processes": [
+    {
+      "pid": 98405,
+      "command": "/Users/boris/Applications/Butler.app/Contents/MacOS/Butler /Users/boris/.openclaw/tools/ambient-awareness/bin/butler-ambient",
+      "termination_requested": true,
+      "observed_terminal_state": "zombie awaiting parent reap"
+    }
+  ],
+  "owner_setup_stage": "idle",
+  "scope": "own Butler UI only; no default device/volume/shared gateway change"
+}

@@ -1,0 +1,38 @@
+#!/bin/zsh
+# butler-dispatch — route a project task to the right backend.
+#
+# Routing (per Boris's choice, 2026-05-26):
+#   architecture  → codex gpt-5.5
+#   code          → claude opus
+#   review        → claude sonnet
+#   research      → codex gpt-5.5  (fallback: claude opus)
+#   documentation → codex gpt-5.5
+#   tests         → claude sonnet
+#   video         → claude sonnet (storyboard + local render)
+#
+# Usage:
+#   butler-dispatch <task_kind> --project <path> --prompt "text" [opts]
+#
+# Examples:
+#   butler-dispatch code --project ~/github.com/FitTunes \
+#                        --prompt "add a play/pause button to the player component"
+#   butler-dispatch review --project ~/github.com/StrikeDesk \
+#                          --prompt "review the auth changes in src/auth/"
+#   butler-dispatch documentation --project ~/Projects/dev-bench \
+#                                 --prompt "update README with the new CLI flags"
+#
+# Options:
+#   --backend claude|codex     override the route's backend
+#   --model <name>             override (claude: sonnet|opus|haiku; codex: gpt-5.5)
+#   --timeout <sec>            override; default is per-kind (code 7200, architecture 3600,
+#                              research 2700, tests 2700, documentation 2400, review 1800)
+#   --json                     JSON result (default: text + summary footer on stderr)
+
+set -e
+WORKSPACE=/Users/boris/.openclaw/workspace-butler
+export PYTHONPATH="$WORKSPACE"
+if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  /opt/miniconda3/bin/python -m lib.dispatch
+  exit 2
+fi
+/opt/miniconda3/bin/python -m lib.dispatch "$@"

@@ -1,0 +1,49 @@
+{
+  "timestamp": "2026-10-23T14:13:51.511601+00:00",
+  "samples": [
+    {
+      "elapsed_seconds": 0,
+      "alive": true
+    },
+    {
+      "elapsed_seconds": 3,
+      "alive": true
+    },
+    {
+      "elapsed_seconds": 6,
+      "alive": true
+    },
+    {
+      "elapsed_seconds": 9,
+      "alive": true
+    },
+    {
+      "elapsed_seconds": 12,
+      "alive": true
+    },
+    {
+      "elapsed_seconds": 15,
+      "alive": true
+    },
+    {
+      "elapsed_seconds": 18,
+      "alive": true
+    },
+    {
+      "elapsed_seconds": 21,
+      "alive": true
+    },
+    {
+      "elapsed_seconds": 24,
+      "alive": true
+    },
+    {
+      "elapsed_seconds": 27,
+      "alive": true
+    }
+  ],
+  "all_samples_alive": true,
+  "new_crash_reports": [],
+  "source_hashes_match": true,
+  "all_automated_checks_passed": true
+}

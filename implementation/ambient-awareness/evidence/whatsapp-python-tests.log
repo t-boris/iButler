@@ -1,0 +1,18 @@
+cwd: /Users/boris/Projects/MacStudioButler
+command: ["/Library/Frameworks/Python.framework/Versions/3.12/bin/python3", "-m", "unittest", "discover", "-s", "implementation/whatsapp-ingest/tests", "-p", "test_*.py", "-v"]
+exit: 0
+
+test_already_disabled_skips_checks (test_preflight.PreflightTests.test_already_disabled_skips_checks) ... ok
+test_missing_patch_disables_only_whatsapp (test_preflight.PreflightTests.test_missing_patch_disables_only_whatsapp) ... [whatsapp-ingest-only] WhatsApp disabled: passive guards need repair; other channels may start.
+ok
+test_read_receipt_drift_disables_whatsapp (test_preflight.PreflightTests.test_read_receipt_drift_disables_whatsapp) ... [whatsapp-ingest-only] WhatsApp disabled: passive guards need repair; other channels may start.
+ok
+test_timeout_disables_only_whatsapp (test_preflight.PreflightTests.test_timeout_disables_only_whatsapp) ... [whatsapp-ingest-only] WhatsApp disabled: passive guards need repair; other channels may start.
+ok
+test_unknown_extension_layout_rejected_before_writes (test_preflight.PreflightTests.test_unknown_extension_layout_rejected_before_writes) ... ok
+test_valid_guards_leave_config_unchanged (test_preflight.PreflightTests.test_valid_guards_leave_config_unchanged) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.008s
+
+OK

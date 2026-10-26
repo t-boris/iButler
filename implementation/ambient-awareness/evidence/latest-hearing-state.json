@@ -1,0 +1,30 @@
+{
+  "at": "2026-10-23T23:11:06.843826+00:00",
+  "actual_microphone": "Jabra SPEAK 410 USB",
+  "system_microphone": "Jabra SPEAK 410 USB",
+  "system_output": "Jabra SPEAK 410 USB",
+  "rms_dbfs": -69.1,
+  "fresh_microphone": true,
+  "dialogue_allowed": false,
+  "voice_ready": true,
+  "listening_counts": {
+    "batches": 649,
+    "transcription": 88,
+    "heard": 88,
+    "reply-blocked": 83,
+    "routed": 5
+  },
+  "models": {
+    "model": "ready",
+    "vision": "ready",
+    "voice": "ready",
+    "asr": "ready"
+  },
+  "meeting_quiet": false,
+  "raw_speech_or_media_exported": false,
+  "actual_owner_reply_verified": false,
+  "open_questions": [
+    "Q-013",
+    "Q-014"
+  ]
+}

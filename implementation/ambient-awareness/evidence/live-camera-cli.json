@@ -1,0 +1,22 @@
+{
+  "status": "ok",
+  "source": "camera",
+  "observations": [
+    {
+      "observation_id": "a43d5eb009154c56b0beea5dd706d56a",
+      "source_id": "e19ca13925734ecf98878125fc09cdf3",
+      "source_ids": [
+        "e19ca13925734ecf98878125fc09cdf3"
+      ],
+      "source": "camera",
+      "captured_at": 1792697364.7359319,
+      "end": 1792697364.7359319,
+      "original_available": true,
+      "summary": [
+        "Possible activity: browsing; possible work topic: software development; uncertain model inference",
+        "Possibly observed: appearance; possible work topic: software development; uncertain model inference",
+        "Possibly observed: appearance; uncertain model inference"
+      ]
+    }
+  ]
+}

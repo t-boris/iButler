@@ -1,0 +1,37 @@
+#!/opt/miniconda3/bin/python
+"""Manage the openly-licensed Bamberg b-roll library."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+LOCAL_ROOT = Path(__file__).resolve().parents[1]
+NEWS_VIDEO_ROOT = LOCAL_ROOT.parent / "news-video"
+LIVE_BUTLER = Path("/Users/boris/.openclaw/workspace-butler")
+if (LOCAL_ROOT / "lib" / "bamberg_broll.py").is_file() and (LOCAL_ROOT / "lib" / "bamberg_news.py").is_file():
+    for root in reversed((LOCAL_ROOT, NEWS_VIDEO_ROOT)):
+        if (root / "lib").is_dir():
+            sys.path.insert(0, str(root))
+else:
+    sys.path.insert(0, str(LIVE_BUTLER))
+
+from lib import bamberg_broll  # noqa: E402
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="bamberg-broll")
+    sub = parser.add_subparsers(dest="command", required=True)
+    build = sub.add_parser("build", help="download/refresh the library from Wikimedia Commons")
+    build.set_defaults(handler=lambda a: bamberg_broll.build_library())
+    lst = sub.add_parser("list", help="print manifest entries")
+    lst.add_argument("--theme")
+    lst.set_defaults(handler=lambda a: bamberg_broll.list_library(a.theme))
+    args = parser.parse_args()
+    print(json.dumps(args.handler(args), indent=2, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

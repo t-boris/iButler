@@ -1,0 +1,1594 @@
+{
+  "at": "2026-10-23T22:08:37.812317+00:00",
+  "samples": [
+    {
+      "elapsed": 0.03,
+      "rpc_seconds": 0.028,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 24,
+        "transcription": 10,
+        "heard": 10,
+        "reply-blocked": 9,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16980766720
+    },
+    {
+      "elapsed": 1.06,
+      "rpc_seconds": 0.027,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "transcription",
+      "listener_counts": {
+        "batches": 25,
+        "transcription": 11,
+        "heard": 10,
+        "reply-blocked": 9,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16981667840
+    },
+    {
+      "elapsed": 2.09,
+      "rpc_seconds": 0.028,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 26,
+        "transcription": 11,
+        "heard": 11,
+        "reply-blocked": 10,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16975466496
+    },
+    {
+      "elapsed": 3.12,
+      "rpc_seconds": 0.027,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 27,
+        "transcription": 12,
+        "heard": 12,
+        "reply-blocked": 11,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16951451648
+    },
+    {
+      "elapsed": 4.15,
+      "rpc_seconds": 0.024,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 28,
+        "transcription": 12,
+        "heard": 12,
+        "reply-blocked": 11,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16934121472
+    },
+    {
+      "elapsed": 5.21,
+      "rpc_seconds": 0.063,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 29,
+        "transcription": 12,
+        "heard": 12,
+        "reply-blocked": 11,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16911060992
+    },
+    {
+      "elapsed": 6.25,
+      "rpc_seconds": 0.026,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 30,
+        "transcription": 12,
+        "heard": 12,
+        "reply-blocked": 11,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16900472832
+    },
+    {
+      "elapsed": 7.39,
+      "rpc_seconds": 0.146,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 31,
+        "transcription": 13,
+        "heard": 13,
+        "reply-blocked": 12,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16887873536
+    },
+    {
+      "elapsed": 8.58,
+      "rpc_seconds": 0.183,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 32,
+        "transcription": 13,
+        "heard": 13,
+        "reply-blocked": 12,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16869789696
+    },
+    {
+      "elapsed": 9.78,
+      "rpc_seconds": 0.196,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 34,
+        "transcription": 13,
+        "heard": 13,
+        "reply-blocked": 12,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16852099072
+    },
+    {
+      "elapsed": 10.97,
+      "rpc_seconds": 0.186,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 35,
+        "transcription": 13,
+        "heard": 13,
+        "reply-blocked": 12,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16835416064
+    },
+    {
+      "elapsed": 12.18,
+      "rpc_seconds": 0.207,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "transcription",
+      "listener_counts": {
+        "batches": 36,
+        "transcription": 14,
+        "heard": 13,
+        "reply-blocked": 12,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16825692160
+    },
+    {
+      "elapsed": 13.37,
+      "rpc_seconds": 0.178,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 37,
+        "transcription": 14,
+        "heard": 14,
+        "reply-blocked": 13,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16801390592
+    },
+    {
+      "elapsed": 14.56,
+      "rpc_seconds": 0.191,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 38,
+        "transcription": 15,
+        "heard": 15,
+        "reply-blocked": 14,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16787222528
+    },
+    {
+      "elapsed": 15.84,
+      "rpc_seconds": 0.276,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 39,
+        "transcription": 16,
+        "heard": 16,
+        "reply-blocked": 15,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16759361536
+    },
+    {
+      "elapsed": 16.87,
+      "rpc_seconds": 0.025,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 41,
+        "transcription": 17,
+        "heard": 17,
+        "reply-blocked": 16,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16740139008
+    },
+    {
+      "elapsed": 17.9,
+      "rpc_seconds": 0.026,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 42,
+        "transcription": 17,
+        "heard": 17,
+        "reply-blocked": 16,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16714821632
+    },
+    {
+      "elapsed": 18.93,
+      "rpc_seconds": 0.028,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 43,
+        "transcription": 17,
+        "heard": 17,
+        "reply-blocked": 16,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16693456896
+    },
+    {
+      "elapsed": 19.96,
+      "rpc_seconds": 0.027,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 44,
+        "transcription": 17,
+        "heard": 17,
+        "reply-blocked": 16,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16677023744
+    },
+    {
+      "elapsed": 21.0,
+      "rpc_seconds": 0.03,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 45,
+        "transcription": 17,
+        "heard": 17,
+        "reply-blocked": 16,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16657547264
+    },
+    {
+      "elapsed": 22.03,
+      "rpc_seconds": 0.028,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 46,
+        "transcription": 17,
+        "heard": 17,
+        "reply-blocked": 16,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16641921024
+    },
+    {
+      "elapsed": 23.06,
+      "rpc_seconds": 0.028,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 47,
+        "transcription": 17,
+        "heard": 17,
+        "reply-blocked": 16,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16626872320
+    },
+    {
+      "elapsed": 24.21,
+      "rpc_seconds": 0.141,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "transcription",
+      "listener_counts": {
+        "batches": 48,
+        "transcription": 18,
+        "heard": 17,
+        "reply-blocked": 16,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16617111552
+    },
+    {
+      "elapsed": 25.41,
+      "rpc_seconds": 0.2,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 49,
+        "transcription": 18,
+        "heard": 18,
+        "reply-blocked": 17,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16600547328
+    },
+    {
+      "elapsed": 26.66,
+      "rpc_seconds": 0.247,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 50,
+        "transcription": 18,
+        "heard": 18,
+        "reply-blocked": 17,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16584773632
+    },
+    {
+      "elapsed": 28.37,
+      "rpc_seconds": 0.701,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 50,
+        "transcription": 18,
+        "heard": 18,
+        "reply-blocked": 17,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16568389632
+    },
+    {
+      "elapsed": 29.57,
+      "rpc_seconds": 0.198,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 50,
+        "transcription": 18,
+        "heard": 18,
+        "reply-blocked": 17,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16529850368
+    },
+    {
+      "elapsed": 30.75,
+      "rpc_seconds": 0.185,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "input-unavailable",
+      "listener_counts": {
+        "batches": 50,
+        "transcription": 18,
+        "heard": 18,
+        "reply-blocked": 17,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16511782912
+    },
+    {
+      "elapsed": 32.02,
+      "rpc_seconds": 0.264,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 51,
+        "transcription": 18,
+        "heard": 18,
+        "reply-blocked": 17,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16482099200
+    },
+    {
+      "elapsed": 33.2,
+      "rpc_seconds": 0.172,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "transcription",
+      "listener_counts": {
+        "batches": 53,
+        "transcription": 19,
+        "heard": 18,
+        "reply-blocked": 17,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16459182080
+    },
+    {
+      "elapsed": 34.43,
+      "rpc_seconds": 0.235,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 54,
+        "transcription": 19,
+        "heard": 19,
+        "reply-blocked": 18,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16447201280
+    },
+    {
+      "elapsed": 35.63,
+      "rpc_seconds": 0.197,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 55,
+        "transcription": 19,
+        "heard": 19,
+        "reply-blocked": 18,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16447172608
+    },
+    {
+      "elapsed": 36.88,
+      "rpc_seconds": 0.243,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 56,
+        "transcription": 19,
+        "heard": 19,
+        "reply-blocked": 18,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16454635520
+    },
+    {
+      "elapsed": 37.91,
+      "rpc_seconds": 0.027,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 57,
+        "transcription": 20,
+        "heard": 20,
+        "reply-blocked": 19,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16453824512
+    },
+    {
+      "elapsed": 38.94,
+      "rpc_seconds": 0.029,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 58,
+        "transcription": 20,
+        "heard": 20,
+        "reply-blocked": 19,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16450875392
+    },
+    {
+      "elapsed": 40.02,
+      "rpc_seconds": 0.069,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting_state": "available",
+      "listener_phase": "waiting",
+      "listener_counts": {
+        "batches": 59,
+        "transcription": 20,
+        "heard": 20,
+        "reply-blocked": 19,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16449912832
+    },
+    {
+      "elapsed": 41.05,
+      "rpc_seconds": 0.033,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 60,
+        "transcription": 20,
+        "heard": 20,
+        "reply-blocked": 19,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16450355200
+    },
+    {
+      "elapsed": 42.08,
+      "rpc_seconds": 0.028,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": true,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 61,
+        "transcription": 20,
+        "heard": 20,
+        "reply-blocked": 19,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16449531904
+    },
+    {
+      "elapsed": 43.12,
+      "rpc_seconds": 0.038,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "blocked",
+      "listener_counts": {
+        "batches": 62,
+        "transcription": 21,
+        "heard": 21,
+        "reply-blocked": 20,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16449015808
+    },
+    {
+      "elapsed": 44.22,
+      "rpc_seconds": 0.093,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 63,
+        "transcription": 21,
+        "heard": 21,
+        "reply-blocked": 20,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16446537728
+    },
+    {
+      "elapsed": 45.42,
+      "rpc_seconds": 0.189,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 64,
+        "transcription": 21,
+        "heard": 21,
+        "reply-blocked": 20,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16445267968
+    },
+    {
+      "elapsed": 46.68,
+      "rpc_seconds": 0.26,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "waiting",
+      "listener_counts": {
+        "batches": 66,
+        "transcription": 21,
+        "heard": 21,
+        "reply-blocked": 20,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16445984768
+    },
+    {
+      "elapsed": 47.87,
+      "rpc_seconds": 0.184,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 67,
+        "transcription": 21,
+        "heard": 21,
+        "reply-blocked": 20,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16444448768
+    },
+    {
+      "elapsed": 49.1,
+      "rpc_seconds": 0.227,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 68,
+        "transcription": 21,
+        "heard": 21,
+        "reply-blocked": 20,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16442978304
+    },
+    {
+      "elapsed": 50.29,
+      "rpc_seconds": 0.193,
+      "microphone": true,
+      "camera": true,
+      "dialogue_allowed": false,
+      "meeting_state": "available",
+      "listener_phase": "listening",
+      "listener_counts": {
+        "batches": 69,
+        "transcription": 21,
+        "heard": 21,
+        "reply-blocked": 20,
+        "routed": 1
+      },
+      "has_local_transcript": true,
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "private_counts": {
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "no_wake": 1,
+        "cancelled_address": 1
+      },
+      "private_cancellations": {
+        "address:unverified-presence": 1
+      },
+      "playback": "idle",
+      "storage_error": null,
+      "free_disk_bytes": 16440090624
+    }
+  ],
+  "loaded_models": [
+    {
+      "model": "gemma3:4b",
+      "bytes": 2916351999,
+      "context_length": 8192
+    },
+    {
+      "model": "qwen3.5:9b",
+      "bytes": 6292106115,
+      "context_length": 8192
+    }
+  ],
+  "raw_content_exported": false,
+  "actual_intended_owner_conversation_verified": false
+}

@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-10-23T19:04:49.609144+00:00",
+  "scope": "anonymous actual-source and identity readback after successful owner renewal; no speech/media export",
+  "samples": 30,
+  "dialogue_allowed": 0,
+  "camera_working": 30,
+  "microphone_working": 30,
+  "action_allowed": 0,
+  "identity_reasons": {
+    "face-unavailable": 30
+  },
+  "owner_setup": {
+    "stage": "saved",
+    "seconds": 0.0,
+    "error": null,
+    "method": "macOS account authentication + fresh spoken challenge; local voice templates"
+  }
+}

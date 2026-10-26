@@ -1,0 +1,647 @@
+{
+  "at": "2026-10-24T03:37:08.272549+00:00",
+  "samples": [
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.4,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 177,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 1.05,
+        "capture_age_seconds": 1.59,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    },
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.7,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 178,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.21,
+        "capture_age_seconds": 0.75,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    },
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.4,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 179,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.4,
+        "capture_age_seconds": 0.95,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    },
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.8,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 180,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.56,
+        "capture_age_seconds": 1.14,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    },
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.4,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 181,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.74,
+        "capture_age_seconds": 1.29,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    },
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.2,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 183,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 1.02,
+        "capture_age_seconds": 1.57,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    },
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.6,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 184,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.17,
+        "capture_age_seconds": 0.77,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    },
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.4,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 185,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.36,
+        "capture_age_seconds": 0.94,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    },
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.2,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 186,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.54,
+        "capture_age_seconds": 1.13,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    },
+    {
+      "foreground_metadata_available": true,
+      "butler_ui_foreground": true,
+      "microphone": {
+        "working": true,
+        "muted": false,
+        "gain": 0.2857142984867096,
+        "rms_dbfs": -70.6,
+        "name": "Jabra SPEAK 410 USB",
+        "selected_name": "Jabra SPEAK 410 USB",
+        "selection_verified": true,
+        "device": "0"
+      },
+      "camera_working": true,
+      "listening": {
+        "enabled": true,
+        "phase": "blocked",
+        "counts": {
+          "batches": 187,
+          "transcription": 2,
+          "heard": 2,
+          "reply-blocked": 2
+        },
+        "timings": {
+          "asr_ms": 745.8,
+          "input_ready_to_transcript_ms": 807.5,
+          "participant_wait_ms": 0.0
+        }
+      },
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "dialogue_allowed": false,
+      "participant": {
+        "fresh": true,
+        "check_age_seconds": 0.71,
+        "capture_age_seconds": 1.31,
+        "consecutive_checks": 0,
+        "required_checks": 3,
+        "owner_camera_confirmed": false,
+        "owner_voice_confirmed": false,
+        "confirmed_by": null,
+        "voice_check": null
+      },
+      "native_playback": {
+        "state": "idle",
+        "id": null
+      },
+      "archive_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "storage_error": null,
+      "participant_check_error": null,
+      "voice_processing_enabled": false,
+      "other_audio_ducking": "none",
+      "system_input": "Jabra SPEAK 410 USB",
+      "system_output": "Jabra SPEAK 410 USB"
+    }
+  ],
+  "actual_owner_spoken_conversation_verified": false,
+  "raw_content_exported": false
+}

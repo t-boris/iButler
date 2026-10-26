@@ -1,0 +1,398 @@
+{
+  "timestamp": "2026-10-22T23:14:31.799510+00:00",
+  "read_only": true,
+  "components": {
+    "exit": 0,
+    "count": 22,
+    "rows": [
+      {
+        "id": "face_detector",
+        "title": "Поиск лиц · YuNet",
+        "model": "/Users/boris/.local/share/butler-ambient/models/yunet.onnx",
+        "executable": "/Users/boris/.openclaw/tools/ambient-awareness/.venv/bin/python",
+        "model_key": "face_detector",
+        "cli_key": null,
+        "ready": true,
+        "running": true,
+        "note": "Локально. Порог/согласия не меняются; новый файл должен быть совместим с существующими эталонами."
+      },
+      {
+        "id": "face_recognizer",
+        "title": "Проверка владельца · SFace",
+        "model": "/Users/boris/.local/share/butler-ambient/models/sface.onnx",
+        "executable": "/Users/boris/.openclaw/tools/ambient-awareness/.venv/bin/python",
+        "model_key": "face_recognizer",
+        "cli_key": null,
+        "ready": true,
+        "running": true,
+        "note": "Локально. Порог/согласия не меняются; новый файл должен быть совместим с существующими эталонами."
+      },
+      {
+        "id": "person_detector",
+        "title": "Присутствие людей · локальная ONNX модель",
+        "model": "/Users/boris/.local/share/butler-ambient/models/yolox.onnx",
+        "executable": "/Users/boris/.openclaw/tools/ambient-awareness/.venv/bin/python",
+        "model_key": "person_detector",
+        "cli_key": null,
+        "ready": true,
+        "running": true,
+        "note": "Локально. Порог/согласия не меняются; новый файл должен быть совместим с существующими эталонами."
+      },
+      {
+        "id": "voice_identity",
+        "title": "Проверка голоса · Resemblyzer",
+        "model": "/Users/boris/.openclaw/tools/ambient-awareness/.venv/lib/python3.12/site-packages/resemblyzer/pretrained.pt",
+        "executable": "/Users/boris/.openclaw/tools/ambient-awareness/.venv/bin/python",
+        "model_key": "voice_identity_model",
+        "cli_key": null,
+        "ready": true,
+        "running": true,
+        "note": "Эталоны владельца отдельно; смена модели не перерегистрирует владельца."
+      },
+      {
+        "id": "asr",
+        "title": "Распознавание речи · Whisper",
+        "model": "/Users/boris/.local/share/butler-ambient/models/ggml-large-v3-turbo-q5_0.bin",
+        "executable": "/opt/homebrew/bin/whisper-cli",
+        "model_key": "whisper_model",
+        "cli_key": "whisper_cli",
+        "ready": true,
+        "running": false,
+        "note": "Язык: ru"
+      },
+      {
+        "id": "conversation_model",
+        "title": "Диалог и намерение",
+        "model": "gemma3:4b",
+        "executable": "HTTP 127.0.0.1:11434 · Ollama",
+        "model_key": "conversation_model",
+        "cli_key": null,
+        "ready": true,
+        "running": false,
+        "note": "Только проверенная локальная модель; внешний резерв запрещён."
+      },
+      {
+        "id": "vision_model",
+        "title": "Зрение и фоновый анализ",
+        "model": "gemma3:4b",
+        "executable": "HTTP 127.0.0.1:11434 · Ollama",
+        "model_key": "vision_model",
+        "cli_key": null,
+        "ready": true,
+        "running": false,
+        "note": "Только проверенная локальная модель; внешний резерв запрещён."
+      },
+      {
+        "id": "tts",
+        "title": "Естественный голос · Qwen3-TTS Base",
+        "model": "/Users/boris/.local/share/butler-ambient/voice/base-model",
+        "executable": "/Users/boris/.openclaw/tools/ambient-awareness/voice-env/bin/python",
+        "model_key": "voice_model_path",
+        "cli_key": "voice_python",
+        "ready": true,
+        "running": false,
+        "note": "Используется только выбранный синтетический голос; биометрические записи не используются."
+      },
+      {
+        "id": "image",
+        "title": "Создание изображений · Diffusers",
+        "model": "/Users/boris/.local/share/butler-ambient/images/model",
+        "executable": "/Users/boris/.openclaw/tools/ambient-awareness/image-env/bin/python",
+        "model_key": "image_model_path",
+        "cli_key": "image_python",
+        "ready": true,
+        "running": false,
+        "note": "Изолированная офлайн-модель, только по запросу. Исходные материалы остаются локально."
+      },
+      {
+        "id": "capture",
+        "title": "Захват видео/аудио",
+        "model": "1280x720 · PCM16/16kHz",
+        "executable": "/opt/homebrew/bin/ffmpeg",
+        "model_key": null,
+        "cli_key": "ffmpeg_cli",
+        "ready": true,
+        "running": true,
+        "note": "Выбор камеры/микрофона слева. Нативный звук с локальным SpeexDSP; режим звонка отключён."
+      },
+      {
+        "id": "agent",
+        "title": "Главный агент Butler",
+        "model": "openai/gpt-6.1-sol",
+        "executable": "/opt/homebrew/bin/openclaw",
+        "model_key": "agent_model",
+        "cli_key": "openclaw_cli",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "openai/gpt-6.1-sol",
+          "anthropic/claude-sonnet-5",
+          "anthropic/claude-opus-4-8"
+        ],
+        "note": "Только агент butler и уже настроенные модели; новый платный провайдер не включается."
+      },
+      {
+        "id": "route:architecture",
+        "title": "Задачи · architecture",
+        "model": "codex:gpt-6.1-sol",
+        "executable": "/Users/boris/.nvm/versions/node/v22.22.3/bin/codex",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "route:code",
+        "title": "Задачи · code",
+        "model": "claude:claude-opus-4-8",
+        "executable": "/Users/boris/.local/bin/claude",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "route:review",
+        "title": "Задачи · review",
+        "model": "claude:claude-sonnet-5",
+        "executable": "/Users/boris/.local/bin/claude",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "route:research",
+        "title": "Задачи · research",
+        "model": "codex:gpt-6.1-sol",
+        "executable": "/Users/boris/.nvm/versions/node/v22.22.3/bin/codex",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "route:documentation",
+        "title": "Задачи · documentation",
+        "model": "codex:gpt-6.1-sol",
+        "executable": "/Users/boris/.nvm/versions/node/v22.22.3/bin/codex",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "route:tests",
+        "title": "Задачи · tests",
+        "model": "claude:claude-sonnet-5",
+        "executable": "/Users/boris/.local/bin/claude",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "route:curate",
+        "title": "Задачи · curate",
+        "model": "claude:claude-opus-4-8",
+        "executable": "/Users/boris/.local/bin/claude",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "route:classify",
+        "title": "Задачи · classify",
+        "model": "claude:claude-opus-4-8",
+        "executable": "/Users/boris/.local/bin/claude",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "route:news",
+        "title": "Задачи · news",
+        "model": "claude:claude-opus-4-8",
+        "executable": "/Users/boris/.local/bin/claude",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "route:video",
+        "title": "Задачи · video",
+        "model": "claude:claude-sonnet-5",
+        "executable": "/Users/boris/.local/bin/claude",
+        "model_key": "dispatch_route",
+        "cli_key": "dispatch_executable",
+        "ready": true,
+        "running": false,
+        "choices": [
+          "claude:claude-opus-4-8",
+          "claude:claude-sonnet-5",
+          "codex:gpt-6.1-sol"
+        ],
+        "note": "Маршрут текущего Butler dispatch. Изменение действует со следующего запуска; ограничения стоимости сохраняются."
+      },
+      {
+        "id": "embedding",
+        "title": "Семантическая память",
+        "model": "embeddinggemma",
+        "executable": "HTTP 127.0.0.1:11434 · Ollama",
+        "model_key": "embedding_model",
+        "cli_key": null,
+        "ready": true,
+        "running": false,
+        "note": "Смена модели/размерности требует перестроения локального индекса; старый индекс не используется как совместимый."
+      }
+    ],
+    "hooks": {
+      "dispatch": true,
+      "embedding": true
+    }
+  },
+  "jobs": {
+    "exit": 0,
+    "count": 20,
+    "kinds": {
+      "cron": 17,
+      "builtin": 3,
+      "dispatch": 0
+    },
+    "error": null,
+    "prompt_content_included": false
+  },
+  "ui-components-update": {
+    "exit": 0,
+    "result": {
+      "saved": true,
+      "restart_required": false,
+      "changed": []
+    }
+  },
+  "ui-schedule-control": {
+    "exit": 0,
+    "result": {
+      "saved": false,
+      "ok": false,
+      "message": "Only an existing Butler job can be controlled"
+    }
+  },
+  "installed_python_matches_source": true,
+  "voice": {
+    "input": {
+      "working": true,
+      "muted": false,
+      "gain": 0.2857142984867096,
+      "rms_dbfs": -62.2,
+      "name": "Jabra SPEAK 410 USB",
+      "selected_name": "Jabra SPEAK",
+      "selection_verified": true,
+      "device": "0"
+    },
+    "audio": {
+      "ready": true,
+      "echo_cancellation": true,
+      "other_audio_ducking": "none",
+      "echo_backend": "speexdsp",
+      "formats": {
+        "input_channels": 1,
+        "input_rate": 48000,
+        "output_rate": 48000
+      },
+      "playback_reference": true,
+      "input_muted": false,
+      "input_volume": 0.2857142984867096,
+      "input_verified": true,
+      "actual_microphone": "Jabra SPEAK 410 USB",
+      "input_route": {
+        "resolution": "aggregate-source-verified",
+        "aggregate": "CADefaultDeviceAggregate-44520-0",
+        "input_sources": [
+          {
+            "name": "Jabra SPEAK 410 USB",
+            "channels": 1
+          },
+          {
+            "channels": 0,
+            "name": "Jabra SPEAK 410 USB"
+          }
+        ],
+        "aggregate_channels": 1,
+        "channel_map": [
+          0
+        ]
+      },
+      "voice_processing_enabled": false
+    },
+    "camera": {
+      "working": true
+    },
+    "dialogue_allowed": false,
+    "participant_check": "face-unavailable",
+    "selected_voice": "baritone",
+    "diagnostics": {
+      "counts": {},
+      "last_event": "starting",
+      "last_completed_source": null,
+      "last_cancel_reason": null
+    }
+  }
+}

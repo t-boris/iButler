@@ -1,0 +1,51 @@
+{
+  "synthetic_only": true,
+  "results": [
+    {
+      "model": "gemma3:4b",
+      "facts_count": 1,
+      "unsupported_person_book_dog_or_work": true,
+      "prior_detail_repeated": false,
+      "diagnostic": {
+        "images": 1,
+        "prompt_characters": 1432,
+        "context_tokens": 8192,
+        "http_status": 200,
+        "first_token_ms": 8199.7,
+        "load_ms": 353.0,
+        "prompt_ms": 1417.7,
+        "generation_ms": 889.9,
+        "total_ms": 9083.5,
+        "prompt_tokens": 604,
+        "generated_tokens": 48,
+        "response_characters": 195,
+        "elapsed_ms": 9091.6,
+        "stage": "completed",
+        "finish_reason": "stop"
+      }
+    },
+    {
+      "model": "qwen3.5:9b",
+      "facts_count": 2,
+      "unsupported_person_book_dog_or_work": true,
+      "prior_detail_repeated": true,
+      "diagnostic": {
+        "images": 1,
+        "prompt_characters": 1432,
+        "context_tokens": 8192,
+        "http_status": 200,
+        "first_token_ms": 2998.5,
+        "load_ms": 216.0,
+        "prompt_ms": 2762.5,
+        "generation_ms": 7327.7,
+        "total_ms": 10323.9,
+        "prompt_tokens": 556,
+        "generated_tokens": 92,
+        "response_characters": 423,
+        "elapsed_ms": 10327.8,
+        "stage": "completed",
+        "finish_reason": "stop"
+      }
+    }
+  ]
+}

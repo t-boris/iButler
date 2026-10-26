@@ -1,0 +1,174 @@
+"""Owner controls for Butler jobs only; pause schedules separately from stopping runs."""
+from __future__ import annotations
+
+import datetime as dt
+import json
+import re
+import threading
+from pathlib import Path
+
+from .components import command, running_dispatches, WORKSPACE
+from .delivery import ZONE
+
+
+class Schedules:
+    def __init__(self,service,workspace=WORKSPACE):
+        self.service,self.workspace = service,workspace
+        self.manual = {}
+        self.tokens = {"daily":threading.Event(),"advice":threading.Event()}
+
+    @property
+    def cli(self): return self.service.config.get("openclaw_cli","openclaw")
+
+    def cron_jobs(self):
+        data = json.loads(command(self.cli,"cron","list","--agent","butler","--all","--json","--timeout","8000"))
+        return [j for j in data.get("jobs",[]) if j.get("agentId")=="butler"]
+
+    def snapshot(self):
+        rows=[];error=None
+        try:
+            for job in self.cron_jobs():
+                state,schedule = job.get("state",{}),job.get("schedule",{})
+                kind = schedule.get("kind")
+                expression = (schedule.get("expr","")+" · "+schedule.get("tz","local") if kind=="cron"
+                              else str(schedule.get("at",schedule.get("everyMs",""))))
+                rows.append({"id":job["id"],"kind":"cron","name":job.get("name",job["id"]),
+                    "enabled":bool(job.get("enabled")),"running":bool(state.get("runningAtMs")),
+                    "status":"running" if state.get("runningAtMs") else "paused" if not job.get("enabled") else state.get("lastRunStatus","ready"),
+                    "schedule":expression,"cron":schedule.get("expr",""),"timezone":schedule.get("tz","America/Chicago"),
+                    "next_run":state.get("nextRunAtMs",0)/1000 or None,"last_run":state.get("lastRunAtMs",0)/1000 or None,
+                    "model":job.get("payload",{}).get("model") or "модель агента Butler",
+                    "error":state.get("lastError",state.get("lastDiagnosticSummary",""))[:1500]})
+        except Exception:
+            error="Не удалось получить задания OpenClaw. Локальные задания показаны отдельно."
+        s=self.service;now=s.clock();local=dt.datetime.fromtimestamp(now,ZONE)
+        daily=s.store.get("daily_time","20:00")
+        due=dt.datetime.combine(local.date(),dt.time.fromisoformat(daily),ZONE)
+        if due.timestamp()<=now:due+=dt.timedelta(days=1)
+        for key,name,schedule,enabled,model,next_run in [
+            ("daily","Дневная сводка окружения",daily+" · America/Chicago",not s.store.get("daily_paused",False),"typed local summary",due.timestamp()),
+            ("advice","Инициативные советы","≤3/день · ≥60 мин · 08–22 America/Chicago",not s.store.get("muted",False),"grounded local rules",None),
+            ("analysis","Фоновый анализ наблюдений","каждую минуту при разрешении",not s.store.get("analysis_paused",False),s.config.get("vision_model","gemma3:4b"),max(now,(s.archive.last_analysis if s.archive.enabled else s.last_analysis)+60))]:
+            running=self.manual.get(key)=="running"
+            rows.append({"id":"builtin:"+key,"kind":"builtin","name":name,"enabled":enabled,"running":running,
+                "status":"running" if running else "ready" if enabled else "paused","schedule":schedule,"next_run":next_run if enabled else None,
+                "model":model,"error":"","daily_time":daily if key=="daily" else ""})
+        for value in running_dispatches(self.workspace):
+            if value["dispatch_id"].startswith("voice-"):continue
+            rows.append({"id":"dispatch:"+value["dispatch_id"],"kind":"dispatch","name":"Задача · "+str(value.get("task_kind","")),
+                "enabled":True,"running":True,"status":"running","schedule":"уже запущена",
+                "model":str(value.get("backend",""))+":"+str(value.get("model","")),
+                "last_run":value.get("started_at_ts"),"next_run":None,"error":""})
+        for value in s.work.snapshot()["jobs"]:
+            running=value["status"]=="running"
+            rows.append({"id":"voice:"+value["id"],"kind":"voice-work","name":value["project"]+" · "+value["kind"],
+                "enabled":running,"running":running,"status":value["status"],"schedule":"в фоне · "+str(value["elapsed_sec"])+" с",
+                "model":value["backend"]+":"+value["model"],"next_run":None,"error":"CLI завершился с ошибкой" if value["status"]=="failed" else ""})
+        return {"jobs":rows,"error":error,"scope":"Butler only; no prompts or credentials",
+                "pause_semantics":"Пауза отключает будущие запуски. Остановить прерывает текущую работу и отключает расписание."}
+
+    def control(self,args):
+        if not isinstance(args,dict) or set(args)-{"id","action","cron","timezone","model","daily_time"}:
+            raise ValueError("invalid scheduled-run control")
+        key,action=args.get("id"),args.get("action")
+        if not isinstance(key,str) or action not in {"run","pause","resume","stop","update"}:
+            raise ValueError("invalid scheduled-run action")
+        if key.startswith("builtin:"):return self._builtin(key.split(":",1)[1],action,args)
+        if key.startswith("voice:"):
+            if action!="stop":raise ValueError("Для текущей голосовой задачи доступна остановка.")
+            return self.service.work.cancel(key.split(":",1)[1])
+        if key.startswith("dispatch:"):
+            if action!="stop":raise ValueError("Running CLI tasks can be stopped; only schedules can be paused/resumed")
+            if key not in {j["id"] for j in self.snapshot()["jobs"] if j["kind"]=="dispatch"}:
+                raise ValueError("No matching running Butler task")
+            output=command(str(self.workspace/"bin/butler-dispatch"),"kill",key.split(":",1)[1])
+            return {"ok":True,"message":"Остановка задачи запрошена; обновите состояние."}
+        job=next((j for j in self.cron_jobs() if j.get("id")==key),None)
+        if job is None:raise ValueError("Only an existing Butler job can be controlled")
+        if action in {"pause","resume"}:
+            command(self.cli,"cron","disable" if action=="pause" else "enable",key,"--timeout","8000")
+        elif action=="run":
+            value=json.loads(command(self.cli,"cron","run",key,"--timeout","8000"))
+            if value.get("ok") is not True or not (value.get("ran") or value.get("enqueued")):
+                return {"ok":False,"message":"Запуск не принят. Обновите состояние задания; повтор автоматически не выполняется."}
+        elif action=="stop":
+            command(self.cli,"cron","disable",key,"--timeout","8000")
+            if not job.get("state",{}).get("runningAtMs"):
+                return {"ok":True,"message":"Расписание выключено; активного запуска нет."}
+            if job.get("sessionTarget")!="isolated":
+                return {"ok":True,"message":"Расписание выключено. Общий главный сеанс не прерывается."}
+            base="agent:butler:cron:"+key
+            # Cron runs use :run:<session-id>; discover matching session keys
+            # without requesting message/transcript contents.
+            sessions=json.loads(command(self.cli,"sessions","--agent","butler","--limit","all","--json"))
+            values=sessions.get("sessions",[]) if isinstance(sessions,dict) else sessions
+            matches=[r for r in values if isinstance(r.get("key"),str) and r["key"].startswith(base+":run:")]
+            session=max(matches,key=lambda r:r.get("updatedAt",0))["key"] if matches else base
+            command(self.cli,"gateway","call","sessions.abort","--json","--params",json.dumps({"key":session,"agentId":"butler"}),"--timeout","8000")
+        elif action=="update":
+            parameters=[]
+            if "cron" in args:
+                if not isinstance(args["cron"],str) or len(args["cron"].split()) not in {5,6} or len(args["cron"])>150:
+                    raise ValueError("valid cron expression required")
+                parameters += ["--cron",args["cron"]]
+            if "timezone" in args:
+                from zoneinfo import ZoneInfo
+                try:ZoneInfo(args["timezone"])
+                except Exception:raise ValueError("valid timezone required") from None
+                parameters += ["--tz",args["timezone"]]
+            if "model" in args:
+                from .components import agent_status
+                allowed = agent_status(self.service)["allowed"]
+                if getattr(self.service,"catalog",None) is not None:
+                    from .catalog import agent_choices
+                    allowed = agent_choices(self.workspace,allowed)
+                if args["model"] not in allowed:raise ValueError("choose a discovered Butler model")
+                parameters += ["--model",args["model"]]
+            if not parameters:raise ValueError("no supported schedule setting supplied")
+            command(self.cli,"cron","edit",key,*parameters,"--timeout","8000")
+        return {"ok":True,"message":{"run":"Запуск поставлен в очередь.","pause":"Будущие запуски на паузе.","resume":"Расписание включено.","stop":"Остановка текущего запуска запрошена; расписание выключено.","update":"Настройки задания сохранены."}[action]}
+
+    def _builtin(self,key,action,args):
+        if key not in {"daily","advice","analysis"}:raise ValueError("unknown built-in job")
+        s=self.service
+        setting={"daily":"daily_paused","advice":"muted","analysis":"analysis_paused"}[key]
+        if action=="update":
+            if key!="daily" or "daily_time" not in args:raise ValueError("only the daily summary time is editable here")
+            s.control("preferences",{"daily_time":args["daily_time"]})
+        elif action in {"pause","stop","resume"}:
+            with s.lock:
+                s.store.set(setting,action!="resume")
+                if key=="analysis":
+                    s.last_analysis=s.clock()
+                    if action in {"stop","pause"}:s._discard_pending()
+                    if action=="stop":
+                        s.analysis_run_token.set()
+                        s.analyzer.cancel()
+                if action=="stop" and key in self.tokens:self.tokens[key].set()
+                if action=="resume" and key in self.tokens:self.tokens[key]=threading.Event()
+        elif action=="run":
+            if self.manual.get(key)=="running":raise ValueError("this job is already running")
+            policy=s.archive if key=="analysis" and s.archive.enabled else s.gate
+            if not policy.permits(s.clock()):raise ValueError("observation permission is paused")
+            if key=="analysis":
+                try:s.pending.put_nowait(("archive-request" if s.archive.enabled else "owner-request",policy.generation))
+                except Exception:raise ValueError("analysis is already queued") from None
+                return {"ok":True,"message":"Локальный анализ поставлен в очередь."}
+            if key=="advice":raise ValueError("Advice is evidence-driven; resume enables it without bypassing quota or quiet hours")
+            from .conversation import Tokens
+            from .summaries import summarize,summary_text
+            token=threading.Event();self.tokens[key]=token;self.manual[key]="running"
+            def run():
+                try:
+                    now=s.clock();local=dt.datetime.fromtimestamp(now,ZONE)
+                    start=dt.datetime.combine(local.date(),dt.time(),ZONE).timestamp()
+                    report=summarize(s.store,start,now)
+                    s.delivery.send("daily:"+local.date().isoformat(),"daily",summary_text(report),now,token=Tokens(token,s.analysis_token))
+                    self.manual[key]="done"
+                except Exception:self.manual[key]="failed"
+            threading.Thread(target=run,daemon=True).start()
+        return {"ok":True,"message":"Настройка локального задания применена."}
+
+    def stop(self):
+        for token in list(self.tokens.values()):token.set()
+        self.service.analysis_run_token.set()

@@ -1,0 +1,57 @@
+{
+  "timestamp": "2026-10-23T19:21:42.155729+00:00",
+  "seconds": 90.96,
+  "samples": 45,
+  "verification_sha256": "047716e839732a0a906f9bd30c508522daca76307b861407c6d030356aec4294",
+  "baseline_row": 303,
+  "last": {
+    "analysis_error": null,
+    "analysis_diagnostic": {
+      "source": "system-audio",
+      "phase": "completed",
+      "error_type": null
+    },
+    "new_observations": {
+      "camera": {
+        "count": 2,
+        "latest": 1792780932.585429
+      },
+      "microphone": {
+        "count": 3,
+        "latest": 1792780932.585429
+      },
+      "screen": {
+        "count": 2,
+        "latest": 1792780879.862565
+      },
+      "system-audio": {
+        "count": 3,
+        "latest": 1792780933.1774049
+      }
+    },
+    "archive_sources": {
+      "camera": "active",
+      "microphone": "active",
+      "screen": "active",
+      "system-audio": "active"
+    },
+    "meeting_quiet": false,
+    "disclosure": {
+      "state": "idle",
+      "completed": 0,
+      "error": null,
+      "participants": {
+        "unknown_faces": 0,
+        "unknown_voices": 0,
+        "pending_disclosures": 0,
+        "volatile_only": true,
+        "max_lifetime_seconds": 120
+      },
+      "text_scope": "fixed public disclosure only; no private conversation"
+    },
+    "voice_ready": true
+  },
+  "quiet_samples": 1,
+  "analysis_error_samples": 0,
+  "private_content_exported": false
+}

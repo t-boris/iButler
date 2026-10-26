@@ -1,0 +1,15 @@
+{
+  "dry_run": true,
+  "exit": 0,
+  "json_keys": [
+    "action",
+    "channel",
+    "dryRun",
+    "handledBy",
+    "payload"
+  ],
+  "sent": false,
+  "synthetic_only": true,
+  "stderr_present": false,
+  "media_path_validated": true
+}

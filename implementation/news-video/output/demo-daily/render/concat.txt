@@ -1,0 +1,3 @@
+file '/Users/boris/Projects/MacStudioButler/implementation/news-video/output/demo-daily/render/scenes/00-intro.mp4'
+file '/Users/boris/Projects/MacStudioButler/implementation/news-video/output/demo-daily/render/scenes/01-story-demo.mp4'
+file '/Users/boris/Projects/MacStudioButler/implementation/news-video/output/demo-daily/render/scenes/02-outro.mp4'

@@ -1,0 +1,18 @@
+{
+  "at": "2026-10-23T22:09:30.225524+00:00",
+  "synthetic_fixtures_only": true,
+  "checks": [
+    {
+      "fixture": "voice-check.wav",
+      "explicit": true,
+      "exact_hearing_check": true,
+      "word_count": 4
+    },
+    {
+      "fixture": "voice-latency-check.wav",
+      "explicit": true,
+      "exact_hearing_check": false,
+      "word_count": 6
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+cwd: /Users/boris/Projects/MacStudioButler/implementation/ambient-awareness
+command: ["/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/build/butler-system-audio", "--test-format"]
+exit: 0
+
+{"passed":true,"source":"system-audio","synthetic_only":true}

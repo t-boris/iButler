@@ -1,0 +1,35 @@
+{
+  "command": [
+    "/Users/boris/.openclaw/tools/node/npm/bin/mcporter",
+    "--config",
+    "/Users/boris/.openclaw/workspace-butler/config/mcporter.json",
+    "call",
+    "butler-ambient.butler_observe",
+    "source=camera",
+    "--output",
+    "json"
+  ],
+  "exit": 0,
+  "result": {
+    "status": "ok",
+    "source": "camera",
+    "observations": [
+      {
+        "observation_id": "40f2e807e1fb4a02948c9fae86cc3e44",
+        "source_id": "ea4ab836991c4ffc9ec7080d5c8210d6",
+        "source_ids": [
+          "ea4ab836991c4ffc9ec7080d5c8210d6"
+        ],
+        "source": "camera",
+        "captured_at": 1792697884.382941,
+        "end": 1792697884.382941,
+        "original_available": true,
+        "summary": [
+          "Possible activity: browsing; possible work topic: software development; uncertain model inference",
+          "Possibly observed: appearance; possible work topic: software development; uncertain model inference",
+          "Possibly observed: appearance; uncertain model inference"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,403 @@
+{
+  "schema_version": "butler.news-video/v1",
+  "editorial_profile": "bamberg-news/v1",
+  "episode_id": "bamberg-news-2026-07-19-morning",
+  "profile": "daily",
+  "title": "Бамберг: главное к этому часу",
+  "subtitle": "Утренний выпуск · 19 июля 2026 · Европа/Берлин",
+  "language": "ru-RU",
+  "as_of": "2026-07-19T05:00:00+02:00",
+  "window": {
+    "from": "2026-07-18T17:00:00+02:00",
+    "to": "2026-07-19T05:00:00+02:00",
+    "timezone": "Europe/Berlin"
+  },
+  "format": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "coverage": {
+    "scope": [
+      "Bamberg",
+      "world politics",
+      "Ukraine/Russia",
+      "weather",
+      "health",
+      "garden"
+    ],
+    "inputs_checked": [
+      "catalogued direct source articles"
+    ],
+    "limitations": [
+      "This is a selected factual briefing, not exhaustive coverage."
+    ],
+    "category_status": {
+      "local": {
+        "status": "covered",
+        "sources_checked": [
+          "https://www.stadt.bamberg.de/aktuelles"
+        ]
+      },
+      "world": {
+        "status": "covered",
+        "sources_checked": [
+          "https://news.un.org/en/",
+          "https://www.reuters.com/world/"
+        ]
+      },
+      "ukraine-russia": {
+        "status": "covered",
+        "sources_checked": [
+          "https://www.iaea.org/newscenter",
+          "https://news.un.org/en/"
+        ]
+      },
+      "weather": {
+        "status": "covered",
+        "sources_checked": [
+          "https://www.dwd.de/DE/wetter/wetterundklima_vorort/bayern/bamberg.html"
+        ]
+      },
+      "health": {
+        "status": "covered",
+        "sources_checked": [
+          "https://gesund.bund.de/hitze-pflegebeduerftigkeit"
+        ]
+      },
+      "garden": {
+        "status": "covered",
+        "sources_checked": [
+          "https://www.dwd.de/",
+          "https://www.lwg.bayern.de/gartenakademie/"
+        ]
+      },
+      "laws": {
+        "status": "no_verified_update",
+        "sources_checked": [
+          "skip-check: no eligible development in this synthetic fixture"
+        ]
+      },
+      "science": {
+        "status": "no_verified_update",
+        "sources_checked": [
+          "skip-check: no eligible development in this synthetic fixture"
+        ]
+      },
+      "germany": {
+        "status": "no_verified_update",
+        "sources_checked": [
+          "skip-check: no eligible development in this synthetic fixture"
+        ]
+      },
+      "europe": {
+        "status": "no_verified_update",
+        "sources_checked": [
+          "skip-check: no eligible development in this synthetic fixture"
+        ]
+      },
+      "medicine": {
+        "status": "no_verified_update",
+        "sources_checked": [
+          "skip-check: no eligible development in this synthetic fixture"
+        ]
+      },
+      "pension-life": {
+        "status": "no_verified_update",
+        "sources_checked": [
+          "skip-check: no eligible development in this synthetic fixture"
+        ]
+      },
+      "city-life": {
+        "status": "no_verified_update",
+        "sources_checked": [
+          "skip-check: no eligible development in this synthetic fixture"
+        ]
+      }
+    }
+  },
+  "sources": [
+    {
+      "id": "stadt-bamberg-1",
+      "title": "Официальное сообщение города Бамберг",
+      "publisher": "Stadt Bamberg",
+      "url": "https://www.stadt.bamberg.de/aktuelles/mitteilung-1",
+      "published_at": "2026-07-18T14:00:00+02:00",
+      "retrieved_at": "2026-07-19T04:10:00+02:00",
+      "trust_tier": "primary"
+    },
+    {
+      "id": "un-world-1",
+      "title": "Официальное сообщение ООН",
+      "publisher": "United Nations",
+      "url": "https://news.un.org/en/story/2026/07/0000001",
+      "published_at": "2026-07-18T16:00:00+00:00",
+      "retrieved_at": "2026-07-19T04:15:00+02:00",
+      "trust_tier": "primary"
+    },
+    {
+      "id": "reuters-world-1",
+      "title": "Независимое сообщение о международном решении",
+      "publisher": "Reuters",
+      "url": "https://www.reuters.com/world/example-2026-07-18/",
+      "published_at": "2026-07-18T17:00:00+00:00",
+      "retrieved_at": "2026-07-19T04:16:00+02:00",
+      "trust_tier": "secondary"
+    },
+    {
+      "id": "iaea-ukraine-1",
+      "title": "Обновление МАГАТЭ по Украине",
+      "publisher": "International Atomic Energy Agency",
+      "url": "https://www.iaea.org/newscenter/pressreleases/example-ukraine-2026",
+      "published_at": "2026-07-18T18:00:00+00:00",
+      "retrieved_at": "2026-07-19T04:18:00+02:00",
+      "trust_tier": "primary"
+    },
+    {
+      "id": "un-ukraine-1",
+      "title": "Сообщение ООН по Украине",
+      "publisher": "United Nations",
+      "url": "https://news.un.org/en/story/2026/07/0000002",
+      "published_at": "2026-07-18T19:00:00+00:00",
+      "retrieved_at": "2026-07-19T04:19:00+02:00",
+      "trust_tier": "primary"
+    },
+    {
+      "id": "dwd-garden-1",
+      "title": "Прогноз DWD для Бамберга",
+      "publisher": "Deutscher Wetterdienst",
+      "url": "https://www.dwd.de/DE/wetter/wetterundklima_vorort/bayern/bamberg.html",
+      "published_at": "2026-07-19T03:00:00+02:00",
+      "retrieved_at": "2026-07-19T04:20:00+02:00",
+      "trust_tier": "primary"
+    },
+    {
+      "id": "lwg-garden-1",
+      "title": "Сезонный совет по уходу за садом",
+      "publisher": "Bayerische Landesanstalt für Weinbau und Gartenbau",
+      "url": "https://www.lwg.bayern.de/gartenakademie/gartendokumente/",
+      "published_at": "2026-07-01T10:00:00+02:00",
+      "retrieved_at": "2026-07-19T04:21:00+02:00",
+      "trust_tier": "primary"
+    },
+    {
+      "id": "gesund-bund-health-1",
+      "title": "Защита пожилых людей при жаре",
+      "publisher": "Bundesinstitut für Öffentliche Gesundheit / gesund.bund.de",
+      "url": "https://gesund.bund.de/hitze-pflegebeduerftigkeit",
+      "published_at": "2025-06-04",
+      "retrieved_at": "2026-07-19T04:22:00+02:00",
+      "trust_tier": "primary"
+    }
+  ],
+  "scenes": [
+    {
+      "id": "intro",
+      "kind": "intro",
+      "headline": "Бамберг: утренний выпуск",
+      "narration": "Коротко о подтверждённых новостях для Бамберга, международной повестке, погоде и саде.",
+      "source_ids": [],
+      "status": "not-applicable",
+      "editorial": {
+        "topic": "intro",
+        "fact_only": true
+      },
+      "visual": {
+        "mode": "template",
+        "subject": "Бамберг",
+        "brief": "Силуэт Бамберга"
+      }
+    },
+    {
+      "id": "local-1",
+      "kind": "story",
+      "headline": "Город сообщил об изменении муниципальной услуги",
+      "narration": "Городская администрация опубликовала сообщение об изменении в работе муниципальной услуги. Подробности и срок указаны в официальном уведомлении.",
+      "source_ids": [
+        "stadt-bamberg-1"
+      ],
+      "status": "confirmed",
+      "editorial": {
+        "topic": "local",
+        "fact_only": true,
+        "evidence": {
+          "method": "primary"
+        }
+      },
+      "visual": {
+        "mode": "template",
+        "subject": "Ратуша",
+        "brief": "Карточка с официальным уведомлением",
+        "points": [
+          "Источник: Stadt Bamberg",
+          "Официальное уведомление"
+        ]
+      }
+    },
+    {
+      "id": "world-1",
+      "kind": "story",
+      "headline": "Появилось официальное международное сообщение",
+      "narration": "ООН опубликовала официальное сообщение, а Reuters независимо сообщил о том же международном решении. В выпуск включён только подтверждённый факт публикации и решения.",
+      "source_ids": [
+        "un-world-1",
+        "reuters-world-1"
+      ],
+      "status": "confirmed",
+      "editorial": {
+        "topic": "world",
+        "fact_only": true,
+        "evidence": {
+          "method": "multi-source"
+        }
+      },
+      "visual": {
+        "mode": "template",
+        "subject": "Международная организация",
+        "brief": "Две независимые ссылки",
+        "points": [
+          "Официальный источник ООН",
+          "Независимое подтверждение Reuters"
+        ]
+      }
+    },
+    {
+      "id": "ukraine-1",
+      "kind": "story",
+      "headline": "МАГАТЭ и ООН опубликовали обновления",
+      "narration": "МАГАТЭ и ООН опубликовали отдельные обновления по Украине. В этом выпуске приводится только факт их публикации без оценок и неподтверждённых военных заявлений.",
+      "source_ids": [
+        "iaea-ukraine-1",
+        "un-ukraine-1"
+      ],
+      "status": "confirmed",
+      "editorial": {
+        "topic": "ukraine-russia",
+        "fact_only": true,
+        "evidence": {
+          "method": "multi-source"
+        }
+      },
+      "visual": {
+        "mode": "template",
+        "subject": "Проверка источников",
+        "brief": "Карточка с двумя международными источниками",
+        "points": [
+          "МАГАТЭ",
+          "ООН",
+          "Две независимые публикации"
+        ]
+      }
+    },
+    {
+      "id": "weather-1",
+      "kind": "story",
+      "headline": "Прогноз DWD для Бамберга на ближайшие сутки",
+      "narration": "DWD опубликовал прогноз для Бамберга на ближайшие 24 часа: температура и ожидаемые условия приведены в официальной таблице. Предупреждения DWD также проверены.",
+      "source_ids": [
+        "dwd-garden-1"
+      ],
+      "status": "confirmed",
+      "editorial": {
+        "topic": "weather",
+        "fact_only": true,
+        "evidence": {
+          "method": "primary"
+        },
+        "weather": {
+          "area": "Bamberg",
+          "horizon_hours": 24,
+          "temperature": "указана в прогнозе DWD",
+          "conditions": "указаны в прогнозе DWD",
+          "warnings_checked": true
+        }
+      },
+      "visual": {
+        "mode": "template",
+        "subject": "Погода в Бамберге",
+        "brief": "Прогноз DWD на 24 часа",
+        "points": [
+          "Температура: DWD",
+          "Условия: DWD",
+          "Предупреждения проверены"
+        ]
+      }
+    },
+    {
+      "id": "health-1",
+      "kind": "story",
+      "headline": "Короткая памятка по здоровью",
+      "narration": "Официальный портал gesund.bund.de напоминает: при жаре людям старшего возраста полезно заранее ориентироваться на предупреждения DWD. Индивидуальные вопросы о лекарствах и питьевом режиме нужно обсуждать с лечащим врачом.",
+      "source_ids": [
+        "gesund-bund-health-1"
+      ],
+      "status": "confirmed",
+      "editorial": {
+        "topic": "health",
+        "fact_only": true,
+        "evidence": {
+          "method": "primary"
+        },
+        "health": {
+          "guidance_type": "preparedness",
+          "individualised": false,
+          "medication_advice": false
+        }
+      },
+      "visual": {
+        "mode": "template",
+        "subject": "Здоровье",
+        "brief": "Официальная памятка для старшего возраста",
+        "points": [
+          "Проверяйте предупреждения DWD",
+          "Лекарства — только с врачом"
+        ]
+      }
+    },
+    {
+      "id": "garden-1",
+      "kind": "story",
+      "headline": "Погода и работа в саду",
+      "narration": "Перед работой в саду проверьте актуальный прогноз DWD для Бамберга. Сезонный совет LWG рекомендует выполнять уход только с учётом условий, указанных в официальном прогнозе.",
+      "source_ids": [
+        "dwd-garden-1",
+        "lwg-garden-1"
+      ],
+      "status": "confirmed",
+      "editorial": {
+        "topic": "garden",
+        "fact_only": true,
+        "garden_advice": true,
+        "evidence": {
+          "method": "primary"
+        }
+      },
+      "visual": {
+        "mode": "template",
+        "subject": "Сад",
+        "brief": "Прогноз и сезонная памятка",
+        "points": [
+          "Прогноз: DWD",
+          "Уход: LWG"
+        ]
+      }
+    },
+    {
+      "id": "outro",
+      "kind": "outro",
+      "headline": "Источники — в описании",
+      "narration": "Все ссылки на источники приведены в описании выпуска.",
+      "source_ids": [],
+      "status": "not-applicable",
+      "editorial": {
+        "topic": "outro",
+        "fact_only": true
+      },
+      "visual": {
+        "mode": "template",
+        "subject": "Список источников",
+        "brief": "Финальная карточка"
+      }
+    }
+  ]
+}

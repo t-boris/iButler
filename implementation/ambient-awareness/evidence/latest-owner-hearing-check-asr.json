@@ -1,0 +1,12 @@
+{
+  "at": "2026-10-23T19:35:43.098775+00:00",
+  "source_segments": 178,
+  "known_report_hearing_check_windows": [
+    {
+      "start": 1792783899.8298938,
+      "end": 1792783924.829911
+    }
+  ],
+  "raw_transcripts_exported": false,
+  "speaker_authority_inferred": false
+}

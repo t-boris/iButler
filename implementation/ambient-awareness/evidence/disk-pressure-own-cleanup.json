@@ -1,0 +1,79 @@
+{
+  "at": "2026-10-23T21:54:51.087079+00:00",
+  "free_before": 182910976,
+  "free_after": 328081408,
+  "expired_by_existing_24h_policy": 397,
+  "generated_backups_removed": [
+    {
+      "generated_backup": "contextual-streaming-20261023-101220",
+      "bytes": 6239134
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-102323",
+      "bytes": 6244997
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-102645",
+      "bytes": 6246759
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-104046",
+      "bytes": 6254028
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-104454",
+      "bytes": 6258251
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-105402",
+      "bytes": 6293760
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-111019",
+      "bytes": 6407814
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-111828",
+      "bytes": 6411321
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-112436",
+      "bytes": 6416626
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-112548",
+      "bytes": 6416992
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-113151",
+      "bytes": 6552489
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-120254",
+      "bytes": 6424609
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-122311",
+      "bytes": 6778545
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-123926",
+      "bytes": 6669741
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-125100",
+      "bytes": 6874306
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-130905",
+      "bytes": 6876512
+    },
+    {
+      "generated_backup": "contextual-streaming-20261023-141216",
+      "bytes": 7050477
+    }
+  ],
+  "newest_two_rollbacks_preserved": true,
+  "unrelated_user_files_deleted": false,
+  "unexpired_recordings_deleted": false
+}

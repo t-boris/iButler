@@ -1,0 +1,80 @@
+{
+  "local_only": true,
+  "raw_content_exported": false,
+  "results": [
+    {
+      "images": 5,
+      "num_batch": 512,
+      "seconds": 11.333,
+      "facts_count": 3,
+      "diagnostic": {
+        "images": 5,
+        "prompt_characters": 6926,
+        "context_tokens": 8192,
+        "http_status": 200,
+        "first_token_ms": 9117.2,
+        "load_ms": 2457.9,
+        "prompt_ms": 6580.5,
+        "generation_ms": 2210.8,
+        "total_ms": 11320.9,
+        "prompt_tokens": 3415,
+        "generated_tokens": 125,
+        "response_characters": 598,
+        "elapsed_ms": 11332.3,
+        "stage": "completed",
+        "finish_reason": "stop"
+      },
+      "records_per_second": 0.441
+    },
+    {
+      "images": 16,
+      "num_batch": 512,
+      "seconds": 21.6,
+      "facts_count": 3,
+      "diagnostic": {
+        "images": 16,
+        "prompt_characters": 6926,
+        "context_tokens": 8192,
+        "http_status": 200,
+        "first_token_ms": 19178.0,
+        "load_ms": 347.2,
+        "prompt_ms": 18642.1,
+        "generation_ms": 2416.9,
+        "total_ms": 21591.3,
+        "prompt_tokens": 6385,
+        "generated_tokens": 125,
+        "response_characters": 598,
+        "elapsed_ms": 21599.6,
+        "stage": "completed",
+        "finish_reason": "stop"
+      },
+      "records_per_second": 0.741
+    },
+    {
+      "images": 16,
+      "num_batch": 2048,
+      "seconds": 24.219,
+      "facts_count": 3,
+      "diagnostic": {
+        "images": 16,
+        "prompt_characters": 6926,
+        "context_tokens": 8192,
+        "http_status": 200,
+        "first_token_ms": 22117.1,
+        "load_ms": 1993.2,
+        "prompt_ms": 19952.5,
+        "generation_ms": 2096.9,
+        "total_ms": 24210.7,
+        "prompt_tokens": 6385,
+        "generated_tokens": 125,
+        "response_characters": 598,
+        "elapsed_ms": 24218.7,
+        "stage": "completed",
+        "finish_reason": "stop"
+      },
+      "records_per_second": 0.661
+    }
+  ],
+  "analysis_resumed": true,
+  "experiment_seconds": 59.71
+}

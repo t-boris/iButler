@@ -1,0 +1,85 @@
+{
+  "at": "2026-10-24T03:29:31.523515+00:00",
+  "synthetic": true,
+  "actual_owner_test": false,
+  "audio_played": false,
+  "raw_text_or_media_exported": false,
+  "cuts": [
+    {
+      "fixture": "tests/fixtures/wake-bata.wav",
+      "whole_is_exact_hearing_check": true,
+      "cut_seconds": 0.35,
+      "asr_ms": 530.7,
+      "first_is_exact_vocative": false,
+      "full_join_is_exact_hearing_check": false
+    },
+    {
+      "fixture": "tests/fixtures/wake-bata.wav",
+      "whole_is_exact_hearing_check": true,
+      "cut_seconds": 0.4,
+      "asr_ms": 609.1,
+      "first_is_exact_vocative": false,
+      "full_join_is_exact_hearing_check": false
+    },
+    {
+      "fixture": "tests/fixtures/wake-bata.wav",
+      "whole_is_exact_hearing_check": true,
+      "cut_seconds": 0.45,
+      "asr_ms": 748.9,
+      "first_is_exact_vocative": false,
+      "full_join_is_exact_hearing_check": false
+    },
+    {
+      "fixture": "tests/fixtures/wake-bata.wav",
+      "whole_is_exact_hearing_check": true,
+      "cut_seconds": 0.5,
+      "asr_ms": 496.7,
+      "first_is_exact_vocative": false,
+      "full_join_is_exact_hearing_check": false
+    },
+    {
+      "fixture": "tests/fixtures/wake-bata.wav",
+      "whole_is_exact_hearing_check": true,
+      "cut_seconds": 0.55,
+      "asr_ms": 752.9,
+      "first_is_exact_vocative": false,
+      "full_join_is_exact_hearing_check": false
+    },
+    {
+      "fixture": "tests/fixtures/wake-bata.wav",
+      "whole_is_exact_hearing_check": true,
+      "cut_seconds": 0.6,
+      "asr_ms": 536.9,
+      "first_is_exact_vocative": false,
+      "full_join_is_exact_hearing_check": false
+    },
+    {
+      "fixture": "butler_ambient/assets/voice-check.wav",
+      "whole_is_exact_hearing_check": true,
+      "cut_seconds": 0.5,
+      "asr_ms": 531.1,
+      "first_is_exact_vocative": false,
+      "full_join_is_exact_hearing_check": false
+    },
+    {
+      "fixture": "butler_ambient/assets/voice-check.wav",
+      "whole_is_exact_hearing_check": true,
+      "cut_seconds": 0.6,
+      "asr_ms": 533.1,
+      "first_is_exact_vocative": false,
+      "full_join_is_exact_hearing_check": false
+    },
+    {
+      "fixture": "butler_ambient/assets/voice-check.wav",
+      "whole_is_exact_hearing_check": true,
+      "cut_seconds": 0.7,
+      "asr_ms": 487.1,
+      "first_is_exact_vocative": true,
+      "full_join_is_exact_hearing_check": true
+    }
+  ],
+  "fixed_public_route_calls": 1,
+  "private_authority_granted": false,
+  "private_jobs_queued": false,
+  "passed": true
+}

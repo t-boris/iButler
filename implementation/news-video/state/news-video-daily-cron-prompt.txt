@@ -1,0 +1,43 @@
+[Daily news video — 05:00 America/Chicago]
+
+This installed schedule explicitly authorizes delivery of one idempotent morning
+video briefing to Boris's private Telegram chat, INCLUDING delivery inside quiet
+hours: Boris explicitly scheduled this release at 05:00 (2026-07-17). It never
+authorizes paid APIs. The briefing covers the latest news digests plus completed
+deep-research reports that no previous episode has covered yet.
+
+1. Compute today's date and the 05:00 timestamp in America/Chicago. Use these
+   safe values:
+   - RUN_ID=daily-YYYY-MM-DD-morning
+   - AS_OF=the timezone-aware ISO timestamp for today's 05:00 CT
+2. If `runs/news-video/<RUN_ID>/publish/telegram.json` already has
+   `status=published`, finish silently. Do not send or dispatch anything.
+3. If `runs/news-video/<RUN_ID>/SUCCESS` exists but is not published, run:
+
+   ./bin/butler-news-video publish runs/news-video/<RUN_ID> \
+     --approve-delivery "cron:news-video-morning (Boris scheduled 05:00 delivery)" \
+     --allow-quiet-hours
+
+   Then finish. The command verifies the checksum and is idempotent;
+   `--allow-quiet-hours` is authorized ONLY for this 05:00 schedule.
+4. Otherwise start exactly one asynchronous video worker and do not wait:
+
+   BUTLER_CHAIN_DEPTH=0 ./bin/butler-dispatch start video --backend claude --model sonnet \
+     --project /Users/boris/.openclaw/workspace-butler \
+     --prompt "$(cat /Users/boris/.openclaw/workspace-butler/state/news-video-worker-prompt.txt)
+
+   PROFILE=daily
+   RUN_ID=<RUN_ID>
+   SOURCE_PATH=
+   TOPIC=
+   AS_OF=<AS_OF>
+   DELIVERY=telegram"
+
+5. End with one short internal status line. Do not call wait and do not send a
+   separate Telegram message. The `video` completion wake will use the validated
+   `RUN_DIR` and the idempotent publish command from AGENTS.md (with
+   `--allow-quiet-hours` for this morning schedule only).
+
+Hard limits: no `veo-generate`, no OpenAI TTS, no API key use, no `--overwrite`,
+and no raw `openclaw message send` command. The free edge-tts neural voice
+(`--tts edge`) is allowed: it needs no API key and has no billing.

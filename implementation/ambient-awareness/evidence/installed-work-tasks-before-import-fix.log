@@ -1,0 +1,74 @@
+module: /Users/boris/.openclaw/tools/ambient-awareness/.venv/lib/python3.12/site-packages/butler_ambient/work_tasks.py
+exit: 1
+test_backend_failure_not_reported_as_success (test_work_tasks.WorkTests.test_backend_failure_not_reported_as_success) ... FAIL
+test_cancel_stops_only_exact_detached_worker (test_work_tasks.WorkTests.test_cancel_stops_only_exact_detached_worker) ... FAIL
+test_in_flight_dispatcher_metadata_write_does_not_lose_a_live_job (test_work_tasks.WorkTests.test_in_flight_dispatcher_metadata_write_does_not_lose_a_live_job) ... FAIL
+test_missing_ambiguous_project_route_drift_and_arbitrary_pid_are_rejected (test_work_tasks.WorkTests.test_missing_ambiguous_project_route_drift_and_arbitrary_pid_are_rejected) ... ok
+test_persistently_broken_receipt_is_unavailable_without_invented_completion (test_work_tasks.WorkTests.test_persistently_broken_receipt_is_unavailable_without_invented_completion) ... FAIL
+test_real_monitor_completes_without_external_notifications_and_persists_receipt (test_work_tasks.WorkTests.test_real_monitor_completes_without_external_notifications_and_persists_receipt) ... FAIL
+test_reviewed_voice_request_starts_only_after_fresh_owner_confirmation (test_work_tasks.WorkTests.test_reviewed_voice_request_starts_only_after_fresh_owner_confirmation) ... FAIL
+
+======================================================================
+FAIL: test_backend_failure_not_reported_as_success (test_work_tasks.WorkTests.test_backend_failure_not_reported_as_success)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_work_tasks.py", line 81, in test_backend_failure_not_reported_as_success
+    self.assertEqual(result['status'],'failed');self.assertEqual(result['exit_code'],7)
+                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: -2 != 7
+
+======================================================================
+FAIL: test_cancel_stops_only_exact_detached_worker (test_work_tasks.WorkTests.test_cancel_stops_only_exact_detached_worker)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_work_tasks.py", line 126, in test_cancel_stops_only_exact_detached_worker
+    self.assertTrue(self.tasks.cancel(key)['ok'])
+AssertionError: False is not true
+
+======================================================================
+FAIL: test_in_flight_dispatcher_metadata_write_does_not_lose_a_live_job (test_work_tasks.WorkTests.test_in_flight_dispatcher_metadata_write_does_not_lose_a_live_job)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_work_tasks.py", line 89, in test_in_flight_dispatcher_metadata_write_does_not_lose_a_live_job
+    if time.monotonic() >= deadline: self.fail('controlled worker did not start')
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: controlled worker did not start
+
+======================================================================
+FAIL: test_persistently_broken_receipt_is_unavailable_without_invented_completion (test_work_tasks.WorkTests.test_persistently_broken_receipt_is_unavailable_without_invented_completion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_work_tasks.py", line 120, in test_persistently_broken_receipt_is_unavailable_without_invented_completion
+    self.assertEqual(self.tasks.status(key)['status'], 'running')
+AssertionError: 'failed' != 'running'
+- failed
++ running
+
+
+======================================================================
+FAIL: test_real_monitor_completes_without_external_notifications_and_persists_receipt (test_work_tasks.WorkTests.test_real_monitor_completes_without_external_notifications_and_persists_receipt)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_work_tasks.py", line 71, in test_real_monitor_completes_without_external_notifications_and_persists_receipt
+    self.assertEqual(result['status'],'done');self.assertEqual(result['exit_code'],0)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 'failed' != 'done'
+- failed
++ done
+
+
+======================================================================
+FAIL: test_reviewed_voice_request_starts_only_after_fresh_owner_confirmation (test_work_tasks.WorkTests.test_reviewed_voice_request_starts_only_after_fresh_owner_confirmation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_work_tasks.py", line 156, in test_reviewed_voice_request_starts_only_after_fresh_owner_confirmation
+    self.assertEqual(self.wait(key)['status'],'done')
+AssertionError: 'failed' != 'done'
+- failed
++ done
+
+
+----------------------------------------------------------------------
+Ran 7 tests in 5.458s
+
+FAILED (failures=6)

@@ -1,0 +1,125 @@
+{
+  "timestamp": "2026-10-23T19:20:12.356439+00:00",
+  "samples": 30,
+  "camera_working": 30,
+  "microphone_working": 30,
+  "dialogue_allowed": 12,
+  "quiet_samples": 0,
+  "meeting_states": {
+    "available": 30
+  },
+  "private_content_exported": false,
+  "last": {
+    "meeting": {
+      "quiet": false,
+      "state": "available",
+      "fresh": true,
+      "mode": "auto",
+      "apps": [],
+      "revision": 5,
+      "source": "CoreAudio process activity; no audio or browser content",
+      "reply_rule": "contextual conversation"
+    },
+    "voice_ready": true,
+    "readiness": {
+      "model": "ready",
+      "vision": "ready",
+      "voice": "ready",
+      "asr": "ready"
+    },
+    "selected_voice": "baritone",
+    "participant": {
+      "fresh": true,
+      "check_age_seconds": 0.42,
+      "consecutive_checks": 2,
+      "required_checks": 3,
+      "owner_camera_confirmed": false,
+      "owner_voice_confirmed": false,
+      "confirmed_by": null,
+      "voice_check": null
+    },
+    "archive": {
+      "enabled": true,
+      "policy": "owner-enabled local passive archive; action identity separate",
+      "sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "last_capture": {
+        "system-audio": 1792783241.588801,
+        "camera": 1792783241.856985,
+        "microphone": 1792783241.856985,
+        "screen": 1792783197.8547359
+      },
+      "raw_retention_hours": 24,
+      "generation": 0,
+      "system_audio_error": null,
+      "system_audio_dbfs": -16.313438901977545
+    },
+    "analysis_error": null,
+    "analysis_diagnostic": {
+      "source": "system-audio",
+      "phase": "completed",
+      "error_type": null
+    },
+    "anonymous_counts": {
+      "quiet_batch": 17,
+      "speech_batch": 4,
+      "utterance_queued": 2,
+      "transcription_started": 2,
+      "transcription_nonempty": 2,
+      "no_wake": 2,
+      "cancelled_address": 2,
+      "cancelled_listening": 2
+    },
+    "last_completed_source": null,
+    "last_response_timings": {},
+    "anonymous_turns": [
+      {
+        "id": 1,
+        "source": "microphone",
+        "phase": "address",
+        "outcome": "cancelled",
+        "input_seconds": 3.0,
+        "generation": 1,
+        "owner_alone": true,
+        "conversation_active": false,
+        "wake_name": false,
+        "reason": "new-utterance"
+      },
+      {
+        "id": 2,
+        "outcome": "cancelled",
+        "phase": "listening",
+        "reason": "meeting-started"
+      },
+      {
+        "id": 3,
+        "source": "microphone",
+        "phase": "address",
+        "outcome": "cancelled",
+        "input_seconds": 2.0,
+        "generation": 1,
+        "owner_alone": true,
+        "conversation_active": false,
+        "wake_name": false,
+        "reason": "unverified-presence"
+      },
+      {
+        "id": 4,
+        "outcome": "cancelled",
+        "phase": "listening",
+        "reason": "meeting-started"
+      }
+    ]
+  },
+  "dialogue_model": "qwen3.5:9b",
+  "vision_model": "gemma3:4b",
+  "reference_counts": {
+    "face": 15,
+    "voice": 30
+  },
+  "installed_native_hashes_match": true
+}

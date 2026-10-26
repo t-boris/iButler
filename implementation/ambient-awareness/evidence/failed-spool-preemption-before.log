@@ -1,0 +1,6 @@
+{"immediate_retry_queued": true, "other_source_completed": false, "synthetic_only": true}
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/evidence/check-failed-spool-preemption.py", line 24, in <module>
+    print(json.dumps(result));assert not result['immediate_retry_queued'] and result['other_source_completed']
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

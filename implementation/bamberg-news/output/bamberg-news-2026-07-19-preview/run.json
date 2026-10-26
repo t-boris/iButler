@@ -1,0 +1,43 @@
+{
+  "episode_id": "bamberg-news-2026-07-19-preview",
+  "episode_sha256": "7a0a65b470abda7ab32fe56ebc9cfeb8df8993fdca1c53ce7bc11c5cb22be5bf",
+  "profile": "daily",
+  "status": "rendered",
+  "rendered_at": "2026-07-19T15:27:36-05:00",
+  "run_dir": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview",
+  "video": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/render/episode.mp4",
+  "poster": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/render/poster.jpg",
+  "captions": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/captions.srt",
+  "credits": "/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/credits.md",
+  "duration_seconds": 99.221,
+  "sha256": "705432dc42c556ee9aea42dc5a8a2446a17938aa4092ccaaa2a2b42089c06791",
+  "warnings": [],
+  "media": {
+    "programs": [],
+    "stream_groups": [],
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "30/1"
+      },
+      {
+        "index": 1,
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "format": {
+      "duration": "99.221029"
+    }
+  },
+  "tts_provider": "edge",
+  "voice": "ru-RU-DmitryNeural",
+  "estimated_tts_cost_usd": 0.0
+}

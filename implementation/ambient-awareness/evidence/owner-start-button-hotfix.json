@@ -1,0 +1,12 @@
+{
+  "timestamp": "2026-10-23T18:46:45.602987+00:00",
+  "bug": "BUG-003",
+  "native_build_exit": 0,
+  "native_mouse_event_test_exit": 0,
+  "stage_before": "cancelled",
+  "service_restart": false,
+  "references_and_stable_parent_unchanged": true,
+  "installed_helper_matches": true,
+  "source_sha256": "8e0f66a3622c7f1616920b62e3eacb7854a7d9b3e420cbfa5268acbbda23af91",
+  "helper_sha256": "6ecc713dbb82b1ed608adca36400ee5c298f721fe9a833a87646910969f19c2c"
+}

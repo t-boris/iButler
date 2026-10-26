@@ -1,0 +1,26 @@
+{
+  "at": "2026-10-24T03:40:52.249224+00:00",
+  "dialogue_allowed": false,
+  "participant": {
+    "fresh": true,
+    "check_age_seconds": 0.89,
+    "capture_age_seconds": 1.3,
+    "consecutive_checks": 0,
+    "required_checks": 3,
+    "owner_camera_confirmed": false,
+    "owner_voice_confirmed": false,
+    "confirmed_by": null,
+    "voice_check": null
+  },
+  "listening_counts": {
+    "batches": 409,
+    "transcription": 4,
+    "heard": 4,
+    "reply-blocked": 4
+  },
+  "voice_counts": {},
+  "last_response_timings": {},
+  "last_turn_outcomes": [],
+  "raw_text_or_media_exported": false,
+  "intended_owner_dialogue_verified": false
+}

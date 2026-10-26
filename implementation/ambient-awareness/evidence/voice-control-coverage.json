@@ -1,0 +1,47 @@
+{
+  "at": "2026-10-23T23:02:00.365911+00:00",
+  "registry_count": 31,
+  "new_native_adapters": [
+    "correct",
+    "delete",
+    "image-cancel",
+    "image-delete",
+    "images",
+    "material-add",
+    "material-remove",
+    "materials",
+    "preserve",
+    "recordings",
+    "screen-permission",
+    "summary",
+    "video-settings"
+  ],
+  "specification": [
+    "REQ-021",
+    "DEC-047",
+    "DEC-048",
+    "DEC-049",
+    "DEC-050"
+  ],
+  "source_tests": [
+    "tests/test_memory_controls.py",
+    "tests/test_voice_commands.py",
+    "tests/test_control_model.py",
+    "tests/test_work_tasks.py",
+    "tests/test_knowledge.py"
+  ],
+  "installed_test_logs": [
+    "installed-memory-controls-tests.log",
+    "installed-work-tasks-tests.log",
+    "installed-knowledge-tests.log"
+  ],
+  "actual_shared_lookup": "installed-knowledge-after-import-fix.json",
+  "actual_background": "voice-controls-background-live.json",
+  "new_native_controls_use_real_store_service_visual": true,
+  "mutations_require_one_use_fresh_owner_review": true,
+  "target_revalidated_after_execution_notice": true,
+  "original_only_delete_keeps_analysis": true,
+  "full_conversational_and_all_desktop_mcp_control_proven": false,
+  "intended_owner_speech_verified": false,
+  "goal_complete": false
+}

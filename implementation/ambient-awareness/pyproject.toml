@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "butler-ambient"
+description = "Local, permission-gated ambient observation for Butler"
+requires-python = ">=3.11"
+dynamic = ["version"]
+
+[tool.setuptools.dynamic]
+version = {attr = "butler_ambient.__version__"}
+
+[project.optional-dependencies]
+sensing = ["numpy>=1.26", "opencv-python-headless>=4.10", "resemblyzer>=0.1.4", "webrtcvad-wheels>=2.0.14"]
+# Installed into its own environment (turn-env) by deploy.py: Smart Turn v3 end-of-thought detection, local (DEC-001 attention).
+turn = ["pipecat-ai[local-smart-turn,silero]==1.14.0"]
+
+[project.scripts]
+butler-ambient = "butler_ambient.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["butler_ambient*"]
+
+[tool.setuptools.package-data]
+butler_ambient = ["native/*.swift", "assets/*.wav", "assets/*.icns", "assets/*.js", "assets/*.html"]

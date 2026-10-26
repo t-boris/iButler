@@ -1,0 +1,1 @@
+{"signature":"6867-1784593380071","source":"structure","collections":[{"name":"Declarations","groups":[{"name":"Functions","items":[{"line":72,"name":"_api","summary":"def"},{"line":83,"name":"_clean","summary":"def"},{"line":87,"name":"build_library","summary":"def"},{"line":161,"name":"list_library","summary":"def"}]}]}]}

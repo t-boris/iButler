@@ -1,0 +1,12 @@
+installed interpreter: /Users/boris/.openclaw/tools/ambient-awareness/.venv/bin/python
+exit: 0
+test_cancellation_stops_worker_and_drops_retrieved_content (test_knowledge.KnowledgeTests.test_cancellation_stops_worker_and_drops_retrieved_content) ... ok
+test_existing_adapter_result_has_provenance_and_never_metadata_content (test_knowledge.KnowledgeTests.test_existing_adapter_result_has_provenance_and_never_metadata_content) ... ok
+test_installed_memory_worker_preserves_standard_library_import_order (test_knowledge.KnowledgeTests.test_installed_memory_worker_preserves_standard_library_import_order) ... ok
+test_ordinary_dialogue_does_not_scan_vault_but_personal_queries_do (test_knowledge.KnowledgeTests.test_ordinary_dialogue_does_not_scan_vault_but_personal_queries_do) ... ok
+test_structured_sessions_read_message_text_without_tool_args_or_reasoning (test_knowledge.KnowledgeTests.test_structured_sessions_read_message_text_without_tool_args_or_reasoning) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.859s
+
+OK

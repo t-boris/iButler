@@ -1,0 +1,150 @@
+{
+  "label": "after-qwen35",
+  "at": "2026-10-24T06:57:46.911243+00:00",
+  "window_minutes": 10.0,
+  "models": {
+    "vision_model": "qwen3.5:9b",
+    "conversation_model": null
+  },
+  "first": {
+    "database": {
+      "at": 1792824466.681868,
+      "observations": {
+        "camera": 2504,
+        "microphone": 1491,
+        "screen": 687,
+        "system-audio": 1377
+      },
+      "backlog": {
+        "camera": {
+          "items": 1427,
+          "oldest_age_seconds": 17586.6
+        },
+        "microphone": {
+          "items": 939,
+          "oldest_age_seconds": 17013.6
+        },
+        "screen": {
+          "items": 9,
+          "oldest_age_seconds": 16968.2
+        },
+        "system-audio": {
+          "items": 966,
+          "oldest_age_seconds": 17017.6
+        }
+      },
+      "event_frame_files": 0,
+      "event_frame_kinds": {}
+    },
+    "service": {
+      "dialogue_mode": "general",
+      "dialogue_allowed": false,
+      "voice_ready": true,
+      "token_mode": "private",
+      "general": {
+        "permitted": true,
+        "active": false,
+        "context_turns": 0,
+        "private_released": {}
+      },
+      "turn_outcomes": [],
+      "listening_counts": {
+        "batches": 27,
+        "transcription": 1,
+        "heard": 1,
+        "general-not-addressed": 1
+      },
+      "listening_phase": "blocked",
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "event_frames": {
+        "files": 0,
+        "today": 0,
+        "daily_limit": 20,
+        "spacing_seconds": 600,
+        "error": null
+      },
+      "recording_allowed": true
+    }
+  },
+  "last": {
+    "database": {
+      "at": 1792825066.799677,
+      "observations": {
+        "camera": 2566,
+        "microphone": 1525,
+        "screen": 701,
+        "system-audio": 1409
+      },
+      "backlog": {
+        "camera": {
+          "items": 1279,
+          "oldest_age_seconds": 18055.7
+        },
+        "microphone": {
+          "items": 813,
+          "oldest_age_seconds": 17498.7
+        },
+        "screen": {
+          "items": 5,
+          "oldest_age_seconds": 17447.4
+        },
+        "system-audio": {
+          "items": 809,
+          "oldest_age_seconds": 17498.7
+        }
+      },
+      "event_frame_files": 2,
+      "event_frame_kinds": {
+        "dog": 1,
+        "person": 1
+      }
+    },
+    "service": {
+      "dialogue_mode": "general",
+      "dialogue_allowed": false,
+      "voice_ready": true,
+      "token_mode": "private",
+      "general": {
+        "permitted": true,
+        "active": false,
+        "context_turns": 0,
+        "private_released": {}
+      },
+      "turn_outcomes": [],
+      "listening_counts": {
+        "batches": 619,
+        "transcription": 28,
+        "heard": 28,
+        "general-not-addressed": 28
+      },
+      "listening_phase": "waiting",
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "event_frames": {
+        "files": 2,
+        "today": 2,
+        "daily_limit": 20,
+        "spacing_seconds": 600,
+        "error": null
+      },
+      "recording_allowed": true
+    }
+  },
+  "observation_growth": {
+    "screen": 14,
+    "camera": 62,
+    "microphone": 34,
+    "system-audio": 32
+  },
+  "raw_content_exported": false,
+  "actual_owner_spoken_conversation_verified": false
+}

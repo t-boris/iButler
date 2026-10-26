@@ -1,0 +1,5 @@
+cwd: /Users/boris/Projects/MacStudioButler/implementation/ambient-awareness
+command: ["/Library/Frameworks/Python.framework/Versions/3.12/bin/python3", "build_app.py"]
+exit: 0
+
+PASS Butler.app packaging; separate UI identity; no permission-parent changes

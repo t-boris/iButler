@@ -1,0 +1,32 @@
+{
+  "application": "Butler Awareness",
+  "controls": [
+    {
+      "after": 0,
+      "before": 1,
+      "control": "Portrait",
+      "exit": 0
+    },
+    {
+      "after": 0,
+      "before": 1,
+      "control": "Studio Light",
+      "exit": 0
+    },
+    {
+      "after": 0,
+      "before": 1,
+      "control": "Reactions",
+      "exit": 0
+    },
+    {
+      "after": 0,
+      "before": 1,
+      "control": "Background",
+      "exit": 0
+    }
+  ],
+  "other_applications_modified": false,
+  "pixels_read": false,
+  "readback": "Fresh AX checkbox readback: Portrait/Studio Light/Reactions/Background all0; native helper reports effects false and live frames resumed."
+}

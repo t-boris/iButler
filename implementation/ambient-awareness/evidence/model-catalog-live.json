@@ -1,0 +1,206 @@
+{
+  "timestamp": "2026-10-23T14:08:57.647094+00:00",
+  "catalog": {
+    "refreshing": false,
+    "runtime": {
+      "error": null,
+      "models": [
+        "openai/gpt-5.3-chat-latest",
+        "openai/gpt-5.3-codex",
+        "openai/gpt-5.4",
+        "openai/gpt-5.4-mini",
+        "openai/gpt-5.4-nano",
+        "openai/gpt-5.4-pro",
+        "openai/gpt-5.5",
+        "openai/gpt-5.5-pro",
+        "openai/o1",
+        "openai/o1-pro",
+        "openai/o3",
+        "openai/o3-deep-research",
+        "openai/o3-mini",
+        "openai/o3-pro",
+        "openai/o4-mini",
+        "openai/o4-mini-deep-research",
+        "openai/gpt-6.1-sol",
+        "anthropic/claude-opus-4-6",
+        "anthropic/claude-opus-4-7",
+        "anthropic/claude-sonnet-4-6",
+        "anthropic/claude-sonnet-5",
+        "anthropic/claude-opus-4-8"
+      ],
+      "fetched_at": 1792764534.955839,
+      "source": "OpenClaw provider registry \u00b7 runtime compatibility"
+    },
+    "providers": [
+      {
+        "models": [
+          {
+            "id": "gpt-6.1-sol",
+            "name": "GPT-6.1-Sol",
+            "aliases": []
+          },
+          {
+            "id": "gpt-6-astra",
+            "name": "GPT-6-Astra",
+            "aliases": []
+          },
+          {
+            "id": "gpt-6-sol",
+            "name": "GPT-6-Sol",
+            "aliases": []
+          },
+          {
+            "id": "gpt-6-luna",
+            "name": "GPT-6-Luna",
+            "aliases": []
+          },
+          {
+            "id": "gpt-5.6-sol",
+            "name": "GPT-5.6-Sol",
+            "aliases": []
+          },
+          {
+            "id": "gpt-5.6-terra",
+            "name": "GPT-5.6-Terra",
+            "aliases": []
+          },
+          {
+            "id": "gpt-5.6-luna",
+            "name": "GPT-5.6-Luna",
+            "aliases": []
+          }
+        ],
+        "fetched_at": 1792764526.3247428,
+        "attempted_at": 1792764526.3247402,
+        "error": null,
+        "source": "OpenAI \u00b7 Codex model/list (CLI may cache its catalog)",
+        "backend": "codex",
+        "stale": false
+      },
+      {
+        "models": [
+          {
+            "id": "claude-opus-5-5",
+            "name": "Default (recommended)",
+            "aliases": [
+              "default",
+              "opus"
+            ]
+          },
+          {
+            "id": "claude-fable-5-1",
+            "name": "Fable 5.1",
+            "aliases": [
+              "fable"
+            ]
+          },
+          {
+            "id": "claude-sonnet-5-5",
+            "name": "Sonnet 5.5",
+            "aliases": [
+              "sonnet"
+            ]
+          },
+          {
+            "id": "claude-haiku-5-5",
+            "name": "Haiku 5.5",
+            "aliases": [
+              "haiku"
+            ]
+          },
+          {
+            "id": "claude-haiku-4-5-20251001",
+            "name": "Haiku 4.5",
+            "aliases": []
+          },
+          {
+            "id": "claude-sonnet-5",
+            "name": "Sonnet 5",
+            "aliases": []
+          },
+          {
+            "id": "claude-opus-5",
+            "name": "Opus 5",
+            "aliases": []
+          },
+          {
+            "id": "claude-fable-5",
+            "name": "Fable 5",
+            "aliases": []
+          },
+          {
+            "id": "claude-opus-4-8",
+            "name": "Opus 4.8",
+            "aliases": []
+          },
+          {
+            "id": "claude-opus-4-7",
+            "name": "Opus 4.7",
+            "aliases": []
+          },
+          {
+            "id": "claude-opus-4-6",
+            "name": "Opus 4.6",
+            "aliases": []
+          },
+          {
+            "id": "claude-sonnet-4-6",
+            "name": "Sonnet 4.6",
+            "aliases": []
+          }
+        ],
+        "fetched_at": 1792764527.544935,
+        "attempted_at": 1792764527.544933,
+        "error": null,
+        "source": "Anthropic \u00b7 Claude initialize models (CLI/account catalog)",
+        "backend": "claude",
+        "stale": false
+      }
+    ],
+    "notice": "CLI model catalog; listing does not verify inference access. No prompts or API keys sent by Butler."
+  },
+  "explicit_refresh_returned_busy": true,
+  "explicit_refresh_latency_seconds": 0.08,
+  "all_provider_refreshes_succeeded": true,
+  "fresh_timestamps_advanced": true,
+  "task_model_choices": [
+    "codex:gpt-6.1-sol",
+    "codex:gpt-6-astra",
+    "codex:gpt-6-sol",
+    "codex:gpt-6-luna",
+    "codex:gpt-5.6-sol",
+    "codex:gpt-5.6-terra",
+    "codex:gpt-5.6-luna",
+    "claude:claude-opus-5-5",
+    "claude:default",
+    "claude:opus",
+    "claude:claude-fable-5-1",
+    "claude:fable",
+    "claude:claude-sonnet-5-5",
+    "claude:sonnet",
+    "claude:claude-haiku-5-5",
+    "claude:haiku",
+    "claude:claude-haiku-4-5-20251001",
+    "claude:claude-sonnet-5",
+    "claude:claude-opus-5",
+    "claude:claude-fable-5",
+    "claude:claude-opus-4-8",
+    "claude:claude-opus-4-7",
+    "claude:claude-opus-4-6",
+    "claude:claude-sonnet-4-6"
+  ],
+  "agent_model_choices": [
+    "openai/gpt-6.1-sol",
+    "anthropic/claude-sonnet-5",
+    "anthropic/claude-opus-4-8",
+    "anthropic/claude-opus-4-7",
+    "anthropic/claude-opus-4-6",
+    "anthropic/claude-sonnet-4-6"
+  ],
+  "new_openai_model_selectable": true,
+  "new_anthropic_model_selectable": true,
+  "agent_choices_match_runtime": true,
+  "global_and_task_settings_unchanged_by_refresh": true,
+  "cache_mode": "0o600",
+  "privacy": "Only public model metadata retained. No model inference, prompts, observations, credentials, job launches or messages."
+}

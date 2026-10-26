@@ -1,0 +1,11 @@
+{
+ "contract": "config_version",
+ "version": 1,
+ "id": "cfg-1",
+ "content": {
+  "schema": 1
+ },
+ "author": "owner",
+ "created_at": 1790000000.0,
+ "number": 1
+}

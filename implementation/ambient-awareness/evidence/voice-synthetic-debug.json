@@ -1,0 +1,12 @@
+{
+  "synthetic_input": true,
+  "file": "/Users/boris/.local/share/butler-ambient/voice/output/a3874940ac424ad989cacb33c55779f4.wav",
+  "text": "",
+  "resampled_as_production": true,
+  "asr_text_16k": "",
+  "explicit_alias": true,
+  "correct_stdout_flags": true,
+  "asr_text": "Бата, ты меня слышишь?",
+  "controlled_output_deleted": true,
+  "retained_synthetic_fixture": "tests/fixtures/wake-bata.wav"
+}

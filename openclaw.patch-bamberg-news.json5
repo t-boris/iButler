@@ -1,0 +1,122 @@
+// Add the isolated Bamberg News Telegram control bot and agent.
+//
+// This patch deliberately leaves the new Telegram account disabled until:
+//   1) Boris has created a bot in @BotFather;
+//   2) BAMBERG_NEWS_BOT_TOKEN is present in ~/.openclaw/.env; and
+//   3) the workspace, dedicated YouTube channel and OAuth destination are ready.
+//
+// IMPORTANT: openclaw config patch replaces arrays. `agents.list` and
+// `bindings` below were copied from the live configuration on 2026-07-19 and
+// include every current entry. Before applying, always run --dry-run and
+// compare them with `openclaw config get agents.list` and `... get bindings`.
+// If another agent/binding has been added, append it here first.
+//
+// Apply only after completing implementation/bamberg-news/README.md:
+//   openclaw config patch --file ./openclaw.patch-bamberg-news.json5 --dry-run
+//   openclaw config patch --file ./openclaw.patch-bamberg-news.json5
+//   openclaw gateway restart
+
+{
+  agents: {
+    list: [
+      {
+        id: "tetyana-dyck",
+        name: "TetyanaDyck",
+        description: "FamilyBuilder.io / Tetyana-Dyck-Web pipeline agent (t-boris/Tetyana-Dyck-Web). Non-technical primary user (Tanya), trilingual site en/ru/uk, Firebase deploy to https://familybuilder.io.",
+        workspace: "/Users/boris/.openclaw/workspace-tetyana-dyck",
+        model: { primary: "anthropic/claude-sonnet-5", fallbacks: [] },
+        models: { "anthropic/claude-sonnet-5": {} },
+        bootstrapMaxChars: 24000,
+        runtime: {
+          type: "acp",
+          acp: {
+            agent: "claude",
+            backend: "acpx",
+            mode: "persistent",
+            cwd: "/Users/boris/.openclaw/workspace-tetyana-dyck"
+          }
+        }
+      },
+      {
+        id: "butler",
+        name: "AIButler",
+        description: "Boris's personal AI Butler — project control, task memory, Obsidian KB, project docs, deep research, news intelligence, proactive goal pursuit.",
+        workspace: "/Users/boris/.openclaw/workspace-butler",
+        model: { primary: "openai/gpt-5.5", fallbacks: [] },
+        models: { "anthropic/claude-opus-4-8": {} },
+        runtime: {
+          type: "acp",
+          acp: {
+            agent: "codex",
+            backend: "acpx",
+            mode: "persistent",
+            cwd: "/Users/boris/.openclaw/workspace-butler"
+          }
+        }
+      },
+      {
+        id: "bamberg-news",
+        name: "BambergNews",
+        description: "Isolated factual Russian-language Bamberg/Bavaria news video service for a dedicated YouTube channel.",
+        workspace: "/Users/boris/.openclaw/workspace-bamberg-news",
+        // Switched codex -> claude 2026-07-20: codex acpx runtime died mid-run 4x in one day.
+        model: { primary: "anthropic/claude-sonnet-5", fallbacks: [] },
+        models: { "anthropic/claude-sonnet-5": {} },
+        runtime: {
+          type: "acp",
+          acp: {
+            agent: "claude",
+            backend: "acpx",
+            mode: "persistent",
+            cwd: "/Users/boris/.openclaw/workspace-bamberg-news"
+          }
+        }
+      }
+    ]
+  },
+
+  channels: {
+    telegram: {
+      accounts: {
+        "bamberg-news": {
+          enabled: false,
+          botToken: {
+            source: "env",
+            provider: "default",
+            id: "BAMBERG_NEWS_BOT_TOKEN"
+          },
+          dmPolicy: "allowlist",
+          allowFrom: [253483520],
+          groupPolicy: "disabled"
+        }
+      }
+    }
+  },
+
+  bindings: [
+    {
+      type: "route",
+      agentId: "tetyana-dyck",
+      comment: "tetyana-dyck bot → tetyana-dyck agent (FamilyBuilder.io)",
+      match: { channel: "telegram", accountId: "tetyana-dyck" }
+    },
+    {
+      type: "route",
+      agentId: "butler",
+      comment: "butler bot → butler agent (Boris's personal AI)",
+      match: { channel: "telegram", accountId: "butler" }
+    },
+    {
+      type: "route",
+      agentId: "butler",
+      comment: "WhatsApp → butler (INGEST-ONLY: buffer via butler-inbox, NEVER reply — see AGENTS.md hard rule)",
+      match: { channel: "whatsapp", accountId: "default" }
+    },
+    {
+      type: "route",
+      agentId: "bamberg-news",
+      comment: "bamberg-news bot → isolated Bamberg News agent",
+      match: { channel: "telegram", accountId: "bamberg-news" }
+    }
+  ]
+}

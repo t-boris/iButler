@@ -1,0 +1,20 @@
+{
+  "records": [
+    {
+      "label": "ack",
+      "synthetic": true,
+      "profile": "baritone",
+      "seconds": 5.52,
+      "file": "/Users/boris/.local/share/butler-ambient/voice/prepared/baritone/ack.wav"
+    },
+    {
+      "label": "wake-butler",
+      "synthetic": true,
+      "profile": "baritone",
+      "seconds": 1.67,
+      "file": "/Users/boris/.local/share/butler-ambient/voice/prepared/baritone/wake-butler.wav"
+    }
+  ],
+  "elapsed_seconds": 13.75,
+  "contains_owner_voice": false
+}

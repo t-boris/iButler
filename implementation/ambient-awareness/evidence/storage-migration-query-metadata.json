@@ -1,0 +1,18 @@
+{
+  "actual_metadata_in_memory_only": true,
+  "selected_count": 100,
+  "indexed_selection_ms": [
+    49.79,
+    54.15,
+    52.24
+  ],
+  "plan": [
+    "SEARCH media USING INDEX media_storage (storage_class=? AND analyzed=?)",
+    "CORRELATED SCALAR SUBQUERY 1",
+    "SEARCH r USING INDEX observation_media_source (media_id=?)",
+    "SEARCH o USING COVERING INDEX sqlite_autoindex_observations_1 (id=?)",
+    "USE TEMP B-TREE FOR ORDER BY"
+  ],
+  "raw_media_modified": false,
+  "private_content_exported": false
+}

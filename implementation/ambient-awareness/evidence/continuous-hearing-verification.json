@@ -1,0 +1,23 @@
+{
+  "at": "2026-10-23T19:57:41.052299+00:00",
+  "verification_jobs": 21,
+  "tests": 324,
+  "feature_tests": 253,
+  "source_hashes_match": true,
+  "installed_sources_match": true,
+  "stable_parent_config_agreements_preferences_unchanged": true,
+  "samples": 30,
+  "fresh_microphone": 30,
+  "hearing_enabled": 30,
+  "text_visible_without_identity": 25,
+  "last_hearing_counts": {
+    "batches": 101,
+    "transcription": 15,
+    "heard": 15,
+    "reply-blocked": 9,
+    "routed": 6
+  },
+  "raw_content_exported": false,
+  "actual_owner_conversation_verified": false,
+  "remaining_policy_question": "Q-013; DEC-032 vs DEC-038 ordinary/private distinction"
+}

@@ -1,0 +1,46 @@
+#!/opt/miniconda3/bin/python
+"""Collect the deterministic evidence pack for a Bamberg News slot."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+LOCAL_ROOT = Path(__file__).resolve().parents[1]
+NEWS_VIDEO_ROOT = LOCAL_ROOT.parent / "news-video"
+LIVE_BUTLER = Path("/Users/boris/.openclaw/workspace-butler")
+if (LOCAL_ROOT / "lib" / "bamberg_sources.py").is_file() and (LOCAL_ROOT / "lib" / "bamberg_news.py").is_file():
+    for root in reversed((LOCAL_ROOT, NEWS_VIDEO_ROOT)):
+        if (root / "lib").is_dir():
+            sys.path.insert(0, str(root))
+else:
+    sys.path.insert(0, str(LIVE_BUTLER))
+
+from lib import bamberg_sources  # noqa: E402
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(prog="bamberg-collect")
+    parser.add_argument("--slot", choices=("morning", "evening"), required=True)
+    parser.add_argument("--summary", action="store_true", help="print counts only, not the full pack")
+    args = parser.parse_args()
+    pack = bamberg_sources.collect(args.slot)
+    if args.summary:
+        print(json.dumps(
+            {
+                "evidence_path": pack["evidence_path"],
+                "weather_days": len(pack["weather"].get("days", [])),
+                "alerts": len(pack["weather"].get("alerts", [])),
+                "feeds": {k: len(v) for k, v in pack["feeds"].items()},
+                "feed_errors": pack.get("feed_errors", {}),
+                "adaptive_promoted": pack.get("adaptive", {}).get("promoted_now", []),
+            },
+            indent=2, ensure_ascii=False))
+    else:
+        print(json.dumps(pack, indent=2, ensure_ascii=False))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,0 +1,4 @@
+cwd: /Users/boris/Projects/MacStudioButler/implementation/ambient-awareness
+command: ["swiftc", "-warnings-as-errors", "butler_ambient/native/owner-auth.swift", "-o", "build/butler-owner-auth"]
+exit: 0
+

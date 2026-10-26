@@ -1,0 +1,174 @@
+{
+  "at": "2026-10-23T23:10:56.158079+00:00",
+  "model": "qwen3.5:9b",
+  "synthetic_requests_only": true,
+  "no_operation_executed": true,
+  "actual_owner_reply_verified": false,
+  "raw_owner_content_exported": false,
+  "samples": [
+    {
+      "mode": "previous-context-switch",
+      "wall_ms": 21727.9,
+      "planned_capability": "summary",
+      "stages": [
+        {
+          "images": 0,
+          "prompt_characters": 1016,
+          "context_tokens": 4096,
+          "http_status": 200,
+          "first_token_ms": 10544.2,
+          "load_ms": 9802.8,
+          "prompt_ms": 713.6,
+          "generation_ms": 600.4,
+          "total_ms": 11147.1,
+          "prompt_tokens": 299,
+          "generated_tokens": 17,
+          "response_characters": 42,
+          "elapsed_ms": 11162.1,
+          "stage": "completed",
+          "finish_reason": "stop"
+        },
+        {
+          "images": 0,
+          "prompt_characters": 4916,
+          "context_tokens": 8192,
+          "http_status": 200,
+          "first_token_ms": 9859.1,
+          "load_ms": 8344.7,
+          "prompt_ms": 1465.9,
+          "generation_ms": 678.0,
+          "total_ms": 10541.3,
+          "prompt_tokens": 1191,
+          "generated_tokens": 29,
+          "response_characters": 70,
+          "elapsed_ms": 10565.2,
+          "stage": "completed",
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "mode": "resident-context",
+      "wall_ms": 4068.8,
+      "planned_capability": "summary",
+      "stages": [
+        {
+          "images": 0,
+          "prompt_characters": 1016,
+          "context_tokens": 8192,
+          "http_status": 200,
+          "first_token_ms": 1365.9,
+          "load_ms": 860.0,
+          "prompt_ms": 437.9,
+          "generation_ms": 334.7,
+          "total_ms": 1696.3,
+          "prompt_tokens": 299,
+          "generated_tokens": 17,
+          "response_characters": 42,
+          "elapsed_ms": 1709.2,
+          "stage": "completed",
+          "finish_reason": "stop"
+        },
+        {
+          "images": 0,
+          "prompt_characters": 4916,
+          "context_tokens": 8192,
+          "http_status": 200,
+          "first_token_ms": 1688.1,
+          "load_ms": 387.1,
+          "prompt_ms": 1253.5,
+          "generation_ms": 663.0,
+          "total_ms": 2344.4,
+          "prompt_tokens": 1191,
+          "generated_tokens": 29,
+          "response_characters": 70,
+          "elapsed_ms": 2359.2,
+          "stage": "completed",
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "mode": "previous-context-switch",
+      "wall_ms": 12516.2,
+      "planned_capability": "summary",
+      "stages": [
+        {
+          "images": 0,
+          "prompt_characters": 1016,
+          "context_tokens": 4096,
+          "http_status": 200,
+          "first_token_ms": 3812.8,
+          "load_ms": 3353.9,
+          "prompt_ms": 445.6,
+          "generation_ms": 320.6,
+          "total_ms": 4124.4,
+          "prompt_tokens": 299,
+          "generated_tokens": 17,
+          "response_characters": 42,
+          "elapsed_ms": 4137.0,
+          "stage": "completed",
+          "finish_reason": "stop"
+        },
+        {
+          "images": 0,
+          "prompt_characters": 4916,
+          "context_tokens": 8192,
+          "http_status": 200,
+          "first_token_ms": 5139.6,
+          "load_ms": 2426.0,
+          "prompt_ms": 2697.2,
+          "generation_ms": 3234.8,
+          "total_ms": 8370.7,
+          "prompt_tokens": 1191,
+          "generated_tokens": 29,
+          "response_characters": 70,
+          "elapsed_ms": 8378.8,
+          "stage": "completed",
+          "finish_reason": "stop"
+        }
+      ]
+    },
+    {
+      "mode": "resident-context",
+      "wall_ms": 4054.5,
+      "planned_capability": "summary",
+      "stages": [
+        {
+          "images": 0,
+          "prompt_characters": 1016,
+          "context_tokens": 8192,
+          "http_status": 200,
+          "first_token_ms": 1040.7,
+          "load_ms": 299.9,
+          "prompt_ms": 712.3,
+          "generation_ms": 880.6,
+          "total_ms": 1918.0,
+          "prompt_tokens": 299,
+          "generated_tokens": 17,
+          "response_characters": 42,
+          "elapsed_ms": 1922.9,
+          "stage": "completed",
+          "finish_reason": "stop"
+        },
+        {
+          "images": 0,
+          "prompt_characters": 4916,
+          "context_tokens": 8192,
+          "http_status": 200,
+          "first_token_ms": 1571.5,
+          "load_ms": 268.2,
+          "prompt_ms": 1234.2,
+          "generation_ms": 556.2,
+          "total_ms": 2123.0,
+          "prompt_tokens": 1191,
+          "generated_tokens": 29,
+          "response_characters": 70,
+          "elapsed_ms": 2131.4,
+          "stage": "completed",
+          "finish_reason": "stop"
+        }
+      ]
+    }
+  ]
+}

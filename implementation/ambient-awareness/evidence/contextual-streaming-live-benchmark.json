@@ -1,0 +1,2586 @@
+{
+  "timestamp": "2026-10-23T15:28:36.163958+00:00",
+  "fixed_synthetic_fixture": true,
+  "actual_microphone_accuracy_test": false,
+  "queued_under_actual_permission": true,
+  "completed": true,
+  "first_playback_seconds": 2.35,
+  "samples": [
+    {
+      "at": "2026-10-23T15:27:53.411045+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:27:54.208189+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:27:55.000881+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:27:55.792492+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:27:56.585452+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:27:57.370964+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:27:58.164803+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:27:58.955895+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:27:59.751146+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:00.541173+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:01.323684+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:02.112303+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:02.900054+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:03.686714+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:04.474026+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:05.258584+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:06.047281+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:06.829678+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:07.617983+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:08.408031+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:09.216723+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:10.007792+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:10.799303+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:11.594622+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:12.378990+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:13.176557+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:13.960489+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:14.751220+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:15.578667+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:16.363469+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:17.165944+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:17.949745+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:18.740097+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:19.540299+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:20.326934+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:21.111585+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:21.909638+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:22.703150+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:23.518466+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:24.339199+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:25.130264+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:25.936916+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:26.727940+00:00",
+      "allowed": false,
+      "state": "paused",
+      "phase": "idle",
+      "counts": {},
+      "timings": {},
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:27.206952+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "transcription",
+      "counts": {
+        "quiet_batch": 1,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:27.366610+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 1,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:27.527757+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 1,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:27.685235+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 1,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:27.844813+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 2,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:28.009762+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 2,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:28.175980+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 2,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:28.337382+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 2,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:28.492891+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 2,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:28.651543+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 2,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:28.811773+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 3,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:28.968318+00:00",
+      "allowed": true,
+      "state": "thinking",
+      "phase": "address",
+      "counts": {
+        "quiet_batch": 3,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:29.128300+00:00",
+      "allowed": true,
+      "state": "synthesizing",
+      "phase": "synthesis",
+      "counts": {
+        "quiet_batch": 3,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:29.287715+00:00",
+      "allowed": true,
+      "state": "synthesizing",
+      "phase": "synthesis",
+      "counts": {
+        "quiet_batch": 3,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:29.442453+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 3,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:29.608584+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 3,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 2
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:29.768256+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 3,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 2
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:29.925146+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 4,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 2
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:30.082743+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 4,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 3
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:30.240737+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 4,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 3
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:30.404650+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 4,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 3
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:30.564533+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 4,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 4
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:30.724136+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 4,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 4
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:30.881062+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 5,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 4
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:31.039046+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 5,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 5
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:31.194568+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 5,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 5
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:31.361638+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 5,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 5
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:31.520920+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 5,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 6
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:31.699138+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 5,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 6
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:31.858782+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 6,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 6
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:32.013217+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 6,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 7
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:32.170667+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 6,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 7
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:32.334855+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 6,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 7
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:32.493770+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 6,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 8,
+        "synthesized": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:32.652432+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 6,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 8,
+        "synthesized": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:32.806729+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 7,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 8,
+        "synthesized": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:32.971920+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 7,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 8,
+        "synthesized": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318
+      },
+      "last_response_timings": {},
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:33.128811+00:00",
+      "allowed": true,
+      "state": "synthesizing",
+      "phase": "synthesis",
+      "counts": {
+        "quiet_batch": 7,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 8,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:33.288248+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 7,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 9,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:33.443003+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 7,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 10,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:33.602523+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 7,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 10,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:33.763997+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 8,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 10,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:33.922636+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 8,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 11,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:34.081632+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 8,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 11,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:34.248368+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 8,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 11,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:34.407947+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 8,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 12,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:34.567372+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 8,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 12,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:34.723418+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 8,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 12,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:34.882632+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 9,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 13,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:35.041873+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 9,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 13,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:35.206671+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 9,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 13,
+        "synthesized": 1,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:35.369369+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 9,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 14,
+        "synthesized": 2,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 8.262,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:35.529123+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 9,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 14,
+        "synthesized": 2,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 8.262,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:35.685787+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 9,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 14,
+        "synthesized": 2,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 8.262,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:35.845461+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 10,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 14,
+        "synthesized": 2,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 8.262,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:36.006721+00:00",
+      "allowed": true,
+      "state": "speaking",
+      "phase": "playback",
+      "counts": {
+        "quiet_batch": 10,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 14,
+        "synthesized": 2,
+        "playback_completed": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 8.262,
+        "playback_done": 5.961
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 5.318,
+        "playback_done": 5.961
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    },
+    {
+      "at": "2026-10-23T15:28:36.163890+00:00",
+      "allowed": true,
+      "state": "ready",
+      "phase": "reply",
+      "counts": {
+        "quiet_batch": 10,
+        "synthetic_check_queued": 1,
+        "transcription_started": 1,
+        "transcription_nonempty": 1,
+        "wake_detected": 1,
+        "audio_chunk": 14,
+        "synthesized": 2,
+        "playback_completed": 2,
+        "address_accepted": 1,
+        "reply_generated": 1
+      },
+      "timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 8.262,
+        "playback_done": 8.983
+      },
+      "last_response_timings": {
+        "source": "synthetic-check",
+        "input_seconds": 3.027,
+        "asr_done": 0.313,
+        "first_reply_text": 2.02,
+        "plan_and_reply_done": 2.225,
+        "first_audio": 2.337,
+        "first_playback": 2.35,
+        "synthesis_done": 8.262,
+        "playback_done": 8.983
+      },
+      "readiness": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      }
+    }
+  ],
+  "owner_text_or_media_exported": false
+}

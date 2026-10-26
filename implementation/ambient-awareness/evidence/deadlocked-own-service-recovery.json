@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-23T22:00:30.011229+00:00",
+  "confirmed_rpc_refused_before_recovery": true,
+  "native_deadlock_sample": "service-unreachable-native-sample.txt",
+  "bootout_exit": 0,
+  "own_process_pids_force_stopped": [
+    9630,
+    9556,
+    9552,
+    9548,
+    9542,
+    9541
+  ],
+  "launchagent_unloaded": true,
+  "unrelated_processes_stopped": false,
+  "shared_gateway_restarted": false
+}

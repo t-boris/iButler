@@ -1,0 +1,456 @@
+{
+  "cutoff": 1792698044.5080585,
+  "checks": [
+    {
+      "at": 1792698107.265922,
+      "recording_allowed": true,
+      "participant_check": null,
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698108.3508239,
+      "recording_allowed": true,
+      "participant_check": null,
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698109.435224,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698110.516543,
+      "recording_allowed": false,
+      "participant_check": "face-unrecognized-or-ambiguous",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698111.598613,
+      "recording_allowed": false,
+      "participant_check": null,
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698112.688962,
+      "recording_allowed": false,
+      "participant_check": null,
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698113.7758322,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698114.862292,
+      "recording_allowed": false,
+      "participant_check": "unverified-presence",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698115.949555,
+      "recording_allowed": false,
+      "participant_check": "unverified-presence",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698117.029553,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698118.113038,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698119.198753,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698120.285274,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698121.3709939,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698122.457043,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698123.543542,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698124.6294742,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698125.713879,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698126.7993011,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698127.889673,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698128.9736829,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698130.0570712,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698131.1383512,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698132.2220612,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698133.307863,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698134.390647,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698135.474544,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698136.561407,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698137.644806,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698138.7292879,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698139.827661,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698140.9293811,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698142.01532,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698143.106335,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698144.190916,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698145.274415,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698146.359329,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698147.442603,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698148.5291631,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698149.61061,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698150.697946,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698151.783983,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698152.873183,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698153.95966,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    },
+    {
+      "at": 1792698155.058393,
+      "recording_allowed": false,
+      "participant_check": "face-unavailable",
+      "analysis_error": null,
+      "new_derived_by_source": {
+        "camera": 1,
+        "microphone": 1
+      }
+    }
+  ],
+  "all_sources_analyzed": false
+}

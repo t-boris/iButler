@@ -1,0 +1,8 @@
+#!/bin/sh
+# Always run this implementation, never a stale deployed overlay.
+HERE=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+CORE_PYTHON=${BUTLER_CORE_PYTHON:-python3}
+if [ -z "${BUTLER_CORE_PYTHON:-}" ] && [ -x "$HERE/.venv/bin/python" ]; then
+  CORE_PYTHON="$HERE/.venv/bin/python"
+fi
+PYTHONPATH="$HERE${PYTHONPATH:+:$PYTHONPATH}" exec "$CORE_PYTHON" -m butler_core.cli "$@"

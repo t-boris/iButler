@@ -1,0 +1,7 @@
+[transformers] Disabling PyTorch because PyTorch >= 2.6 is required but found 2.3.0
+[transformers] You are using a model of type `qwen3_tts` to instantiate a model of type ``. This may be expected if you are loading a checkpoint that shares a subset of the architecture (e.g., loading a `sam2_video` checkpoint into `Sam2Model`), but is otherwise not supported and can yield errors. Please verify that the checkpoint is compatible with the model you are instantiating.
+  Initialized encoder codebooks
+Loaded speech tokenizer from /Users/boris/.local/share/butler-ambient/voice/design-model/speech_tokenizer
+Preview ready: calm
+Preview ready: baritone
+Preview ready: warm

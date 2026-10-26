@@ -1,0 +1,83 @@
+test_cancel_or_pause_clears_review_and_exact_confirmation_words_are_required (test_voice_commands.VoiceCommandTests.test_cancel_or_pause_clears_review_and_exact_confirmation_words_are_required) ... ok
+test_concrete_review_then_one_use_confirmation_changes_actual_store (test_voice_commands.VoiceCommandTests.test_concrete_review_then_one_use_confirmation_changes_actual_store) ... ok
+test_guest_expired_changed_generation_and_lost_permission_cannot_confirm (test_voice_commands.VoiceCommandTests.test_guest_expired_changed_generation_and_lost_permission_cannot_confirm) ... ok
+test_guest_introduction_is_reviewed_and_cannot_be_approved_by_a_guest (test_voice_commands.VoiceCommandTests.test_guest_introduction_is_reviewed_and_cannot_be_approved_by_a_guest) ... ok
+test_long_exact_confirmation_accepts_address_alias_but_never_quoted_words (test_voice_commands.VoiceCommandTests.test_long_exact_confirmation_accepts_address_alias_but_never_quoted_words) ... FAIL
+test_model_cannot_invent_parameters_targets_or_authority (test_voice_commands.VoiceCommandTests.test_model_cannot_invent_parameters_targets_or_authority) ... ok
+test_owner_reverification_during_progress_is_required_before_adapter (test_voice_commands.VoiceCommandTests.test_owner_reverification_during_progress_is_required_before_adapter) ... ok
+test_registered_schedule_adapter_receives_exact_reviewed_parameters (test_voice_commands.VoiceCommandTests.test_registered_schedule_adapter_receives_exact_reviewed_parameters) ... ok
+test_rejection_correction_and_unbound_yes_cannot_execute (test_voice_commands.VoiceCommandTests.test_rejection_correction_and_unbound_yes_cannot_execute) ... ok
+test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker (test_voice_commands.VoiceCommandTests.test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker) ... 
+  test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker (test_voice_commands.VoiceCommandTests.test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker) (cause='guest') ... FAIL
+  test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker (test_voice_commands.VoiceCommandTests.test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker) (cause='expired') ... FAIL
+  test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker (test_voice_commands.VoiceCommandTests.test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker) (cause='generation') ... ERROR
+  test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker (test_voice_commands.VoiceCommandTests.test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker) (cause='permission') ... ERROR
+test_replacement_during_execution_notice_cancels_the_old_exact_operation (test_voice_commands.VoiceCommandTests.test_replacement_during_execution_notice_cancels_the_old_exact_operation) ... FAIL
+test_uncertain_yes_keeps_exact_original_deadline_for_verified_owner_retry (test_voice_commands.VoiceCommandTests.test_uncertain_yes_keeps_exact_original_deadline_for_verified_owner_retry) ... FAIL
+
+======================================================================
+ERROR: test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker (test_voice_commands.VoiceCommandTests.test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker) (cause='generation')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_voice_commands.py", line 76, in test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker
+    self.assertNotIn('PRIVATE_REVIEW_MARKER',result)
+  File "/opt/miniconda3/lib/python3.12/unittest/case.py", line 1156, in assertNotIn
+    if member in container:
+       ^^^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'NoneType' is not iterable
+
+======================================================================
+ERROR: test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker (test_voice_commands.VoiceCommandTests.test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker) (cause='permission')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_voice_commands.py", line 76, in test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker
+    self.assertNotIn('PRIVATE_REVIEW_MARKER',result)
+  File "/opt/miniconda3/lib/python3.12/unittest/case.py", line 1156, in assertNotIn
+    if member in container:
+       ^^^^^^^^^^^^^^^^^^^
+TypeError: argument of type 'NoneType' is not iterable
+
+======================================================================
+FAIL: test_long_exact_confirmation_accepts_address_alias_but_never_quoted_words (test_voice_commands.VoiceCommandTests.test_long_exact_confirmation_accepts_address_alias_but_never_quoted_words)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_voice_commands.py", line 100, in test_long_exact_confirmation_accepts_address_alias_but_never_quoted_words
+    self.assertTrue(confirmation('Эй, Батлер, '+phrase+'.'))
+AssertionError: None is not true
+
+======================================================================
+FAIL: test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker (test_voice_commands.VoiceCommandTests.test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker) (cause='guest')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_voice_commands.py", line 76, in test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker
+    self.assertNotIn('PRIVATE_REVIEW_MARKER',result)
+AssertionError: 'PRIVATE_REVIEW_MARKER' unexpectedly found in 'Варианты имени: PRIVATE_REVIEW_MARKER. Подтверждаете?'
+
+======================================================================
+FAIL: test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker (test_voice_commands.VoiceCommandTests.test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker) (cause='expired')
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_voice_commands.py", line 76, in test_repeat_never_discloses_private_review_to_unknown_or_stale_speaker
+    self.assertNotIn('PRIVATE_REVIEW_MARKER',result)
+AssertionError: 'PRIVATE_REVIEW_MARKER' unexpectedly found in 'Варианты имени: PRIVATE_REVIEW_MARKER. Подтверждаете?'
+
+======================================================================
+FAIL: test_replacement_during_execution_notice_cancels_the_old_exact_operation (test_voice_commands.VoiceCommandTests.test_replacement_during_execution_notice_cancels_the_old_exact_operation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_voice_commands.py", line 93, in test_replacement_during_execution_notice_cancels_the_old_exact_operation
+    self.assertFalse(self.store.get('muted',False))
+AssertionError: True is not false
+
+======================================================================
+FAIL: test_uncertain_yes_keeps_exact_original_deadline_for_verified_owner_retry (test_voice_commands.VoiceCommandTests.test_uncertain_yes_keeps_exact_original_deadline_for_verified_owner_retry)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/tests/test_voice_commands.py", line 84, in test_uncertain_yes_keeps_exact_original_deadline_for_verified_owner_retry
+    self.assertIs(self.commands.pending,pending)
+AssertionError: None is not Pending(capability='preferences', parameters={'muted': True}, review='Приостановить инициативные советы: да', digest='475fbf9a2c9aae1bdbc7691091befdf6a1f188bf5c280738cbbcf998ea8325c4', generation=2, expires=145.29999999999998)
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.090s
+
+FAILED (failures=5, errors=2)

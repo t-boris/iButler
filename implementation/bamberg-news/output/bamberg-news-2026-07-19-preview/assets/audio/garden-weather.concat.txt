@@ -1,0 +1,3 @@
+file '/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/butler-news-video-tts-q19omq9k/speech-000.wav'
+file '/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/butler-news-video-tts-q19omq9k/pause-000.wav'
+file '/var/folders/6w/_kf0xzk95h50jhr2n320glh00000gn/T/butler-news-video-tts-q19omq9k/speech-001.wav'

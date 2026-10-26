@@ -1,0 +1,8 @@
+{
+  "synthetic": true,
+  "same_worker": true,
+  "cancel_seconds": 0.0,
+  "next_first_chunk_seconds": 0.239,
+  "chunks": 4,
+  "cancelled_files_removed": true
+}

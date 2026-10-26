@@ -1,0 +1,26 @@
+[
+  {
+    "scene_id": "intro",
+    "start": 0.0,
+    "end": 3.941,
+    "duration": 3.941,
+    "narration": "Доброе утро. Это тестовый выпуск новостного видео AI Butler.",
+    "video": "render/scenes/00-intro.mp4"
+  },
+  {
+    "scene_id": "story-demo",
+    "start": 3.941,
+    "end": 10.577,
+    "duration": 6.637,
+    "narration": "Каждый фактический блок обязан ссылаться на источник. Генеративная графика используется только как оформление.",
+    "video": "render/scenes/01-story-demo.mp4"
+  },
+  {
+    "scene_id": "outro",
+    "start": 10.577,
+    "end": 14.817,
+    "duration": 4.24,
+    "narration": "Полный список источников и ограничений всегда прикладывается к ролику.",
+    "video": "render/scenes/02-outro.mp4"
+  }
+]

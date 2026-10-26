@@ -1,0 +1,105 @@
+#!/opt/miniconda3/bin/python
+"""CLI for the independent Bamberg News editorial and YouTube pipeline."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+
+
+LOCAL_ROOT = Path(__file__).resolve().parents[1]
+NEWS_VIDEO_ROOT = LOCAL_ROOT.parent / "news-video"
+LIVE_BUTLER = Path("/Users/boris/.openclaw/workspace-butler")
+if (LOCAL_ROOT / "lib" / "bamberg_news.py").is_file():
+    # The implementation tree uses namespace-package `lib` directories. Do not
+    # add the live Butler here: its regular lib/__init__.py would mask this one.
+    for root in reversed((LOCAL_ROOT, NEWS_VIDEO_ROOT)):
+        if (root / "lib").is_dir():
+            sys.path.insert(0, str(root))
+else:
+    # In the deployed workspace both bamberg_news.py and news_video.py live in
+    # the one regular `lib` package.
+    sys.path.insert(0, str(LIVE_BUTLER))
+
+from lib import bamberg_news  # noqa: E402
+
+
+def _dump(value: object) -> None:
+    print(json.dumps(value, indent=2, ensure_ascii=False))
+
+
+def _parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="bamberg-news",
+        description="Evidence-gated Russian Bamberg News video pipeline",
+    )
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    catalog = sub.add_parser("source-catalog", help="print the registered source catalog")
+    catalog.set_defaults(handler=lambda _: bamberg_news.load_source_catalog())
+
+    validate = sub.add_parser("validate", help="validate generic and Bamberg editorial rules")
+    validate.add_argument("episode")
+    validate.set_defaults(handler=lambda args: bamberg_news.validate_episode_file(args.episode))
+
+    render = sub.add_parser("render", help="validate and render a Bamberg episode")
+    render.add_argument("episode")
+    render.add_argument("--output-dir")
+    render.add_argument("--tts", choices=("openai", "edge", "macos", "none"), default="openai")
+    render.add_argument("--approve-paid-api", help="authorization reference for openai TTS")
+    render.add_argument("--max-usd", type=float, help="hard cap for paid TTS")
+    render.add_argument("--voice")
+    render.add_argument("--rate", type=int, default=175)
+    render.set_defaults(
+        handler=lambda args: bamberg_news.render_episode(
+            args.episode,
+            output_dir=args.output_dir,
+            tts=args.tts,
+            voice=args.voice,
+            rate=args.rate,
+            approve_paid_api=args.approve_paid_api,
+            max_usd=args.max_usd,
+        )
+    )
+
+    status = sub.add_parser("youtube-status", help="verify the isolated Bamberg YouTube destination")
+    status.add_argument("--expected-channel-id")
+    status.set_defaults(handler=lambda args: bamberg_news.youtube_status(expected_channel_id=args.expected_channel_id))
+
+    configure = sub.add_parser(
+        "configure-youtube", help="persist the allowlisted dedicated YouTube channel ID"
+    )
+    configure.add_argument("channel_id", help="YouTube channel ID beginning with UC")
+    configure.set_defaults(handler=lambda args: bamberg_news.configure_youtube_destination(args.channel_id))
+
+    publish = sub.add_parser("publish", help="upload a verified run to the configured Bamberg YouTube channel")
+    publish.add_argument("run_dir")
+    publish.add_argument("--approve-upload", help="required authorization reference for a real upload")
+    publish.add_argument("--privacy", choices=("public", "unlisted", "private"), default="public")
+    publish.add_argument("--expected-channel-id")
+    publish.add_argument("--dry-run", action="store_true")
+    publish.set_defaults(
+        handler=lambda args: bamberg_news.publish_to_youtube(
+            args.run_dir,
+            approval=args.approve_upload,
+            privacy=args.privacy,
+            dry_run=args.dry_run,
+            expected_channel_id=args.expected_channel_id,
+        )
+    )
+    return parser
+
+
+def main() -> int:
+    args = _parser().parse_args()
+    try:
+        _dump(args.handler(args))
+        return 0
+    except bamberg_news.BambergNewsError as exc:
+        print(f"bamberg-news failed: {exc}", file=sys.stderr)
+        return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

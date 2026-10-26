@@ -1,0 +1,2754 @@
+{
+  "at": "2026-10-24T00:58:26.128194+00:00",
+  "samples": [
+    {
+      "elapsed": 0.075,
+      "rpc_ms": 75.4,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 25451223,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 67274,
+            "bytes": 5637998846,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 408,
+            "bytes": 25434026,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15904,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 133,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 135
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 132
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 138
+        }
+      ]
+    },
+    {
+      "elapsed": 1.284,
+      "rpc_ms": 194.9,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 25633363,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 67174,
+            "bytes": 5596907947,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 412,
+            "bytes": 25616166,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15908,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 134,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 136
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 133
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 140
+        }
+      ]
+    },
+    {
+      "elapsed": 2.436,
+      "rpc_ms": 142.8,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 25779944,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 67074,
+            "bytes": 5554778190,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 415,
+            "bytes": 25762747,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15911,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 135,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 137
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 134
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 141
+        }
+      ]
+    },
+    {
+      "elapsed": 3.594,
+      "rpc_ms": 145.4,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 25928313,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 66974,
+            "bytes": 5502209028,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 418,
+            "bytes": 25911116,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15914,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 136,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 138
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 135
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 142
+        }
+      ]
+    },
+    {
+      "elapsed": 4.747,
+      "rpc_ms": 141.0,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 26076215,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 66874,
+            "bytes": 5447665436,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 421,
+            "bytes": 26059018,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15917,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 137,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 139
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 136
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 143
+        }
+      ]
+    },
+    {
+      "elapsed": 5.951,
+      "rpc_ms": 191.7,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 26222718,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 66774,
+            "bytes": 5396567329,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 424,
+            "bytes": 26205521,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15920,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 138,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 140
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 137
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 144
+        }
+      ]
+    },
+    {
+      "elapsed": 7.125,
+      "rpc_ms": 161.7,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 26491280,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 66674,
+            "bytes": 5354829377,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 429,
+            "bytes": 26474083,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15925,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 140,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 142
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 139
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 146
+        }
+      ]
+    },
+    {
+      "elapsed": 8.319,
+      "rpc_ms": 180.4,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 26674258,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 66574,
+            "bytes": 5320860406,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 433,
+            "bytes": 26657061,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15929,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 141,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 143
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 140
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 147
+        }
+      ]
+    },
+    {
+      "elapsed": 9.506,
+      "rpc_ms": 174.6,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 26842060,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 66342,
+            "bytes": 5240103653,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 436,
+            "bytes": 26824863,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15900,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 142,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 144
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 141
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 148
+        }
+      ]
+    },
+    {
+      "elapsed": 10.676,
+      "rpc_ms": 158.8,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 26992509,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 66242,
+            "bytes": 5234193757,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 439,
+            "bytes": 26975312,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15903,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 143,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 145
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 142
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 149
+        }
+      ]
+    },
+    {
+      "elapsed": 11.838,
+      "rpc_ms": 149.2,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 27143107,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 66142,
+            "bytes": 5225889453,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 442,
+            "bytes": 27125910,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15906,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 144,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 146
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 143
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 150
+        }
+      ]
+    },
+    {
+      "elapsed": 13.075,
+      "rpc_ms": 223.0,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 27293739,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 65942,
+            "bytes": 5211941455,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 445,
+            "bytes": 27276542,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15909,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 145,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 147
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 144
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 152
+        }
+      ]
+    },
+    {
+      "elapsed": 14.298,
+      "rpc_ms": 210.0,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 27476564,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 65842,
+            "bytes": 5205008177,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 449,
+            "bytes": 27459367,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15913,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 146,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 148
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 145
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 153
+        }
+      ]
+    },
+    {
+      "elapsed": 15.452,
+      "rpc_ms": 140.4,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 27608725,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 65742,
+            "bytes": 5199771882,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 452,
+            "bytes": 27591528,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15916,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 147,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 149
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 146
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 154
+        }
+      ]
+    },
+    {
+      "elapsed": 16.631,
+      "rpc_ms": 167.1,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 27836119,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 65642,
+            "bytes": 5191457255,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 457,
+            "bytes": 27818922,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15921,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 149,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 151
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 148
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 155
+        }
+      ]
+    },
+    {
+      "elapsed": 17.789,
+      "rpc_ms": 144.9,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 27967298,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 65542,
+            "bytes": 5185312250,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 460,
+            "bytes": 27950101,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15924,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 150,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 152
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 149
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 156
+        }
+      ]
+    },
+    {
+      "elapsed": 18.941,
+      "rpc_ms": 139.4,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 28100292,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 65442,
+            "bytes": 5177235164,
+            "oldest": 1792726244.95253
+          },
+          {
+            "storage_class": "spool",
+            "files": 463,
+            "bytes": 28083095,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15927,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 151,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 153
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 150
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 157
+        }
+      ]
+    },
+    {
+      "elapsed": 20.084,
+      "rpc_ms": 129.9,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 28233381,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 65237,
+            "bytes": 5164978410,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 466,
+            "bytes": 28216184,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15925,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 152,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 154
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 151
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 159
+        }
+      ]
+    },
+    {
+      "elapsed": 21.265,
+      "rpc_ms": 164.0,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 28398622,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 65137,
+            "bytes": 5158832803,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 470,
+            "bytes": 28381425,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15929,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 153,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 155
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 152
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 160
+        }
+      ]
+    },
+    {
+      "elapsed": 22.429,
+      "rpc_ms": 151.1,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 28531612,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 65037,
+            "bytes": 5151771717,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 473,
+            "bytes": 28514415,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15932,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 154,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 156
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 153
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 161
+        }
+      ]
+    },
+    {
+      "elapsed": 23.593,
+      "rpc_ms": 150.9,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 28765869,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64937,
+            "bytes": 5144319269,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 478,
+            "bytes": 28748672,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15937,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 156,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 158
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 155
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 162
+        }
+      ]
+    },
+    {
+      "elapsed": 24.702,
+      "rpc_ms": 97.6,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 28899531,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64837,
+            "bytes": 5136917599,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 481,
+            "bytes": 28882334,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15940,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 157,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 159
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 156
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 163
+        }
+      ]
+    },
+    {
+      "elapsed": 25.861,
+      "rpc_ms": 146.1,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 29032760,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64737,
+            "bytes": 5130850560,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 484,
+            "bytes": 29015563,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15943,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 158,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 160
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 157
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 164
+        }
+      ]
+    },
+    {
+      "elapsed": 27.027,
+      "rpc_ms": 152.3,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 29167363,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64637,
+            "bytes": 5123394114,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 487,
+            "bytes": 29150166,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15946,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 159,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 161
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 158
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 166
+        }
+      ]
+    },
+    {
+      "elapsed": 28.239,
+      "rpc_ms": 199.7,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 29332856,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64537,
+            "bytes": 5117242919,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 491,
+            "bytes": 29315659,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15950,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 160,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 162
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 159
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 167
+        }
+      ]
+    },
+    {
+      "elapsed": 29.312,
+      "rpc_ms": 57.1,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 29464351,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64537,
+            "bytes": 5117242919,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 494,
+            "bytes": 29447154,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15953,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 161,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 163
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 160
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 168
+        }
+      ]
+    },
+    {
+      "elapsed": 30.382,
+      "rpc_ms": 58.2,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 29595457,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64437,
+            "bytes": 5109802524,
+            "oldest": 1792726249.955194
+          },
+          {
+            "storage_class": "spool",
+            "files": 497,
+            "bytes": 29578260,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15956,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 162,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 1,
+          "last": 1792726249.952554
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 164
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 161
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 169
+        }
+      ]
+    },
+    {
+      "elapsed": 31.457,
+      "rpc_ms": 61.2,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 29710608,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64232,
+            "bytes": 5097434239,
+            "oldest": 1792726254.957837
+          },
+          {
+            "storage_class": "spool",
+            "files": 500,
+            "bytes": 29693411,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15954,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 163,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 2,
+          "last": 1792726254.95523
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 165
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 162
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 170
+        }
+      ]
+    },
+    {
+      "elapsed": 32.546,
+      "rpc_ms": 75.8,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 29825708,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64132,
+            "bytes": 5091441078,
+            "oldest": 1792726254.957837
+          },
+          {
+            "storage_class": "spool",
+            "files": 503,
+            "bytes": 29808511,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15957,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 164,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 2,
+          "last": 1792726254.95523
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 166
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 163
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 171
+        }
+      ]
+    },
+    {
+      "elapsed": 33.658,
+      "rpc_ms": 101.6,
+      "storage": {
+        "mode": "analysis-first",
+        "root": "/Users/boris/.local/share/butler-ambient",
+        "raw_path": "/Users/boris/.local/share/butler-ambient/raw",
+        "preserved_path": "/Users/boris/.local/share/butler-ambient/preserved",
+        "database": "/Users/boris/.local/share/butler-ambient/ambient.sqlite3",
+        "spool_limit_bytes": 536870912,
+        "spool_bytes": 30024197,
+        "classes": [
+          {
+            "storage_class": "legacy",
+            "files": 64032,
+            "bytes": 5083337837,
+            "oldest": 1792726254.957837
+          },
+          {
+            "storage_class": "spool",
+            "files": 508,
+            "bytes": 30007000,
+            "oldest": 1792803332.4899871
+          }
+        ],
+        "cleanup_error": null,
+        "preserved": {
+          "files": 0,
+          "bytes": 0
+        },
+        "pending": 15962,
+        "rule": "После анализа исходники удаляются; результаты и выбранные изображения сохраняются."
+      },
+      "microphone_fresh": true,
+      "camera_fresh": true,
+      "listener_batches": 166,
+      "models": {
+        "model": "ready",
+        "vision": "ready",
+        "voice": "ready",
+        "asr": "ready"
+      },
+      "capture_sources": {
+        "camera": "active",
+        "microphone": "active",
+        "screen": "active",
+        "system-audio": "active"
+      },
+      "capture_error": null,
+      "participant_check_error": null,
+      "analysis_error": null,
+      "new_observations": [
+        {
+          "source": "camera",
+          "count": 2,
+          "last": 1792726254.95523
+        },
+        {
+          "source": "microphone",
+          "count": 1,
+          "last": 1792726357.951988
+        }
+      ],
+      "new_spool": [
+        {
+          "source": "camera",
+          "analyzed": 0,
+          "files": 168
+        },
+        {
+          "source": "camera",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "microphone",
+          "analyzed": 0,
+          "files": 165
+        },
+        {
+          "source": "microphone",
+          "analyzed": 1,
+          "files": 1
+        },
+        {
+          "source": "screen",
+          "analyzed": 0,
+          "files": 3
+        },
+        {
+          "source": "system-audio",
+          "analyzed": 0,
+          "files": 172
+        }
+      ]
+    }
+  ],
+  "raw_content_exported": false,
+  "actual_owner_dialogue_verified": false
+}

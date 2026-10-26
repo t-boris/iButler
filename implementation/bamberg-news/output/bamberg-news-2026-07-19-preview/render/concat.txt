@@ -1,0 +1,7 @@
+file '/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/render/scenes/00-intro.mp4'
+file '/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/render/scenes/01-local-heat-map.mp4'
+file '/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/render/scenes/02-local-office-hours.mp4'
+file '/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/render/scenes/03-world-eu-conference.mp4'
+file '/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/render/scenes/04-ukraine-missile-coalition.mp4'
+file '/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/render/scenes/05-garden-weather.mp4'
+file '/Users/boris/Projects/MacStudioButler/implementation/bamberg-news/output/bamberg-news-2026-07-19-preview/render/scenes/06-outro.mp4'
