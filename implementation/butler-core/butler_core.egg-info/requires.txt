@@ -1,4 +1,0 @@
-
-[system1]
-onnxruntime>=1.20
-tokenizers>=0.20

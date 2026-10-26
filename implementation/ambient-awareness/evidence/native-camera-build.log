@@ -1,4 +1,0 @@
-cwd: /Users/boris/Projects/MacStudioButler/implementation/ambient-awareness
-command: ["swiftc", "-warnings-as-errors", "butler_ambient/native/camera.swift", "-o", "build/butler-camera"]
-exit: 0
-

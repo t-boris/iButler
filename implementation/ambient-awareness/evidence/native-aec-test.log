@@ -1,6 +1,0 @@
-cwd: /Users/boris/Projects/MacStudioButler/implementation/ambient-awareness
-command: ["/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/build/butler-audio", "--test-echo"]
-exit: 0
-
-warning: discarded first playback frame
-{"ordinary_input_unchanged":true,"input_route_mapping":true,"passed":true,"synthetic":true,"echo_reduction_db":37.996041336067222,"other_audio_ducking":"none"}

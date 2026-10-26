@@ -1,5 +1,0 @@
-cwd: /Users/boris/Projects/MacStudioButler/implementation/ambient-awareness
-command: ["/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/build/butler-owner-auth", "--test-layout"]
-exit: 0
-
-PASS owner setup layout; no authentication or device access

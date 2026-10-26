@@ -1,9 +1,44 @@
-/.markview-insight/
-/.claude/
+# Local workspace and editor state
+.markview-insight/
+.claude/
+.dde/
+/AGENTS.md
 /docs/bugs/
 /docs/features/
-/.dde/
-/openclaw.patch*
-/.DS_*
-/AGENTS.md
+.DS_Store
+.DS_*
 
+# Private deployment configuration
+/openclaw.patch*
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Python environments, bytecode and packaging
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Dependencies and build products
+node_modules/
+build/
+dist/
+
+# Generated runs, verification evidence and logs
+/implementation/bamberg-news/output/
+/implementation/news-video/output/
+evidence/
+*.log
+
+# Existing local exclusions
+/implementation/whatsapp-ingest/__pycache__/
+/implementation/butler-core/.local-state/

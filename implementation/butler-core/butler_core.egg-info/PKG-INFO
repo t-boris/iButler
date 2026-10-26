@@ -1,8 +1,0 @@
-Metadata-Version: 2.1
-Name: butler-core
-Version: 0.13.0
-Summary: Durable tasks, shared authorization and reliable delivery for Butler
-Requires-Python: >=3.11
-Provides-Extra: system1
-Requires-Dist: onnxruntime>=1.20; extra == "system1"
-Requires-Dist: tokenizers>=0.20; extra == "system1"

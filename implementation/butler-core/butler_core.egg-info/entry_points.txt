@@ -1,2 +1,0 @@
-[console_scripts]
-butler-core = butler_core.cli:main

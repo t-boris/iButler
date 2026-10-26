@@ -1,4 +1,0 @@
-PASS: 129 tests; 0 failures; 0 skipped.
-PASS: native and wheel builds; artifact and source hashes match.
-PASS: 67 checked criteria, 8 verified tasks/requirements, 6 accepted decisions, 8 answered questions, 2 resolved findings.
-SCOPE: GitHub waived by DEC-005; no deployment, live sensing, channel send, version bump, or browser/manual check.

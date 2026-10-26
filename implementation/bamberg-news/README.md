@@ -91,8 +91,10 @@ OAuth client secret; neither belongs in this repository.
    ./bin/bamberg-news youtube-status
    ```
 
-6. Review and apply [`openclaw.patch-bamberg-news.json5`](../../openclaw.patch-bamberg-news.json5)
-   with `--dry-run` first. It is disabled by default. After the bot token is in
+6. Prepare the local `openclaw.patch-bamberg-news.json5` for your workspace,
+   then review and apply it with `--dry-run` first. These machine-specific
+   `openclaw.patch*.json5` files are ignored and are not included in a clone.
+   The Telegram account should be disabled initially. After the bot token is in
    the environment and the dry-run is correct, enable the account and restart
    the gateway:
 

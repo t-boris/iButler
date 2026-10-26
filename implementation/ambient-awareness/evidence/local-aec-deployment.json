@@ -1,8 +1,0 @@
-{
-  "bootstrap_exit": 0,
-  "native_audio_sha256": "64d16bda4f97b6e57e0cd6edda6f5200e8e984e3aa992105d3ff549f1cc4fcc9",
-  "speexdsp_sha256": "be505a88a552c5367cdc661503057992907860a483580cb9006a05b31e135744",
-  "system_volume_unchanged": true,
-  "call_mode_disabled": true,
-  "stable_parent_unchanged": true
-}

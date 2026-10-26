@@ -1,5 +1,0 @@
-cwd: /Users/boris/Projects/MacStudioButler/implementation/ambient-awareness
-command: ["/Users/boris/Projects/MacStudioButler/implementation/ambient-awareness/build/butler-camera", "--test-jpeg"]
-exit: 0
-
-PASS synthetic JPEG video transport (640x480); no device access
