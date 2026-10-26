@@ -3,3 +3,7 @@
 /docs/bugs/
 /docs/features/
 /.dde/
+/openclaw.patch*
+/.DS_*
+/AGENTS.md
+
