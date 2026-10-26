@@ -1,1 +1,0 @@
-{"signature":"1859-1792696428354","collections":[{"groups":[{"items":[{"line":9,"summary":"class","name":"PeopleDetector"}],"name":"Types"},{"items":[{"line":10,"summary":"def","name":"__init__"},{"line":23,"summary":"def","name":"detect"}],"name":"Functions"}],"name":"Declarations"}],"source":"structure"}

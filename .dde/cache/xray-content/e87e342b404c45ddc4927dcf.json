@@ -1,1 +1,0 @@
-{"source":"structure","signature":"4691-1785597743282","collections":[{"name":"Declarations","groups":[{"name":"Types","items":[{"line":24,"name":"MapError","summary":"class"}]},{"name":"Functions","items":[{"line":28,"name":"geocode","summary":"def"},{"line":50,"name":"_deg2xy","summary":"def"},{"line":57,"name":"render_map","summary":"def"}]}]}]}
