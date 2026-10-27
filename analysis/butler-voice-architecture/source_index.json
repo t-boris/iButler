@@ -1,0 +1,407 @@
+[
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-001.md",
+    "title": "Rebuild the dialogue layer on Pipecat with Smart Turn v3; the camera stays continuous and local",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 35,
+    "sha256": "1246a66bdd923b1d0186fa1d90dc5202bacbb7e43c8e86467275ff8ab9020a3a"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-039.md",
+    "title": "Without an identity lease, unnamed speech gets a general-scope answer unless the owner is busy; the dialogue gets its own model instance; transcripts are gated on Whisper's confidence",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 34,
+    "sha256": "36cabd9f384a1b670eff9be1c3552db0293f164a105510e092b32585d057b222"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-063.md",
+    "title": "Second-person speech with nobody around is addressed to Butler; naming Butler overrides an unsure judge",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 34,
+    "sha256": "08e59830406829cb9198d980ee72cde16b0a2ebea2363ae3da3ce3e96d350e40"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-064.md",
+    "title": "Spoken busy and free cues; one configured Ollama service; the dialogue shares the runner with two parallel slots",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 34,
+    "sha256": "dc7bb17c1197760b84d4c024f458e60d20dfb4aba97761a2f1d8a95570be7940"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-065.md",
+    "title": "One Butler session across private and general modes; vision verdicts corroborated and never blocking",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 36,
+    "sha256": "634bbdca1e1b0b9a03a0cbe9d9c0f8367b068c873c21e8eb36f0d095da1b625a"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-066.md",
+    "title": "«Один дома»: a sticky owner session instead of a 2.5-second lease; household member; review-and-yes confirmation",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 35,
+    "sha256": "204c759b755cc2d5c6c1d40bc6528f4c40dfa275590dd92a9aa398ba6a44e1a4"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-067.md",
+    "title": "Butler's voice brain is the OpenClaw butler agent; the Mac keeps ears, eyes, voice and the addressee decision",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 35,
+    "sha256": "326acc30391695ceabf9fa28b4d25a7ffdd0c6ddc2c79d21f431449b2d88c3e2"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-068.md",
+    "title": "Calls are recorded as before and summarized into conclusions after they end",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 35,
+    "sha256": "8ed2d108d60366fd5e2ecccf8b3c56524a25fc6f65d1bf5bff7fd486508d14ee"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-069.md",
+    "title": "Request-aware acknowledgement while the agent works; vision veto limited to its own verdict; session follow-ups skip the local judge",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 36,
+    "sha256": "6db246f039fa1d3736996babf17a142aa9bdb82bbdc2dbdc01dd3cc9555f3345"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-070.md",
+    "title": "Interruption is decided on recognised words from the verified owner; committed turns are protected by state, not timers (from turn-taking DEC-063)",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 44,
+    "sha256": "eb1ed2f7f0c14f6fb0d41b8652ce6908c0792199f21b5c6b3bfa45872b2f6b99"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-071.md",
+    "title": "Canonical rules in the existing vault",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 34,
+    "sha256": "fae2c4772e851aaf2571cedc03ff34fb7db95b352bf5e893f16516efe09f32e5"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-072.md",
+    "title": "Allow attributable unnamed follow-ups in an existing Butler session during OWNER_BUSY",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 35,
+    "sha256": "516f03ff3ab6bc7b7ad7edb34ab3404961bc7d4773b3825d92c7123c751ddeb9"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-073.md",
+    "title": "Isolate local dialogue inference in a dedicated Ollama service",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 36,
+    "sha256": "c458116b3c8a0ee35b9daae496460377526f4514d75c8003b61135f004f080c3"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-074.md",
+    "title": "Implement locally; Git prerequisite waived for this feature",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "121bb6766401cd29fbc460d7c55f0bf6ba2a1c2a49f069e36fd8302ab5141059"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-075.md",
+    "title": "Reload applicable rules through the agent's existing memory tools",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "e696ae155f896498a43e6225a0ea96ef86168f9e382a0456a8ed8894c9b344f5"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-076.md",
+    "title": "Any Butler-name mention overrides an unsure negative judge",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 35,
+    "sha256": "247b6c84795178f2aacf9ca7d69f2d68eb4b6231372383ce3307feae6a040365"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-077.md",
+    "title": "Owner can override automatic busy/free state until the situation changes",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "8962446f03873242f104174eb9b7edfafec9505b69a7033145c0d66ef56e56d2"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-078.md",
+    "title": "Verify real end-to-end understanding against the owner's quality assessment",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "5aa9a2b61e24f592cb343fb0dd90ae62a5199f6d8351617d32967c26ebac55d0"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-079.md",
+    "title": "Investigate OpenAI speech transcription rather than Wispr Flow",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "9f2a0b1764e907fc1d75dbeaceb5ac0b5938fcbd281f4e6618d80cc6c3b6c4f6"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-080.md",
+    "title": "Allow owner-audio transcription fallback when local ASR cannot understand",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "d56924a62d26d19f8aeca2110f3973636f08f5aed637b7aa17994fea67e3e539"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-081.md",
+    "title": "Create a new OpenAI API key through secure provisioning",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "67d4f685c53891471db21a98470a2ab97463063e5c6eef1f9dd042987ef6ae2a"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-082.md",
+    "title": "Capture speech as a continuous utterance with visible draft and final text",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "cacb834a6519ed47128762958189c28fc98f7f87d736f6bde791001f02712f75"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-083.md",
+    "title": "Start passive local recognition after 300 ms of speech",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "c5cff606301ad4fb6770269445e955930574182df1d54035ca3dfe0ae1823dea"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-084.md",
+    "title": "No spoken waiting acknowledgement for ordinary conversation",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "74faf073863a5063257efdd99fcd0a8df6c9120c71b9ebdf32734166e6186dbf"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-085.md",
+    "title": "Prompt meaningful reaction when a substantive answer needs time",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "1bb73d7a15bf34cda3f20e45db0540f1654e53c0b7501b066810620b9d716296"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-086.md",
+    "title": "One continuous owner dialogue preserves context, work and pending questions",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "72ac11c9f66c598381f218e7ff265fb0fd4df26878e10e3c0dd82ea7447d558f"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/decisions/DEC-087.md",
+    "title": "Explain and review the complete voice architecture before further implementation",
+    "type": "decision",
+    "status": "accepted",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "7e5deb0a81f22be0886eaa0fd5c49ae7c8a5cb65b2797b236f17786ee23259cb"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/discussion.md",
+    "title": "discussion",
+    "type": "",
+    "status": "",
+    "date": "",
+    "lines": 183,
+    "sha256": "7a6fe7755720753432d2fdcefd26ab0f4be439a809744da905492c3655b1e336"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/findings/F-001.md",
+    "title": "Dedicated dialogue instance contradicts the settled shared runner",
+    "type": "finding",
+    "status": "resolved",
+    "date": "2026-10-26",
+    "lines": 38,
+    "sha256": "439ffb50edeabc56140cc33956a66d123a947824bad678d2cdf8fd25c7edb5f6"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/findings/F-002.md",
+    "title": "Busy-session follow-ups have incompatible admission rules",
+    "type": "finding",
+    "status": "resolved",
+    "date": "2026-10-26",
+    "lines": 46,
+    "sha256": "c00283bfd38e78b18d02100581d7020faa1cc6d1094f9d657616be264155a999"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/implementation/plan.md",
+    "title": "Butler conversation: attention, turn-taking and feedback learning",
+    "type": "plan",
+    "status": "",
+    "date": "2026-10-26",
+    "lines": 127,
+    "sha256": "c136060e89cb881d87d6c6a2e500875eec7120e2557d070c062afb62cf294229"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/overview.md",
+    "title": "Butler conversation: attention, turn-taking and learning from feedback",
+    "type": "feature",
+    "status": "implementing",
+    "date": "2026-10-26",
+    "lines": 61,
+    "sha256": "9658c61b01bf5ce5cd53d2ba90e9f518b656744408de542785bed4d8f7aa811c"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/questions/Q-006.md",
+    "title": "DEC-063 limits the inflected-name override to second-person speech while alone and restores ordinary judging with company. REQ-056 criterion",
+    "type": "question",
+    "status": "answered",
+    "date": "2026-10-26",
+    "lines": 50,
+    "sha256": "377a1947de457c798d5ba6efbf2a29c9f6e140905299b6eb163b88fe02f21c7f"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/references/SRC-001.md",
+    "title": "Dialogue feedback and learning — full design (merged feature)",
+    "type": "source",
+    "status": "",
+    "date": "2026-10-26",
+    "lines": 32,
+    "sha256": "1e7fa7b51abde2bc40ead63c3224bcda6b91579b2f6abac6657101efb497c18e"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/references/SRC-002.md",
+    "title": "Turn-taking: when to stop speaking and when to start (merged feature)",
+    "type": "source",
+    "status": "",
+    "date": "2026-10-26",
+    "lines": 24,
+    "sha256": "3b80c3aeb9cba75fc8ebeb6eba0bba141bdae19131cc05d8c9b82de932de3fd9"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-056.md",
+    "title": "Attention, addressee and private-session continuity",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 83,
+    "sha256": "00f4be2ab5df64a147ca5b8e966e07cd8bf989293282a2a9da5e436f655a5f55"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-057.md",
+    "title": "Reliable conversational turn-taking",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 79,
+    "sha256": "40df4e8bede43f1952b793587677556cdeee45cc70fa44d119972de0b1c87cb9"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-058.md",
+    "title": "Voice answers and local call conclusions",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 67,
+    "sha256": "9e8ca2799868e6552bdad06c5472b5d493ea02cb7404b8d6d9a6fc614377e72a"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-059.md",
+    "title": "Traceable corrections and immediate repair",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 37,
+    "sha256": "93d0c52fcc9ab59f233c9f0d2d4a440cd7a19a494fefd69e52185ac5e5b04218"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-060.md",
+    "title": "Durable rules and owner control",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 35,
+    "sha256": "0472ec439c6e83e17a5d9e100c7932858562814f8a9bc3fbcc5b7e5f03681454"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-061.md",
+    "title": "Learning evidence, evaluation and rollback",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 34,
+    "sha256": "92a623c48c10aea5056aa1c88df838b725fc94e4553bf9c2d40c99c69baddadf"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-062.md",
+    "title": "Authorized and private feedback learning",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 38,
+    "sha256": "713f77c77248805c9946274094ecdc9efeca620563e720074c882142aca90fe0"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-063.md",
+    "title": "Conversation continuity during learning failures",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 30,
+    "sha256": "25f183ee58eee13d7dbbd3ab2f2270d356eba96c2770ca1dc46e4147375b40b5"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-064.md",
+    "title": "Manual availability overrides automatic busy detection until the situation changes",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 31,
+    "sha256": "2893d2e117f6e58c32b9c18b9fa45187127697812ade3e351b47e3ed1b81af1c"
+  },
+  {
+    "path": "docs/features/butler-attention-architecture-knowing-whom-the-owner-is/requirements/REQ-065.md",
+    "title": "Continuous phrase capture and observable transcript revisions",
+    "type": "requirement",
+    "status": "approved",
+    "date": "2026-10-26",
+    "lines": 34,
+    "sha256": "5ad99c4cb2a152c77b7661cd0b8b1fcf540d2a316e5916e3d3b5a904e087d13b"
+  }
+]

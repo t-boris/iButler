@@ -1,0 +1,13 @@
+Exception in thread Thread-2 (_run):
+Traceback (most recent call last):
+  File "/opt/miniconda3/lib/python3.12/threading.py", line 1073, in _bootstrap_inner
+    self.run()
+  File "/opt/miniconda3/lib/python3.12/threading.py", line 1010, in run
+    self._target(*self._args, **self._kwargs)
+  File "/Users/boris/.openclaw/tools/ambient-awareness/.venv/lib/python3.12/site-packages/butler_ambient/conversation.py", line 2097, in _run
+    self._speak_deferred()
+  File "/Users/boris/.openclaw/tools/ambient-awareness/.venv/lib/python3.12/site-packages/butler_ambient/conversation.py", line 1479, in _speak_deferred
+    self.speak(text, token, generation)
+  File "/Users/boris/.openclaw/tools/ambient-awareness/.venv/lib/python3.12/site-packages/butler_ambient/conversation.py", line 989, in speak
+    raise RuntimeError("local audio deadline")
+RuntimeError: local audio deadline

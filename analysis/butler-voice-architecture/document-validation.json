@@ -1,0 +1,10 @@
+{
+  "checked_utc": "2026-10-26T09:42:32.433305+00:00",
+  "markdown_files": 12,
+  "links_checked": 311,
+  "line_targets_checked": 83,
+  "mermaid_diagrams": 2,
+  "errors": [],
+  "release_artifact_hash_errors": [],
+  "method": "local link targets, reference definitions, line bounds, balanced fences and JSON parsing; diagrams reviewed against source paths, not browser rendered; no acoustic acceptance inferred"
+}
