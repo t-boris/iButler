@@ -1,5 +1,10 @@
 # Changelog — butler-ambient
 
+## 0.9.3 — 2026-10-27 (Back Burner in the schedule list)
+
+- The «Расписание» list shows one row per Back Burner research folder (status, next night, last run, model, runs), read from `bin/butler-backburner list --json`. Pause, resume and stop call the same CLI. «Запустить» submits one `backburner.cycle` operation for that folder to butler-core (principal `voice:owner`, a fresh key per press) and says in a line whether the core took it; when the core is missing, down or refuses, the message says why and shows the terminal command. The operation's target is a short hash of the folder name (butler-core takes ids only: a name with a space or Cyrillic letters was refused before anything started) and a refusal from the core is shown with its own reason. A folder that is paused, done or without a status is refused with «сначала нажмите «Продолжить»» (a manual run ignores the pause, so the button asks for the explicit step first; the terminal `run` is unchanged). A failure of the Back Burner CLI is reported in the list's error line and never hides the cron rows.
+- The model editor refuses a non-claude model for a route that is confined (a route with `tools`, today `backburner`): the confinement flags exist only for claude, so such a choice would only fail at night. Other routes are unchanged.
+
 ## 0.9.2 — 2026-10-27 (the display has no privacy gate)
 
 - A valid card is shown whatever the state of the private session. Before, `butler_display` was refused (opaquely) whenever the owner was not confirmed by camera or voice (here: another face in view, one minute after a restart), and the bot fell back to text bars in the chat. Owner's instruction: «Убери все приватные фичи. Показывай все всегда» (DEC-048, supersedes the creation gate of DEC-042 and REQ-010).
