@@ -1678,6 +1678,8 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         renderDisplayCard(displayCards[index])
     }
     func renderDisplayCard(_ card: [String: Any]?) {
+        // Retire the OLD player before constructing the replacement video view.
+        videoView?.player?.pause(); videoView = nil
         let content: NSStackView
         if let card {
             if let unavailable = card["unavailable"] as? String {
@@ -1713,7 +1715,6 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     }
     // The detail container holds exactly one child; swapping it stops any playing video.
     func showDisplayContent(_ view: NSView) {
-        videoView?.player?.pause(); videoView = nil
         displayStatusLabel = nil
         for child in displayDetail.subviews { child.removeFromSuperview() }
         displayDetail.addSubview(view)
@@ -2041,7 +2042,12 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         Task { @MainActor [weak self, weak player] in
             let playable = (try? await asset.load(.isPlayable)) ?? false
             guard let self, let player, self.videoView === player else { return }
-            if playable { player.player = AVPlayer(url: asset.url); status.isHidden = true }
+            if playable {
+                let playback = AVPlayer(url: asset.url)
+                player.player = playback
+                status.isHidden = true
+                playback.play()
+            }
             else { status.stringValue = unavailable; status.textColor = Theme.error }
         }
         return stack
@@ -4429,6 +4435,25 @@ let app = NSApplication.shared
 if let icon = applicationIcon() {
     app.applicationIconImage = icon
     app.dockTile.display()
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--test-video-playback" {
+    app.setActivationPolicy(.accessory)
+    let domain = "com.boris.butler-ui.video-test.\(UUID().uuidString)"
+    let prefs = UserDefaults(suiteName: domain)!
+    let panel = Panel(cli: "/usr/bin/false", testing: true, defaults: prefs)
+    panel.renderDisplayCard(["kind": "video", "id": "playback-test", "video": CommandLine.arguments[2]])
+    let deadline = Date().addingTimeInterval(8)
+    while Date() < deadline { RunLoop.current.run(until: Date().addingTimeInterval(0.1)) }
+    let playback = panel.videoView?.player
+    let seconds = playback?.currentTime().seconds ?? 0
+    let passed = playback?.currentItem?.status == .readyToPlay && seconds > 1
+    print("video-playback: \(passed ? "PASS" : "FAIL") time=\(seconds) rate=\(playback?.rate ?? 0)")
+    playback?.pause()
+    panel.renderDisplayCard(["kind": "text", "id": "stop-test", "markdown": "Done"])
+    let stopped = panel.videoView == nil && (playback?.rate ?? 0) == 0
+    print("video-retire: \(stopped ? "PASS" : "FAIL")")
+    prefs.removePersistentDomain(forName: domain)
+    exit(passed && stopped ? 0 : 1)
 }
 if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--test-layout" {
     app.setActivationPolicy(.accessory)
