@@ -190,6 +190,41 @@ class YouTubeCLITest(CoreCase):
         self.assertEqual(again.returncode, 0, again.stderr)
         self.assertEqual(len(self.library_calls()), 1)
 
+    def test_every_scheduled_news_profile_uploads_under_the_standing_authorization(self):
+        # Butler's own episodes carry "butler-daily"; only "daily" was recognised until 2026-10-26, so the
+        # first live evening upload was sent to the owner for approval instead of running.
+        for profile in ("butler-daily", "bamberg-daily"):
+            with self.subTest(profile=profile):
+                run = make_run(self.ws, f"{profile}-2026-10-26-evening", profile)
+                done = self.cli("upload", str(run))
+                self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual([(o["kind"], o["state"]) for o in self.core.operations.list(limit=5)],
+                         [("youtube.publish_news", "succeeded")] * 2)
+
+    def test_an_operation_recorded_under_the_wrong_kind_does_not_block_the_corrected_upload(self):
+        # The live case of 2026-10-26: the same file first became `youtube.publish` (waiting for the owner), then the
+        # classification was fixed. The core refuses one key under different parameters, so the key carries the kind.
+        run = make_run(self.ws, "butler-daily-2026-10-26-evening", "lecture")
+        waiting = self.cli("upload", str(run))
+        self.assertEqual(waiting.returncode, 4, waiting.stderr)
+        stale = self.core.operations.list(limit=5)[0]
+        self.core.operations.cancel(stale["id"], "terminal:owner")
+        episode = json.loads((run / "episode.json").read_text())
+        (run / "episode.json").write_text(json.dumps({**episode, "profile": "butler-daily"}))
+        done = self.cli("upload", str(run))
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(sorted((o["kind"], o["state"]) for o in self.core.operations.list(limit=5)),
+                         [("youtube.publish", "cancelled"), ("youtube.publish_news", "succeeded")])
+        self.assertEqual(len(self.library_calls()), 1)
+
+    def test_lecture_run_still_waits_for_the_owner(self):
+        run = make_run(self.ws, "lecture-2026-10-26", "lecture")
+        waiting = self.cli("upload", str(run))
+        self.assertEqual(waiting.returncode, 4, waiting.stderr)
+        self.assertEqual(self.library_calls(), [])
+        self.assertEqual([(o["kind"], o["state"]) for o in self.core.operations.list(limit=5)],
+                         [("youtube.publish", "awaiting_approval")])
+
     def test_research_run_waits_for_the_owner_then_uploads_once(self):
         run = make_run(self.ws, "deep-research-2026-10-24", "deep-research")
         waiting = self.cli("upload", str(run))

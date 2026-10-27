@@ -20,7 +20,9 @@ from __future__ import annotations
 import datetime as dt
 import http.client
 import json
+import socket
 import subprocess
+import threading
 import time
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -58,19 +60,57 @@ confidence — от 0 до 1. lesson — одно короткое правил�
 """
 
 
-def local_model(prompt, model="qwen3.5:9b", timeout=120):
-    body = json.dumps({"model": model, "prompt": prompt, "stream": False, "think": False, "format": SCHEMA,
-                       "keep_alive": "5m", "options": {"temperature": 0, "num_ctx": 4096}}).encode()
-    conn = http.client.HTTPConnection(*OLLAMA, timeout=timeout)
+class AnalysisDeferred(RuntimeError):
+    pass
+
+
+def background_ready():
+    """Metadata-only live activity gate. No episode or device content is read."""
+    endpoint = Path.home() / ".local/share/butler-ambient/ambient.sock"
+    if not endpoint.exists(): return True
     try:
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+            client.settimeout(.3); client.connect(str(endpoint))
+            client.sendall(b'{"command":"status"}\n')
+            result = json.loads(client.makefile("rb").readline())["result"]
+        return result.get("enabled") is not False and result.get("analysis_busy") is not True
+    except (OSError, ValueError, KeyError): return False
+
+
+def local_model(prompt, model="qwen3.5:9b", timeout=120):
+    if not background_ready(): raise AnalysisDeferred("live-speech-or-pause")
+    body = json.dumps({"model": model, "prompt": prompt, "stream": False, "think": False, "format": SCHEMA,
+                       "keep_alive": "5m", "options": {"temperature": 0, "num_ctx": 8192, "num_predict": 256}}).encode()
+    conn = http.client.HTTPConnection(*OLLAMA, timeout=timeout)
+    stopped, deferred = threading.Event(), threading.Event()
+    def watch():
+        while not stopped.wait(.5):
+            if not background_ready():
+                deferred.set()
+                try:
+                    if conn.sock is not None: conn.sock.shutdown(socket.SHUT_RDWR)
+                except OSError: pass
+                conn.close()
+                return
+    watcher = threading.Thread(target=watch, name="system3-activity", daemon=True)
+    try:
+        conn.connect(); conn.auto_open = False
+        if not background_ready(): raise AnalysisDeferred("live-speech-or-pause")
+        watcher.start()
         conn.request("POST", "/api/generate", body, {"Content-Type": "application/json"})
         response = conn.getresponse()
         payload = json.loads(response.read().decode("utf-8", "replace"))
         if response.status != 200:
             raise RuntimeError(f"local model answered {response.status}")
         verdict = json.loads(payload.get("response", ""))
+    except (OSError, ValueError, http.client.HTTPException):
+        if deferred.is_set(): raise AnalysisDeferred("live-speech-or-pause") from None
+        raise
     finally:
+        stopped.set()
+        if watcher.ident is not None: watcher.join(1)
         conn.close()
+    if deferred.is_set(): raise AnalysisDeferred("live-speech-or-pause")
     cause = verdict.get("cause") if verdict.get("cause") in CAUSES else "other"
     confidence = float(verdict.get("confidence") or 0)
     return {"cause": cause, "confidence": max(0.0, min(1.0, confidence)), "lesson": str(verdict.get("lesson") or "")[:300]}
@@ -102,7 +142,8 @@ class System3:
         last = self.core.store.meta("system3_analysed")
         if last is None or now - float(last) >= self.settings().get("analysis_interval", ANALYSIS_INTERVAL):
             result["analysis"] = self.analyse(now)
-            self.core.store.set_meta("system3_analysed", now)
+            if not result["analysis"].get("deferred"):
+                self.core.store.set_meta("system3_analysed", now)
         last = self.core.store.meta("system3_checked")
         if last is None or now - float(last) >= COMPLIANCE_INTERVAL:
             result["compliance"] = self.compliance(now)
@@ -139,7 +180,7 @@ class System3:
             with self.core.store.transaction(guard=False) as db:
                 db.executemany("UPDATE feedback SET analysed_at=? WHERE id=?", [(now, i) for i in others])
         pending = [s for s in rows if s["kind"] in SIGNALS]
-        done, skipped, failed = 0, 0, 0
+        done, skipped, failed, deferred = 0, 0, 0, 0
         for signal in reversed(pending):
             if self.full_pause(signal["persona"], now):
                 skipped += 1
@@ -152,6 +193,9 @@ class System3:
                                    repeats=summary["repeats"])
             try:
                 verdict = self.model(prompt)
+            except AnalysisDeferred:
+                deferred += 1
+                break
             except Exception as error:
                 failed += 1
                 self.core.diagnostics.raise_alarm("system3:model", f"lesson analysis unavailable: {type(error).__name__}")
@@ -161,11 +205,14 @@ class System3:
             with self.core.store.transaction(guard=False) as db:
                 db.execute("UPDATE feedback SET analysed_at=? WHERE id=?", (now, signal["id"]))
             with self.summaries.open("a") as stream:
-                stream.write(json.dumps({**summary, "cause": verdict["cause"], "confidence": verdict["confidence"], "lesson": lesson_id},
+                anonymized = {"kind": summary["kind"], "deliveries": summary["deliveries"], "operations": summary["operations"],
+                              "delivery_kinds": [k for k in summary["delivery_kinds"] if k in {"advice", "daily", "initiative", "digest", "question", "status", "response"}],
+                              "repeats": summary["repeats"], "cause": verdict["cause"], "confidence": verdict["confidence"]}
+                stream.write(json.dumps(anonymized,
                                         ensure_ascii=False) + "\n")
             done += 1
         asked = self.ask_if_unclear(now) if done else 0
-        return {"analysed": done, "skipped_full_pause": skipped, "failed": failed, "asked": asked}
+        return {"analysed": done, "skipped_full_pause": skipped, "failed": failed, "asked": asked, "deferred": deferred}
 
     def _record(self, signal, summary, verdict, now):
         """Merge into the open candidate for the same persona, cause and signal kind, or open a new one."""
@@ -261,7 +308,7 @@ class System3:
         row = self._lesson(lesson_id)
         now = self.clock()
         exported = row["exported_id"]
-        if status == "confirmed" and not exported:
+        if status == "confirmed" and (not exported or text is not None):
             exported = self.export(row, text or row["text"])
         if status in ("retired", "deleted") and exported:
             self.unexport(exported)
@@ -279,7 +326,8 @@ class System3:
     def export(self, row, text):
         """Confirmed lessons live in the persona's existing store, which the agent bootstrap loads (DEC-058)."""
         day = dt.datetime.fromtimestamp(self.clock(), self.zone).date().isoformat()
-        lesson_id = f"L-{day}-{int(self.clock()) % 1000}"
+        import hashlib
+        lesson_id = row["exported_id"] or f"L-{day}-{int(hashlib.sha256(row['id'].encode()).hexdigest()[:10], 16)}"
         body = (f"**System 3** · причина: {CAUSE_TEXT.get(row['cause'], row['cause'])} · сигнал: {row['signal']} · "
                 f"уверенность {row['confidence']:.2f} · источники: {len(loads(row['sources'], []))} событий.\n\n**Правило**: {text}\n")
         done = subprocess.run([str(self.lesson_cli), "add", lesson_id, f"[System 3] {row['title']}"], input=body, capture_output=True,
@@ -294,13 +342,20 @@ class System3:
     # -- compliance ---------------------------------------------------------------------------
 
     def compliance(self, now=None):
-        """For every confirmed lesson: the same signal kind after confirmation is a violation."""
+        """Count only receipt-linked, applicable violations; repeated signals are context."""
         now = self.clock() if now is None else now
         report = []
         for row in self.core.store.query("SELECT * FROM lessons WHERE status='confirmed'"):
             since = row["confirmed_at"] or row["updated_at"]
-            violations = len([f for f in self.core.feedback.list(since=since, kinds=[row["signal"]], persona=row["persona"], limit=500)
-                              if f["at"] > since])
+            violations, assessed = 0, 0
+            path = Path(self.core.root) / "conversation.sqlite3"
+            if path.exists():
+                import sqlite3
+                with sqlite3.connect(f"file:{path}?mode=ro", uri=True) as evidence:
+                    counts = dict(evidence.execute("SELECT outcome,COUNT(*) FROM assessments WHERE rule=? AND at>? GROUP BY outcome",
+                                                   (row["exported_id"], since)))
+                    violations = counts.get("violated", 0)
+                    assessed = counts.get("violated", 0) + counts.get("complied", 0)
             with self.core.store.transaction(guard=False) as db:
                 db.execute("UPDATE lessons SET violations=?, last_check=? WHERE id=?", (violations, now, row["id"]))
             key = f"system3:lesson:{row['id'][-6:]}"
@@ -310,7 +365,8 @@ class System3:
                                  f"Проверь правило: butler-core lessons list", "status", f"system3:violated:{row['id']}:{int(now // 86400)}")
             else:
                 self.core.diagnostics.clear_alarm(key)
-            report.append({"lesson": row["id"], "violations": violations})
+            report.append({"lesson": row["id"], "violations": violations,
+                           "outcome": "assessed" if assessed else "unknown", "assessed": assessed})
         return report
 
     def snapshot(self):

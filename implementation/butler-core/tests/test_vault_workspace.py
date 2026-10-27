@@ -54,7 +54,9 @@ def workspace(root, switches="vault knowledge"):
                         f'WORKSPACE = Path("{ws}")')
     (ws / "lib/vault.py").write_text(source)
     # memory.py finds the vault through lib.vault and keeps no workspace path of its own.
-    (ws / "lib/memory.py").write_text((INSTALLED / "lib/memory.py").read_text())
+    sources = Path(__file__).resolve().parents[1] / "workspace/lib"
+    (ws / "lib/memory.py").write_text((sources / "memory.py").read_text())
+    (ws / "lib/knowledge_sources.py").write_text((sources / "knowledge_sources.py").read_text())
     policy = substitute((INSTALLED / "policies/write.yaml").read_text(), "  path: /Users/boris/Documents/KnowledgeDB", f"  path: {vault_root}")
     (ws / "policies/write.yaml").write_text(policy)
     (ws / "lib/__init__.py").write_text("")

@@ -12,6 +12,8 @@ EXAMPLES = PACKAGE / "contracts" / "examples" / "v1"
 
 # Module -> butler_core modules it may import. Anything else is a boundary violation.
 ALLOWED = {
+    "rules": set(),
+    "learning": set(),
     "contracts": set(),
     "store": set(),
     "diagnostics": {"store"},
@@ -24,7 +26,7 @@ ALLOWED = {
     "delivery": {"contracts", "adapters.base", "store"},
     "routing": {"approvals", "operations", "store", "tasks"},
     "workers": set(),
-    "backup": {"diagnostics", "store"},
+    "backup": {"diagnostics", "store", "rules"},
     "cron": set(),
     "feedback": {"store"},
     "server": {"approvals", "config", "diagnostics", "feedback", "operations", "store", "tasks"},

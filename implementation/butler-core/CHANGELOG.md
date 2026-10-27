@@ -2,6 +2,25 @@
 
 Semantic versioning per package (DEC-040). Each entry names the migration wave and the decisions it implements.
 
+## 0.16.0 — 2026-10-26 (voice dialogue support)
+
+- Extend metadata-only feedback and learning receipts to bind voice turns, corrections, decisions and rule revisions.
+- Keep transcript-derived private material subject to the established retention and workspace boundaries; publish canonical rules through the existing rule store.
+- Bound and stage semantic-index rebuilds so an incomplete rebuild cannot replace the last complete generation.
+
+## 0.14.1 — 2026-10-26
+
+- Bound semantic-index windows even for a multi-megabyte single paragraph, preserve source coverage/line references, and limit repeated heading metadata in embedding inputs.
+- Rebuild the eligible-vault index in private staging storage before publishing a complete generation.
+
+## 0.14.0 — 2026-10-25 (conversation feedback)
+
+- Add canonical vault rules, stable revisions, idempotent write receipts, generated read-only lessons, scope selection and deletion manifests (DEC-071).
+- Separate expiring private episode text from backup-safe decision, annotation, application and evaluation metadata. Keep no feedback audio.
+- Evaluate false interventions and missed addresses separately, reject session leakage and unmeasured activation, and record reversible activation and rollback.
+- System 3 requires application evidence for compliance; repeated complaints alone remain unknown. Export summaries omit identifying references and private text.
+- Align System 3 with the background runner's 8K context, bound generated output, and defer/cancel analysis for live speech or Full Pause without losing its retry schedule.
+
 ## 0.12.0 — 2026-10-24 (W11, System 3)
 
 - System 3 (REQ-027): every six hours, never during a Full Pause, the core asks the local model why the owner reacted (pause, «не мне», rejected approval, silence request, complaint…) using metadata of the preceding window only, and keeps the answer as a lesson candidate with provenance and confidence; repeated signals merge into one candidate. An unclear cause earns the owner one short question (at most two a week, outside quiet hours); the answer is evidence. Confirmed lessons are exported into the persona's `butler-lesson` store (DEC-058) and removed when retired; a daily compliance check counts the same signal after confirmation and raises an alarm and an owner notice at three. `butler-core lessons list|get|confirm|retire|delete|correct|answer|analyse`. De-identified summaries are kept for System 2 clustering (DEC-059). Feedback kinds gain `consent_revoked`, `silence_request` and `not_addressed`.

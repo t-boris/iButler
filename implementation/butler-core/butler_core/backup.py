@@ -98,7 +98,7 @@ def default_sets(home=HOME):
         FileSet("macstudio-butler", home / "Projects/MacStudioButler", exclude=("evidence/logs",)),
         FileSet("ambient-settings", home / ".local/share/butler-ambient",
                 exclude=("raw", "images", "voice", "references", "preserved", "models", "backups", "spool",
-                         "*.sqlite3", "*.sqlite3-wal", "*.sqlite3-shm", "*.jpg", "*.png"), media=False),
+                         "private-episodes", "ui-state.json", "logs", "*.sqlite3", "*.sqlite3-wal", "*.sqlite3-shm", "*.jpg", "*.png"), media=False),
         FileSet("vault", home / "Documents/KnowledgeDB", exclude=(".obsidian/cache", ".trash"), skip_dataless=True,
                 max_bytes=50 * 1024 * 1024),
     ]
@@ -107,6 +107,7 @@ def default_sets(home=HOME):
 def default_databases(home=HOME, core_root=None):
     core_root = Path(core_root or home / ".local/share/butler-core")
     return {"butler-core/core.sqlite3": core_root / "core.sqlite3",
+            "butler-core/conversation.sqlite3": core_root / "conversation.sqlite3",
             "butler-core/ingest.sqlite3": core_root / "ingest.sqlite3",
             "butler-ambient/ambient.sqlite3": home / ".local/share/butler-ambient/ambient.sqlite3"}
 
@@ -455,6 +456,22 @@ class Backup:
         finally:
             if attached:
                 self.volume.detach()
+        # A later owner deletion dominates an older backup. Reconcile its
+        # manifests and remove restored rule text before returning memory.
+        for fileset in self.sets:
+            if fileset.name != "workspace-butler": continue
+            relative = Path("state/conversation-rules/deletions.json")
+            live = fileset.root / relative
+            restored_workspace = root / "files/workspace-butler"
+            restored_vault = root / "files/vault"
+            if not live.exists() or not restored_vault.is_dir(): continue
+            target = restored_workspace / relative
+            deletions = json.loads(target.read_text()) if target.exists() else {}
+            deletions.update(json.loads(live.read_text()))
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(json.dumps(deletions)); target.chmod(0o600)
+            from .rules import RuleStore
+            RuleStore(restored_vault, restored_workspace).publish()
         accounting = restored_accounting(root / "databases" / "butler-core" / "core.sqlite3")
         return {"generation": chosen.name, "created_at": manifest["created_at"], "files": len(manifest["files"]),
                 "corrupt": bad, "seconds": round(time.monotonic() - started, 1), "accounting": accounting}

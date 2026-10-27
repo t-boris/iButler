@@ -4,10 +4,11 @@ import json
 import os
 import stat
 import unittest
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 from butler_core.service import Core
-from butler_core.system3 import System3
+from butler_core.system3 import System3, local_model
 from support import OWNER, CoreCase, base_config
 
 ZONE = ZoneInfo("America/Chicago")
@@ -47,6 +48,15 @@ def system3_config():
 
 
 class System3Case(CoreCase):
+    def test_speech_deferral_preserves_pending_signal_and_retry_schedule(self):
+        self.core.feedback.record("pause", principal=OWNER, persona="butler")
+        self.s3.model = local_model
+        with patch("butler_core.system3.background_ready", return_value=False):
+            result = self.s3.maybe_run()
+        self.assertEqual(result["analysis"]["deferred"], 1)
+        self.assertIsNone(self.core.store.meta("system3_analysed"))
+        self.assertEqual(len(self.core.feedback.list(unanalysed=True)), 1)
+
     def setUp(self):
         super().setUp()
         self.clock.now = at(12)
@@ -158,7 +168,7 @@ class LessonLifecycleTest(System3Case):
         self.assertIsNone(self.s3.set_status(lesson["id"], "deleted", "terminal:owner"))
         self.assertEqual(self.s3.list(), [])
 
-    def test_compliance_counts_repeats_and_alarms_after_three(self):
+    def test_repeated_signals_without_application_evidence_are_unknown_not_violations(self):
         self.signal("full_pause")
         self.signal("resume")
         self.s3.analyse()
@@ -171,10 +181,11 @@ class LessonLifecycleTest(System3Case):
             self.signal("full_pause")
             self.signal("resume")
         report = self.s3.compliance()
-        self.assertEqual(report[0]["violations"], 3)
-        self.assertTrue(any(a["key"].startswith("system3:lesson:") for a in self.core.diagnostics.alarms()))
+        self.assertEqual(report[0]["violations"], 0)
+        self.assertEqual(report[0]["outcome"], "unknown")
+        self.assertFalse(any(a["key"].startswith("system3:lesson:") for a in self.core.diagnostics.alarms()))
         notices = [d for d in self.core.delivery.list() if d["kind"] == "status"]
-        self.assertEqual(len(notices), 1)
+        self.assertEqual(len(notices), 0)
         self.assertEqual(self.core.operations.list(limit=5), [])      # System 3 never dispatches anything
 
     def test_doctor_snapshot_is_counts_only(self):

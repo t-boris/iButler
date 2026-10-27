@@ -17,7 +17,8 @@ KINDS = ("pause", "full_pause", "resume", "mute", "unmute", "cancel", "approval_
          "consent_revoked", "silence_request", "not_addressed")
 INITIATIVE = ("advice", "daily", "initiative", "digest")
 WINDOW = 1800
-DETAIL_KEYS = ("source", "scope", "modality", "outcome", "channel", "reason_code", "duration_s", "by", "participant")
+DETAIL_KEYS = ("source", "scope", "modality", "outcome", "channel", "reason_code", "duration_s", "by", "participant",
+               "utterance", "turn", "decision", "revision", "correction", "binding")
 
 
 class FeedbackError(ValueError):
