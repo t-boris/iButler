@@ -67,6 +67,12 @@ class DisplayTests(unittest.TestCase):
     def allowed(self):
         return bool(self.service.voice_gate.permits(self.now))
 
+    def lose_the_lease(self, reason):
+        """What the service does when a participant check fails: the dialogue gate has already dropped, then the invalidation runs."""
+        self.service.dialogue_gate.invalidate("participant-check-failed")
+        with self.service.lock:
+            self.service._invalidate(reason)
+
     # -- cards -----------------------------------------------------------------------------
 
     def test_text_card_is_validated_shown_and_raises_the_window_once(self):
@@ -74,7 +80,7 @@ class DisplayTests(unittest.TestCase):
                                        "links": [{"label": "Todoist", "url": "https://todoist.com"}]})
         self.assertEqual((result["shown"], result["kind"]), (True, "text"))
         self.assertNotIn("markdown", result)                                                  # the caller gets an id, not content
-        state = self.display.snapshot(dialogue_allowed=True, recording_allowed=True)
+        state = self.display.snapshot()
         self.assertEqual((len(state["cards"]), state["current"], state["raise_serial"]), (1, result["id"], 1))
         self.assertEqual(state["cards"][0]["links"], [{"label": "Todoist", "url": "https://todoist.com"}])
         self.service.voice._debug.assert_called_with("display", "Задачи на сегодня · текст")
@@ -83,7 +89,7 @@ class DisplayTests(unittest.TestCase):
                     {"kind": "text", "markdown": "x" * 9000}):
             with self.assertRaises(ValueError):
                 self.display.present(bad)
-        self.assertEqual(self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["raise_serial"], 1)
+        self.assertEqual(self.display.snapshot()["raise_serial"], 1)
 
     def test_media_cards_accept_only_files_butler_owns_and_hide_them_on_pause(self):
         picture = self.media / "scene.png"; picture.write_bytes(b"\x89PNG")
@@ -96,16 +102,20 @@ class DisplayTests(unittest.TestCase):
                     {"kind": "video", "video": str(picture)}, {"kind": "video", "video": str(self.media / "missing.mp4")}):
             with self.assertRaises(ValueError):
                 self.display.present(bad)
-        shown = self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["cards"]
+        shown = self.display.snapshot()["cards"]
         self.assertEqual([c.get("image") or c.get("video") for c in shown], [str(picture), str(video)])
-        paused = self.display.snapshot(dialogue_allowed=True, recording_allowed=False)["cards"]
-        self.assertTrue(all("image" not in c and "video" not in c and c["unavailable"] == "paused" for c in paused))   # REQ-010
+        # Owner, 2026-10-27: "show everything always". A paused recording gate no longer swaps the media for a placeholder.
+        self.service.gate.invalidate(self.now, "permission-paused")
+        self.assertFalse(self.service.gate.allowed)
+        again = snapshot(self.service)["display"]["cards"]
+        self.assertEqual([c.get("image") or c.get("video") for c in again], [str(picture), str(video)])
+        self.assertTrue(all("unavailable" not in c for c in again))
         video.unlink()
-        self.assertEqual(self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["cards"][1]["unavailable"], "missing")
+        self.assertEqual(self.display.snapshot()["cards"][1]["unavailable"], "missing")
 
     def test_diagram_card_carries_mermaid_source_only(self):
         result = self.display.present({"kind": "diagram", "title": "Архитектура", "mermaid": "graph TD; A-->B; B-->C"})
-        card = self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["cards"][0]
+        card = self.display.snapshot()["cards"][0]
         self.assertEqual((card["id"], card["mermaid"], card["actions"]), (result["id"], "graph TD; A-->B; B-->C", []))
 
     def test_email_card_is_built_locally_from_the_mail_store_by_key(self):
@@ -115,7 +125,7 @@ class DisplayTests(unittest.TestCase):
         result = self.display.present({"kind": "email", "key": "acc:<m1>"})
         self.assertEqual(result["title"], "Встреча")
         self.assertEqual(self.runs[-1][1:], ["card", "acc:<m1>", "--json"])                     # the key goes to butler-mail, nothing else
-        card = self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["cards"][0]
+        card = self.display.snapshot()["cards"][0]
         self.assertEqual(card["email"]["body"], "Борис, можно перенести…")
         self.assertEqual(card["actions"], [{"id": "open-reply-in-mail", "label": "Открыть ответ в Mail.app"}])
         self.mail_output.pop("card")
@@ -133,7 +143,7 @@ class DisplayTests(unittest.TestCase):
         result = self.display.action(card["id"], "open-reply-in-mail")
         self.assertEqual(result["status"], STATUS_OPENED)
         self.assertEqual(self.runs[-1][1:], ["open-reply", "k", "--json", "--text", "Ответ."])
-        shown = self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["cards"][0]
+        shown = self.display.snapshot()["cards"][0]
         self.assertEqual(shown["status"], STATUS_OPENED)
         self.assertNotIn("outgoing_id", shown)
         self.assertNotIn("отправлен.", STATUS_OPENED.split("—")[0])
@@ -155,31 +165,61 @@ class DisplayTests(unittest.TestCase):
         second = self.display.present({"kind": "email", "key": "k"})
         runs = len(self.runs)
         self.assertEqual(self.display.select(first["id"])["id"], first["id"])
-        self.assertEqual(self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["current"], first["id"])
+        self.assertEqual(self.display.snapshot()["current"], first["id"])
         self.assertEqual(self.display.select(second["id"])["kind"], "email")
         self.assertEqual(len(self.runs), runs)                                                   # reopening ran no mail command
-        self.assertEqual(self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["raise_serial"], 2)   # no new raise
+        self.assertEqual(self.display.snapshot()["raise_serial"], 2)   # no new raise
         with self.assertRaises(ValueError):
             self.display.select("nope")
         with self.service.lock:
             self.service._invalidate("owner-paused")                                           # a hard close of the owner session
-        state = self.display.snapshot(dialogue_allowed=True, recording_allowed=True)
+        state = self.display.snapshot()
         self.assertEqual((state["cards"], state["current"], state["cleared_reason"]), ([], None, "owner-paused"))
         fresh = Display(self.service)                                                          # a restart starts empty: nothing persisted
-        self.assertEqual(fresh.snapshot(dialogue_allowed=True, recording_allowed=True)["cards"], [])
+        self.assertEqual(fresh.snapshot()["cards"], [])
         for index in range(module.HISTORY + 5):
             self.display.present({"kind": "text", "markdown": str(index)})
-        self.assertEqual(len(self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["cards"]), module.HISTORY)
+        self.assertEqual(len(self.display.snapshot()["cards"]), module.HISTORY)
+
+    def test_a_brief_loss_of_the_lease_keeps_the_history_and_only_a_real_close_clears_it(self):
+        # Owner, 2026-10-26 (DEC-047): the display is not cleared "for nothing"; it ends with the conversation, not with a blink.
+        for reason in ("permission-paused", "stale-participant-check", "participant-check-gap", "participant-check-unavailable", "source-unavailable"):
+            with self.subTest(soft=reason):
+                self.display.clear("fixture")
+                self.display.present({"kind": "text", "title": "Схема", "markdown": "x"})
+                self.display.present({"kind": "text", "title": "Вторая", "markdown": "y"})
+                before = self.display.snapshot()
+                self.lose_the_lease(reason)
+                self.assertFalse(self.service.dialogue_gate.allowed)                              # the session really closed
+                after = self.display.snapshot()
+                self.assertEqual(([c["id"] for c in after["cards"]], after["current"], after["cleared_reason"]),
+                                 ([c["id"] for c in before["cards"]], before["current"], None))
+        for reason in ("owner-paused", "consent-revoked", "settings-change", "service-stopped", "owner-voice-enrollment", "owner-reference-updated"):
+            with self.subTest(hard=reason):
+                self.display.clear("fixture")
+                self.display.present({"kind": "text", "title": "Схема", "markdown": "x"})
+                self.lose_the_lease(reason)
+                after = self.display.snapshot()
+                self.assertEqual((after["cards"], after["current"], after["cleared_reason"]), ([], None, reason))
+
+    def test_a_blink_does_not_clear_a_card_the_owner_has_answered_or_replaced(self):
+        first = self.display.present({"kind": "text", "title": "Выбор", "markdown": "x", "buttons": [{"label": "Да", "kind": "reply"}, {"label": "Нет", "kind": "reply"}]})
+        self.display.present({"kind": "text", "title": "Выбор", "markdown": "z", "replaces": first["id"]})
+        self.lose_the_lease("permission-paused")
+        card = self.display.snapshot()["cards"][0]
+        self.assertEqual((card["id"], card["rev"], card["markdown"]), (first["id"], 1, "z"))
 
     # -- visibility (REQ-010) and the panel ---------------------------------------------------
 
-    def test_private_cards_are_withheld_without_the_owner_lease_and_ui_state_carries_display_and_version(self):
-        self.display.present({"kind": "text", "title": "Личное", "markdown": "x"})
-        hidden = self.display.snapshot(dialogue_allowed=False, recording_allowed=True)
-        self.assertEqual((hidden["cards"], hidden["current"], hidden["hidden"]), ([], None, "private"))
+    def test_cards_stay_visible_when_the_owner_lease_drops_and_ui_state_carries_display_and_version(self):
+        shown = self.display.present({"kind": "text", "title": "Личное", "markdown": "x"})
+        self.lose_the_lease("permission-paused")                                               # the participant is not recognised for a moment
+        self.assertFalse(self.allowed())                                                       # the lease really is down
         state = snapshot(self.service)
+        self.assertFalse(state["voice"]["dialogue_allowed"])
         self.assertEqual(state["version"], __import__("butler_ambient").__version__)
-        self.assertEqual(state["display"]["hidden"], None if state["voice"]["dialogue_allowed"] else "private")
+        self.assertEqual(([c["id"] for c in state["display"]["cards"]], state["display"]["current"], state["display"]["hidden"]),
+                         ([shown["id"]], shown["id"], None))
         rows = feed(Mock(notices=None), {"voice": {"dialogue_allowed": True, "debug": {"events": [
             {"at": 5.0, "event": "display", "detail": "Личное · текст", "who": "Система"}]}}, "visual": {}})
         self.assertEqual((rows[0]["kind"], rows[0]["label"]), ("display", "ПОКАЗ"))
@@ -210,7 +250,7 @@ class DisplayTests(unittest.TestCase):
         self.store.execute("UPDATE visual_artifacts SET caption='Generated locally: кот' WHERE id=?", (aid,))
         visual._generate = Mock(return_value=[aid])
         visual._work((key, "generate-image", "кот", threading.Event(), self.service.gate.generation, False))
-        cards = self.display.snapshot(dialogue_allowed=True, recording_allowed=True)["cards"]
+        cards = self.display.snapshot()["cards"]
         self.assertEqual([(c["kind"], c["image"], c["title"], c["origin"]) for c in cards], [("image", str(picture), "Generated locally: кот", "visual")])
 
     # -- MCP ----------------------------------------------------------------------------------

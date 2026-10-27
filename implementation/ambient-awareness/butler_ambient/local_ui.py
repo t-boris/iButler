@@ -18,9 +18,12 @@ def snapshot(service, *, want_preview=False):
         result["last_analysis"] = {r["source"]: r["at"] for r in service.store.execute(
             "SELECT source,MAX(end) AS at FROM observations GROUP BY source")}
         result["recent"] = []
-        for row in service.store.execute("SELECT source,start,end,facts FROM observations ORDER BY end DESC LIMIT 5"):
+        # Only observations that concluded something: more than half of the stored rows carry no fact at all.
+        for row in service.store.execute("SELECT source,start,end,facts FROM observations WHERE facts!='[]' ORDER BY end DESC LIMIT 8"):
             result["recent"].append({"source": row["source"], "at": row["end"], "details": [
                 fact.get("detail", "") for fact in json.loads(row["facts"]) if fact.get("detail")]})
+        from .observation_browser import analysis_state
+        result["analysis"] = analysis_state(service.store, service.clock(), pending=result["storage"]["pending"])
         result["voice"] = {"selected": service.store.get("voice_profile"),
                            "enabled": service.store.get("voice_enabled", False),
                            "profiles": profiles(service.store),
@@ -39,9 +42,6 @@ def snapshot(service, *, want_preview=False):
             if not result["voice"]["dialogue_allowed"]:
                 # Never show owner-private dialogue without the lease; a
                 # general conversation stays visible and is not cancelled.
-                if service.voice.private_state() and not service.voice.turn_committed:
-                    # Hiding is enough while a turn is being answered (turn-taking REQ-002); cancelling it cut replies.
-                    service.voice.cancel(reason="private-view-hidden", private_only=True)
                 if not general or service.voice.visible_mode != "general":
                     result["voice"]["last_heard"] = result["voice"]["last_reply"] = ""
                 else:
@@ -55,7 +55,8 @@ def snapshot(service, *, want_preview=False):
             listening=service.listening.snapshot()
             result["voice"]["listening"]=listening
             if listening["enabled"]:
-                result["voice"]["last_heard"]=listening["last_heard"]
+                if listening['last_heard']:
+                    result["voice"]["last_heard"]=listening["last_heard"]
                 debug=result["voice"].setdefault("debug",{"events":[],"microphone":None})
                 debug["events"]=sorted(debug["events"]+listening["events"],key=lambda e:e["at"])[-60:]
         result["voice"]["meeting"] = service.meeting.snapshot()
@@ -63,9 +64,14 @@ def snapshot(service, *, want_preview=False):
         result["voice"]["smart_turn"] = service.smart_turn.snapshot() if getattr(service, "smart_turn", None) is not None else None
         result["voice"]["brain"] = service.brain.snapshot() if getattr(service, "brain", None) is not None else None
         result["voice"]["calls"] = service.calls.snapshot() if getattr(service, "calls", None) is not None else None
+        feedback = getattr(service, "feedback", None)
+        if feedback is not None:
+            result["feedback"] = feedback.snapshot(bool(result["voice"]["dialogue_allowed"]))
         from . import __version__
         result["version"] = __version__
         result["work"] = service.work.snapshot()
+        if service.voice is not None:
+            result['work']['voice_requests'] = service.voice.dialogue.snapshot(private=result['voice']['dialogue_allowed'])
         result["core_link"] = service.core_link.snapshot() if getattr(service, "core_link", None) is not None else None
         result["knowledge"] = service.knowledge.snapshot()
         result["voice"]["disclosure"] = service.disclosures.snapshot()
@@ -111,13 +117,15 @@ def snapshot(service, *, want_preview=False):
         result["preview"] = None
         result["visual"] = service.visual.snapshot() if service.visual is not None else None
         if not result["recording_allowed"] and result["visual"] is not None:
-            # Gallery metadata may remain; image paths are hidden on a pause.
+            # Gallery metadata may remain; image paths, and the folder an imported image sits in, are hidden on a pause.
             for artifact in result["visual"].get("artifacts", []):
                 artifact.pop("path", None)
+                artifact.pop("place", None)
         display = getattr(service, "display", None)
-        result["display"] = display.snapshot(dialogue_allowed=bool(result["voice"].get("dialogue_allowed")),
-                                             recording_allowed=bool(result["recording_allowed"])) if display is not None else None
+        result["display"] = display.snapshot() if display is not None else None
         result["feed"] = feed(service, result)
+        result["panel_chat"] = service.panel_chat.snapshot() if getattr(service, "panel_chat", None) is not None else None
+        result["dictation"] = service.dictation.snapshot() if getattr(service, "dictation", None) is not None else None
         destination = service.store.root / "raw/ui-preview.jpg"
         if not result["recording_allowed"]:
             destination.unlink(missing_ok=True)
@@ -147,9 +155,9 @@ def snapshot(service, *, want_preview=False):
 
 EVENT_KINDS = {"heard": "heard", "reply": "reply", "error": "error", "interrupted": "error", "display": "display",
                "hearing-unavailable": "error", "reply-blocked": "event", "reply-blocked-unchecked": "event"}
-EVENT_LABELS = {"display": "ПОКАЗ", "attention": "ВНИМАНИЕ", "owner-busy": "ЗАНЯТ С ДРУГИМ", "brain": "АГЕНТ", "session": "СЕССИЯ", "call-summary": "ИТОГИ ЗВОНКА", "heard": "РАСПОЗНАНО", "wake": "ОБРАЩЕНИЕ", "address-accepted": "ПРИНЯТО", "address-rejected": "ОТКЛОНЕНО",
-                "reply": "ОТВЕТ", "error": "ОШИБКА", "interrupted": "ПРЕРВАНО", "transcription": "РАСПОЗНАВАНИЕ",
-                "synthesis": "ГОЛОС", "playback": "ДИНАМИК", "completed": "ЗАВЕРШЕНО", "reply-blocked": "ОТВЕТ ЗАБЛОКИРОВАН",
+EVENT_LABELS = {"display": "ПОКАЗ", "speech-candidate": "СЛЫШУ РЕЧЬ", "attention": "ВНИМАНИЕ", "owner-busy": "ПРИЗНАК ЗАНЯТОСТИ", "brain": "АГЕНТ", "session": "СЕССИЯ", "call-summary": "ИТОГИ ЗВОНКА", "heard": "РАСПОЗНАНО", "wake": "ОБРАЩЕНИЕ", "address-accepted": "ПРИНЯТО", "address-rejected": "ОТКЛОНЕНО",
+                "reply": "ОТВЕТ ПОДГОТОВЛЕН", "error": "ОШИБКА", "interrupted": "ПРЕРВАНО", "transcription": "РАСПОЗНАВАНИЕ",
+                "synthesis": "ГОЛОС", "playback": "ДИНАМИК", "completed": "ПРОИЗНЕСЕНО", "reply-blocked": "ОТВЕТ ЗАБЛОКИРОВАН",
                 "reply-blocked-unchecked": "ПРОВЕРКА РЕПЛИКИ НЕДОСТУПНА", "participant-check-wait": "ОЖИДАНИЕ ПРОВЕРКИ",
                 "routed": "ДИАЛОГ", "routed-general": "ОБЩИЙ РАЗГОВОР", "general-not-addressed": "НЕТ ОБРАЩЕНИЯ",
                 "hearing-replied": "ПРОВЕРКА МИКРОФОНА", "hearing-unavailable": "ОШИБКА ГОЛОСОВОЙ ПРОВЕРКИ",
@@ -168,11 +176,31 @@ def feed(service, result):
     follows the private lease, image paths follow the recording state, and the
     Telegram notices are shown only while the verified owner is present."""
     entries = []
+    episodes = result.get("feedback", {}).get("episodes", [])
+    episode_texts = {r.get("text") for r in episodes}
     for event in result.get("voice", {}).get("debug", {}).get("events", []):
         key = event.get("event", "")
+        if key == "heard" and event.get("detail") in episode_texts: continue
         entries.append({"id": f"voice:{event.get('at')}:{key}", "at": event.get("at"), "who": event.get("who", "Система"),
                         "kind": EVENT_KINDS.get(key, "event"), "label": EVENT_LABELS.get(key, key),
                         "text": event.get("detail", "")})
+    for episode in episodes:
+        decision = episode.get("decision", {})
+        outcome = decision.get("outcome", "heard")
+        annotations = episode.get("annotations", [])
+        statuses = []
+        for a in annotations:
+            steps = [label for key, label in (("received", "получено"), ("saved", "сохранено"),
+                ("applied", "применено"), ("verified", "проверено")) if a.get(key)]
+            statuses.append(a["kind"] + " (" + a["state"] + "; " + ", ".join(steps) + ")")
+        entries.append({"id": "episode:" + episode["id"], "episode": episode["id"],
+                        "revision": episode["revision"], "at": episode["at"],
+                        "who": "Владелец" if decision.get("mode") == "private" else "Голос",
+                        "memories": episode.get("memories", []),
+                        "kind": "heard", "label": "РЕПЛИКА · " + outcome,
+                        "annotation": annotations[-1]["id"] if annotations else None,
+                        "text": (episode["text"] or "Текст удалён по сроку хранения; сведения о решении сохранены.")
+                            + ("\nИсправления: " + ", ".join(statuses) if statuses else "")})
     visual = result.get("visual")
     for artifact in (visual.get("artifacts", []) if isinstance(visual, dict) else []):
         if not isinstance(artifact, dict) or not artifact.get("path"):

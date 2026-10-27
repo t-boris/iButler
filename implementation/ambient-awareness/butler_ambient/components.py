@@ -94,11 +94,12 @@ def snapshot(service, workspace=WORKSPACE):
             "model_key":model_key,"cli_key":cli_key,"ready":bool(ready),"running":bool(running),**extra})
     def file(key): return bool(config.get(key) and Path(config[key]).is_file())
     readiness = {}
-    def local_ready(name,vision=False):
-        if (name,vision) not in readiness:
-            try: LocalAnalyzer(name).check_local(require_vision=vision);readiness[name,vision]=True
-            except (RuntimeError,OSError,ValueError):readiness[name,vision]=False
-        return readiness[name,vision]
+    def local_ready(name,vision=False,dialogue=False):
+        # The dialogue model is served on its own port (DEC-073); probing the background port would misreport it.
+        if (name,vision,dialogue) not in readiness:
+            try: LocalAnalyzer(name,dialogue=dialogue).check_local(require_vision=vision);readiness[name,vision,dialogue]=True
+            except (RuntimeError,OSError,ValueError):readiness[name,vision,dialogue]=False
+        return readiness[name,vision,dialogue]
     for key,title in [("face_detector","Поиск лиц · YuNet"),("face_recognizer","Проверка владельца · SFace"),
                       ("person_detector","Присутствие людей · локальная ONNX модель")]:
         row(key,title,config.get(key,"не настроено"),core_python,key,ready=file(key) and not getattr(service.verifier,"unavailable",False),running=service.input_running,
@@ -112,7 +113,8 @@ def snapshot(service, workspace=WORKSPACE):
         getattr(service.voice,"phase",None)=="transcription",note="Язык: "+config.get("speech_language","ru"))
     for key,title in [("conversation_model","Диалог и намерение"),("vision_model","Зрение и фоновый анализ")]:
         name = config.get(key,DEFAULT_DIALOGUE_MODEL if key=='conversation_model' else 'gemma3:4b')
-        row(key,title,name,"HTTP 127.0.0.1:11434 · Ollama",key,ready=local_ready(name,key=="vision_model"),
+        row(key,title,name,"HTTP 127.0.0.1:11435 · Ollama" if key=="conversation_model" else "HTTP 127.0.0.1:11434 · Ollama",key,
+            ready=local_ready(name,key=="vision_model",key=="conversation_model"),
             running=bool(getattr(service.voice,"busy",False)) if key=="conversation_model" else bool(service.analyzer.operations),
             note="Только проверенная локальная модель; внешний резерв запрещён.")
     voice_path = Path(config.get("voice_model_path",root/"voice/base-model"))
@@ -256,5 +258,8 @@ def update(service,values,workspace=WORKSPACE):
     changes = {}
     if row.get("model_key") and model!=row["model"]: changes[row["model_key"]]=model
     if row.get("cli_key") and cli!=row["executable"]: changes[row["cli_key"]]=cli
-    if not changes: return {"saved":True,"restart_required":False,"changed":[]}
+    if not changes:
+        editable = bool(row.get("model_key") or row.get("cli_key"))
+        return {"saved":False,"restart_required":False,"changed":[],"reason":"unchanged" if editable else "read-only",
+                "message":"Значения не изменены." if editable else "Этот компонент только для просмотра: здесь его нельзя изменить."}
     return local_settings.update(service,changes)

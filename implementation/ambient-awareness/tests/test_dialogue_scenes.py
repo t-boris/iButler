@@ -6,7 +6,7 @@ import threading
 import time
 import unittest
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from butler_ambient.conversation import Canceled, Conversation
 from butler_ambient.delivery import ZONE
@@ -26,7 +26,6 @@ class SceneCase(unittest.TestCase):
         self.voice = Conversation(self.service)
         self.service.voice = self.voice
         self.voice.model = Mock()
-        self.voice.barge_model = Mock()
         self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
         self.service.gate.enable(True, self.now)
         for _ in range(3):
@@ -122,15 +121,29 @@ class SilenceScenes(SceneCase):
 
 
 class TurnScenes(SceneCase):
-    def test_unfinished_thought_waits_and_a_continuation_supersedes_it(self):
-        self.voice.model.transcribe.return_value = "Напомни мне завтра…"
-        started = time.monotonic()
-        threading.Timer(0.3, self.voice.token.set).start()       # the continuation arrives: feed() cancels this turn
-        with self.assertRaises(Canceled):
-            self.voice._turn(b"\0\0" * 16000, self.voice.token, self.service.voice_gate.generation, True)
-        self.assertLess(time.monotonic() - started, 1.4)
-        self.voice.model.generate_json.assert_not_called()
-        self.assertIn("continuation-wait", [e["event"] for e in self.voice.debug_events])
+    def test_one_assembler_keeps_an_unfinished_thought_across_a_pause(self):
+        from butler_ambient.listening import Listening
+        from butler_ambient.sensing import Batch
+        self.store.set('face_wake_dialogue', True); self.store.set('continuous_archive', True)
+        listening = self.service.listening = Listening(self.service)
+        listening.model = Mock(); listening.model.transcribe.side_effect = ['Напомни мне завтра в', 'десять часов.']
+        self.now += 1
+        with patch.object(Listening, 'speech', return_value=True), patch.object(Conversation, '_silence_tail', return_value=1):
+            listening.feed(Batch(self.now-1,self.now,[],b'\1\0'*16000), self.evidence())
+        listening.process(*listening.jobs.get_nowait())
+        identifier = listening.pending_thought['id']
+        self.assertEqual(listening.phase, 'awaiting-continuation'); self.assertTrue(self.voice.jobs.empty())
+        for _ in range(3):
+            self.now += 1
+            with patch.object(Listening, 'speech', return_value=False), patch.object(Listening, 'confirmation_candidate', return_value=False):
+                listening.feed(Batch(self.now-1,self.now,[],b'\0'*32000), self.evidence())
+        self.now += 1
+        with patch.object(Listening, 'speech', return_value=True), patch.object(Conversation, '_silence_tail', return_value=1):
+            listening.feed(Batch(self.now-1,self.now,[],b'\2\0'*16000), self.evidence())
+        listening.process(*listening.jobs.get_nowait())
+        self.assertEqual(listening.transcripts.snapshot()['id'], identifier)
+        self.assertEqual(self.voice.jobs.get_nowait()[-1], 'Напомни мне завтра в десять часов.')
+        self.assertTrue(self.voice.jobs.empty())
 
     def test_complete_request_does_not_wait(self):
         started = time.monotonic()
@@ -139,29 +152,19 @@ class TurnScenes(SceneCase):
         self.assertEqual(self.spoken, ["Да, я здесь."])
 
     def test_backchannel_during_playback_never_stops_it(self):
-        self.voice.state = "speaking"
-        self.voice.last_spoken = "Сначала разберём задачи на сегодня"
-        self.voice.barge_audio.extend(b"\0\0" * 8000)
-        self.voice.barge_owner = True
-        self.voice.barge_model.transcribe.return_value = "угу"
+        self.voice.state = 'speaking'; self.voice.last_spoken = 'Сначала разберём задачи'
         self.voice.cancel = Mock()
-        self.voice._barge(bytes(self.voice.barge_audio), self.voice.token, self.service.voice_gate.generation)
+        self.assertFalse(self.voice.observe_input('угу', 'backchannel', owner=True))
         self.voice.cancel.assert_not_called()
-        self.assertEqual(self.voice.metrics.snapshot()["backchannels"], 1)
-        self.assertIn("backchannel", [e["event"] for e in self.voice.debug_events])
+        self.assertEqual(self.voice.metrics.snapshot()['backchannels'], 1)
 
     def test_real_interruption_stops_and_records_latency(self):
-        self.voice.state = "speaking"
-        self.voice.last_spoken = "Сначала разберём задачи на сегодня"
-        self.voice.barge_audio.extend(b"\0\0" * 8000)
-        self.voice.barge_owner = True
-        self.voice.barge_started = time.monotonic() - 0.25
-        self.voice.barge_model.transcribe.return_value = "Стоп, не то"
-        self.voice._barge(bytes(self.voice.barge_audio), self.voice.token, self.service.voice_gate.generation)
+        self.voice.state = 'speaking'; old = self.voice.token
+        self.assertTrue(self.voice.observe_input('Стоп, не то', 'stop', owner=True, captured_at=self.now-.25))
+        self.assertTrue(old.is_set())
         metrics = self.voice.metrics.snapshot()
-        self.assertEqual(metrics["interruptions"], 1)
-        self.assertGreaterEqual(metrics["stop_latency_p50"], 0.25)
-        self.assertIn("interrupted", [e["event"] for e in self.voice.debug_events])
+        self.assertEqual(metrics['interruptions'], 1)
+        self.assertGreaterEqual(metrics['stop_latency_p50'], .25)
 
 
 class PrivacyScenes(SceneCase):

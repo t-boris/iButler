@@ -19,9 +19,13 @@ TOOLS = [
                      "required": ["start", "end"], "additionalProperties": False}},
     {"name": "butler_visual_request", "description": "Fulfill or check the latest actual owner private Telegram image request. No supplied prompt/recipient; service verifies provenance. Returns only status/IDs, never image bytes or private paths.",
      "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}},
-    {"name": "butler_display", "description": "Show a card on the Butler display (the main Butler window comes forward). kind text: Markdown (lists, links) in `markdown` plus optional `links`; image: `image` path Butler owns; diagram: Mermaid source in `mermaid`; video: `video` path under ~/.openclaw/media; email: the message `key` from butler-mail only (content is read locally, never sent here). Returns the card id only.",
+    {"name": "butler_display", "description": "Show a card on the Butler display (the main Butler window comes forward). kind text: Markdown (lists, links) in `markdown` plus optional `links`; image: `image` path Butler owns; diagram: Mermaid source in `mermaid`; svg: your own drawing in `svg` (needs a viewBox; only shapes, paths, text, gradients and markers are kept — no scripts, styles, links, images or other files); video: `video` path under ~/.openclaw/media; email: the message `key` from butler-mail only (content is read locally, never sent here). Any text/image/diagram/svg/video card may carry up to 6 `buttons` — {label, kind:reply} sends the label to the chat as the owner's answer (use it whenever you need a choice or a go-ahead instead of asking in words), {label, kind:link, url} opens a web or mail link, {label, kind:reveal, path} shows an existing file or folder under the home directory in Finder. Buttons never approve, send, delete or run anything. `replaces` = id of a card you showed earlier: that card is redrawn in place (one live canvas for a topic instead of a pile of cards). Returns the card id only; a malformed card comes back as an error that names the field to correct.",
      "inputSchema": CARD_SCHEMA},
 ]
+
+
+class CardError(Exception):
+    """The service refused a malformed card and said which field to correct (never any content)."""
 
 
 def rpc(root, command, args=None):
@@ -81,11 +85,15 @@ def serve(root, reader=None, writer=None, call=None):
                                    "butler_display": "display"}[name]
                         output = call(command, args)
                         if command == "display":
-                            output = {k: output.get(k) for k in ("id", "shown", "kind", "title")}   # never paths or content
+                            if output.get("refused"):                      # a malformed card: say which field, never echo content
+                                raise CardError(str(output["refused"]))
+                            output = {k: output[k] for k in ("id", "shown", "kind", "title", "replaced") if k in output}   # never paths or content
                         # Status in MCP omits owner-managed names/agreements entirely.
                         if command == "status":
                             output = {k: v for k, v in output.items() if k != "agreements"}
                         result = {"content": [{"type": "text", "text": json.dumps(output)}]}
+                    except CardError as refusal:       # not «error»: that name is the JSON-RPC error below and `except` unbinds it
+                        result = {"content": [{"type": "text", "text": "Card refused: " + str(refusal)}], "isError": True}
                     except Exception:
                         text = "Display unavailable or the card was refused by policy." if name == "butler_display" \
                             else "Observation unavailable or prohibited by policy."

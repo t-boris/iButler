@@ -29,7 +29,7 @@ DEFAULT_MODEL_OVERRIDE = "anthropic/claude-sonnet-5"   # 2–3 s per reply on 20
 DEFAULT_SESSION = "agent:butler:voice"
 DEFAULT_TIMEOUT = 1800.0  # the wait is detached from the turn after a minute; long work may take the agent much longer
 TOKEN_CACHE_SECONDS = 60.0
-MAX_REPLY = 1200
+MAX_REPLY = 12000
 
 
 class BrainUnavailable(RuntimeError):
@@ -42,7 +42,6 @@ class BrainSilent(Exception):
 
 SILENT = re.compile(r"^\s*(?:NO_REPLY|NO REPLY|\[NO_REPLY\])\s*\.?\s*$", re.I)
 AGENT_ERROR = re.compile(r"^\s*(?:error|ошибка|failovererror|internal error)\b[:\s]", re.I)
-ASIDE_SUFFIX = ":aside"     # a second session while a detached long task holds the main one (the gateway refuses a reused turn)
 
 
 def voice_preamble(now_text, *, alone, foreground_app=None, company=False, asr_note=True):
@@ -51,8 +50,11 @@ def voice_preamble(now_text, *, alone, foreground_app=None, company=False, asr_n
     app = f", окно на переднем плане: {foreground_app}" if foreground_app else ""
     return (f"[Голосовой канал Mac Studio, {now_text}; {who}{app}. Ответ будет озвучен вслух: отвечай по-русски, "
             "коротко и разговорно, без markdown, списков и ссылок; одно-три предложения, если не просят подробнее. "
-            "Перед действием с внешним эффектом спроси подтверждение одной фразой. Если работа займёт больше минуты, "
-            "сразу ответь коротко, что начал и когда ждать результат, и продолжай; итог пришли, когда закончишь. Если слова явно "
+            "Обычный вопрос отвечай прямо по текущему диалогу после короткой естественной паузы; не запускай инструменты или долгий анализ, "
+            "если для ответа они не нужны. "
+            "Перед реальной долгой работой кратко назови, что именно начал, и дай честную примерную оценку времени. Если работа затянулась, "
+            "сообщай фактический этап или честно скажи, что результата ещё нет, не реже чем раз в 20 секунд; не выдумывай прогресс или сроки. "
+            "Перед действием с внешним эффектом спроси подтверждение одной фразой. Итог пришли, когда закончишь. Если слова явно "
             "адресованы не тебе (чтение вслух, разговор с кем-то другим, пение), ответь ровно NO_REPLY. Материал, который удобнее "
             "видеть, чем слышать (список, ссылки, схема, письмо с ответом, картинка, видео), покажи на дисплее инструментом "
             "butler_display и скажи об этом коротко."
@@ -63,10 +65,20 @@ USAGE_FOOTER = re.compile(r"(?:\n|^)\s*-{3,}\s*\n(?:.*\n?)*?.*\b(?:today|month)\
 USAGE_LINE = re.compile(r"^\s*\S[^\n]*·[^\n]*\b(?:today|month)\b[^\n]*\$[^\n]*$", re.I | re.M)
 
 
-def clean_for_speech(text):
-    """What the voice says: the gateway's usage footer («butler · today 4.3k ~$0.06 …») and markdown marks are not words."""
+def strip_usage(text):
+    """The gateway's usage footer («butler · today 4.3k ~$0.06 …») is neither speech nor part of an answer."""
     text = USAGE_FOOTER.sub("", text)
-    text = USAGE_LINE.sub("", text)
+    return USAGE_LINE.sub("", text)
+
+
+def clean_for_panel(text):
+    """What the panel shows: the answer as written, markdown kept, without the usage footer."""
+    return re.sub(r"\n{3,}", "\n\n", strip_usage(text)).strip()
+
+
+def clean_for_speech(text):
+    """What the voice says: the gateway's usage footer and markdown marks are not words."""
+    text = strip_usage(text)
     text = re.sub(r"```.*?```", " ", text, flags=re.S)                   # code blocks are not speech
     text = re.sub(r"`([^`]*)`", r"\1", text)
     text = re.sub(r"\[([^\]]+)\]\([^)]*\)", r"\1", text)                 # links: keep the words
@@ -152,14 +164,22 @@ class AgentBrain:
     # -- the request ------------------------------------------------------------------------
 
     def messages(self, text, preamble, images=()):
-        """One user message: the preamble and the owner's words as text, frames as data URLs (never raw PCM)."""
-        content = [{"type": "text", "text": preamble + "\n" + text}]
+        """Trusted channel instructions are separate from the owner's speech.
+
+        The installed OpenClaw bridge maps developer messages to its per-request
+        extraSystemPrompt. Putting tool instructions in user speech made the
+        agent reject the rule reload as an injected command.
+        """
+        content = [{"type": "text", "text": text}]
         for jpeg in images:
             content.append({"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(jpeg).decode("ascii")}})
-        return [{"role": "user", "content": content if images else content[0]["text"]}]
+        return [{"role": "developer", "content": preamble},
+                {"role": "user", "content": content if images else text}]
 
-    def ask(self, text, preamble, *, images=(), token=None):
-        """Send the utterance and return the agent's reply text. Cancelled through ``token`` between stream lines."""
+    def ask(self, text, preamble, *, images=(), token=None, on_text=None, speech=True):
+        """Send the utterance and return the agent's reply text. Cancelled through ``token`` between stream lines.
+
+        ``speech=False`` is the panel's written conversation: the reply keeps its markdown."""
         body = json.dumps({"model": self.model, "stream": True, "messages": self.messages(text, preamble, images)},
                           ensure_ascii=False).encode("utf-8")
         parts = urlsplit(self.url)
@@ -167,32 +187,52 @@ class AgentBrain:
         conn = None
         with self.lock:
             self.calls += 1
-        # The main session is busy with a long (detached) task: the owner's next question goes to an aside session
-        # instead of failing as a «reused turn». Memory lives in the agent's workspace, not in the session.
-        held = self.session_lock.acquire(timeout=2.0)
-        session = self.session_key if held else self.session_key + ASIDE_SUFFIX
+        held = False
+        finished = threading.Event()
+        def cancel_connection():
+            while not finished.wait(.05):
+                if token is not None and token.is_set():
+                    sock = getattr(conn, 'sock', None)
+                    if sock is not None:
+                        try:
+                            import socket
+                            sock.shutdown(socket.SHUT_RDWR)
+                        except OSError: pass
+                    if conn is not None: conn.close()
+                    return
         try:
+            while not held:
+                if token is not None and token.is_set(): raise BrainUnavailable('cancelled')
+                held = self.session_lock.acquire(timeout=.05)
             headers = {"Authorization": "Bearer " + self.token(), "Content-Type": "application/json",
-                       "Accept": "text/event-stream", "x-openclaw-session-key": session}
+                       "Accept": "text/event-stream", "x-openclaw-session-key": self.session_key}
             if self.model_override:
                 headers["x-openclaw-model"] = str(self.model_override)
             conn = self.connection(parts.hostname or "127.0.0.1", parts.port or 80, timeout=self.timeout)
+            threading.Thread(target=cancel_connection, name='butler-agent-cancellation', daemon=True).start()
+            if token is not None and token.is_set(): raise BrainUnavailable("cancelled")
             conn.request("POST", parts.path or "/", body, headers)
             response = conn.getresponse()
             if response.status != 200:
-                detail = response.read(2000).decode("utf-8", "replace")
-                raise BrainUnavailable(f"gateway http {response.status}: {detail[:160]}")
-            lines = []
+                response.read(2000)
+                raise BrainUnavailable(f"gateway http {response.status}")
+            fragments = []
+            characters = 0
             while True:
                 if token is not None and token.is_set():
                     raise BrainUnavailable("cancelled")
                 line = response.readline(65536)
                 if not line:
                     break
-                lines.append(line)
                 if line.strip() == b"data: [DONE]":
                     break
-            reply = clean_for_speech(parse_sse(lines))
+                value = parse_sse([line])
+                if value:
+                    characters += len(value)
+                    if characters > MAX_REPLY: raise BrainUnavailable('agent response too long')
+                    fragments.append(value)
+                    if on_text is not None: on_text(value)
+            reply = (clean_for_speech if speech else clean_for_panel)(''.join(fragments))
         except BrainUnavailable:
             with self.lock:
                 self.failures += 1
@@ -204,6 +244,7 @@ class AgentBrain:
                 self.last_error = type(error).__name__
             raise BrainUnavailable(type(error).__name__) from None
         finally:
+            finished.set()
             if conn is not None:
                 conn.close()
             if held:
@@ -228,4 +269,4 @@ class AgentBrain:
             self.last_ms = round((time.monotonic() - started) * 1000, 1)
             self.last_at = self.clock()
             self.last_error = None
-        return reply[:MAX_REPLY]
+        return reply

@@ -12,6 +12,7 @@ from butler_ambient.delivery import Delivery, ZONE
 from butler_ambient.policy import Evidence
 from butler_ambient.sensing import Batch
 from butler_ambient.service import Service
+from butler_ambient.listening import Listening
 from butler_ambient.store import Store
 
 
@@ -25,7 +26,9 @@ class ConversationTests(unittest.TestCase):
         self.voice = Conversation(self.service)
         self.service.voice = self.voice
         self.voice.model = Mock()
-        self.voice.barge_model = Mock()
+        self.service.listening = Listening(self.service)
+        self.service.listening.model = self.voice.model
+        self.input_samples = 0
         self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
         self.service.gate.enable(True, self.now)
         for _ in range(3):
@@ -42,6 +45,21 @@ class ConversationTests(unittest.TestCase):
     def evidence(self, speakers=frozenset()):
         return Evidence(self.now, True, True, frozenset({"owner"}), True, speakers)
 
+    def feed(self, batch, evidence):
+        from dataclasses import replace
+        listening = self.service.listening
+        batch = replace(batch, start=self.now-1, end=self.now, stream_id='fixture',
+                        sample_start=self.input_samples, sample_end=self.input_samples+len(batch.pcm)//2)
+        self.input_samples += len(batch.pcm)//2
+        evidence = replace(evidence, captured_at=self.now)
+        speaking = evidence.speech_detected or evidence.voice_ids == frozenset({'owner'})
+        if not isinstance(self.voice.model.transcribe.return_value, str):
+            self.voice.model.transcribe.return_value = 'Батлер, пример речи.'
+        with patch.object(Listening, 'speech', return_value=speaking), \
+             patch.object(Conversation, '_silence_tail', return_value=0 if speaking else 1):
+            listening.feed(batch, evidence)
+        while not listening.jobs.empty(): listening.process(*listening.jobs.get_nowait())
+
     def turn(self, text, *, addressed=True, confidence=.99, alone=True):
         self.voice.model.transcribe.return_value = text
         self.voice.model.generate_json.side_effect = [
@@ -55,20 +73,12 @@ class ConversationTests(unittest.TestCase):
         for text in ("Он сказал Батлер", "Батарея разрядилась", "Включи батат"):
             self.assertFalse(explicit_address(text, ["Бата", "Батлер", "Butler"]))
 
-    def test_separate_dialogue_model_and_quiet_listening_do_not_cancel_passive_analysis(self):
-        self.service.analyzer.model='gemma3:4b'
-        self.voice.model.model='qwen3.5:9b'
-        self.store.set('meeting_mode','quiet')
-        batch=Batch(self.now-1,self.now,[],b'\x10\x01'*16000)
-        with patch.object(Conversation,'ready',new_callable=PropertyMock,return_value=True):
-            self.voice.feed(batch,self.evidence(frozenset({'owner'})))
-            self.service.analyzer.cancel.assert_not_called()
-            self.voice.cancel();self.voice.model.model='gemma3:4b'
-            self.voice.feed(batch,self.evidence(frozenset({'owner'})))
-            self.service.analyzer.cancel.assert_not_called()
-            self.voice.cancel();self.store.set('meeting_mode','available')
-            self.voice.feed(batch,self.evidence(frozenset({'owner'})))
-            self.service.analyzer.cancel.assert_called_once()
+    def test_collecting_audio_does_not_cancel_background_before_a_request_is_admitted(self):
+        self.store.set('meeting_mode', 'quiet')
+        batch = Batch(self.now-1, self.now, [], b'\1\0'*16000)
+        self.feed(batch, self.evidence(frozenset({'owner'})))
+        self.service.analyzer.cancel.assert_not_called()
+        self.assertTrue(self.service.listening.audio)
 
     def test_short_owner_confirmation_is_not_an_echo_of_part_of_another_word(self):
         self.assertFalse(speech_echo("да", "Это важная задача"))
@@ -127,17 +137,17 @@ class ConversationTests(unittest.TestCase):
             self.turn(text)
         self.voice.model.generate_json.assert_not_called()
         self.voice.speak.assert_not_called()
-        self.assertEqual(self.voice.diagnostics()["counts"]["meeting_suppressed"],4)
+        self.assertEqual(self.voice.diagnostics()["counts"]["owner_busy"],4)
 
-    def test_meeting_allows_only_clear_directed_request_without_continuation(self):
+    def test_meeting_followup_needs_positive_local_attribution_dec072(self):
         self.service.control("preferences", {"meeting_mode":"quiet"})
         self.voice.token = threading.Event()
         self.turn("Батлер, ты меня слышишь?")
         self.assertEqual(self.voice.speak.call_args.args[0], HEARING_ACK)
         self.voice.speak.reset_mock()
-        self.turn("А что дальше?")
+        self.turn("А что дальше?", addressed=False)
         self.voice.speak.assert_not_called()
-        self.voice.model.generate_json.assert_not_called()
+        self.voice.model.generate_json.assert_called()
 
     def test_quoted_or_other_interlocutor_command_is_silent_after_semantic_control_decision(self):
         self.service.commands.interpret=Mock(return_value=('silent',{}))
@@ -187,45 +197,35 @@ class ConversationTests(unittest.TestCase):
         self.voice.speak.assert_called_once()
 
     def test_pause_never_runs_asr_and_clears_pending_text_and_pcm(self):
-        self.voice.audio.extend(b"secret")
+        self.service.listening.audio.extend(b"secret")
         self.voice.last_heard = "private"
         self.service.control("enabled", {"value": False})
-        self.assertEqual(self.voice.audio, b"")
+        self.assertEqual(self.service.listening.audio, b"")
         self.assertEqual(self.voice.last_heard, "")
         with self.assertRaises(Canceled): self.turn("Бата, привет")
         self.voice.model.transcribe.assert_not_called()
         self.inputs.cancel_playback.assert_called()
 
-    def test_owner_barge_in_cancels_old_turn_but_preserves_dialogue_context(self):
-        old = self.voice.token
-        self.voice.last_direct = self.now - 2
-        batch = Batch(self.now - 1, self.now, [], b"\0\0" * 16000)
-        with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True):
-            self.voice.feed(batch, self.evidence(frozenset({"owner"})))
-            self.assertTrue(old.is_set())
-            self.assertEqual(self.voice.last_direct, self.now - 2)
-            self.voice.feed(batch, self.evidence())
-        self.assertEqual(self.voice.jobs.qsize(), 1)
-        self.assertEqual(self.voice.state, "listening")
+    def test_raw_audio_preserves_context_until_interruption_is_recognized(self):
+        old = self.voice.token; self.voice.last_direct = self.now-2
+        self.feed(Batch(self.now-1,self.now,[],b'\0'*32000),self.evidence(frozenset({'owner'})))
+        self.assertFalse(old.is_set())
+        self.assertEqual(self.voice.last_direct, self.now-2)
+        self.assertTrue(self.service.listening.audio)
+        self.assertTrue(self.voice.jobs.empty())
 
     def test_self_echo_does_not_cancel_playback_before_address_check(self):
-        self.voice.state, self.voice.phase = "speaking", "playback"
-        self.voice.last_reply = HEARING_ACK
-        self.voice.barge_model.transcribe.return_value = HEARING_ACK
+        self.voice.state, self.voice.phase = 'speaking', 'playback'; self.voice.last_reply = HEARING_ACK
         self.inputs.cancel_playback.reset_mock()
-        self.voice._barge(b"\0\0"*16000,self.voice.token,self.service.voice_gate.generation)
+        self.assertFalse(self.voice.observe_input(HEARING_ACK, 'echo', owner=True))
         self.inputs.cancel_playback.assert_not_called()
-        self.voice.barge_model.generate_json.assert_not_called()
-        self.assertEqual(self.voice.diagnostics()["counts"]["echo_suppressed"], 1)
-        self.assertEqual(self.voice.state, "speaking")
+        self.voice.model.generate_json.assert_not_called()
+        self.assertEqual(self.voice.diagnostics()['counts']['echo_suppressed'], 1)
 
-    def test_policy_cancelled_interruption_is_not_reported_as_asr_failure(self):
-        def cancel(*args,**kwargs):
-            self.voice.token.set()
-            raise RuntimeError('cancelled subprocess')
-        self.voice.barge_model.transcribe.side_effect=cancel
-        self.voice._barge(b'\0\0'*16000,self.voice.token,self.service.voice_gate.generation)
-        self.assertNotIn('failed_interruption',self.voice.diagnostics()['counts'])
+    def test_cancelled_revision_is_not_reported_as_asr_failure(self):
+        self.voice.state = 'speaking'; self.voice.token.set()
+        self.voice.observe_input('Батлер, подожди', 'stale', owner=True)
+        self.assertNotIn('failed_interruption', self.voice.diagnostics()['counts'])
 
     def test_playback_tail_cannot_start_a_new_dialogue_turn(self):
         self.voice.last_spoken = HEARING_ACK
@@ -236,57 +236,39 @@ class ConversationTests(unittest.TestCase):
         self.voice.speak.assert_not_called()
         self.assertEqual(self.voice.diagnostics()["counts"]["echo_suppressed"],1)
 
-    def test_distinct_owner_address_can_interrupt_playback_even_with_uncertain_short_voice(self):
-        self.face_dialogue()
-        self.voice.state, self.voice.phase = "speaking", "playback"
-        self.voice.last_reply = HEARING_ACK
-        self.voice.barge_audio.extend(b"\1\0"*16000)
-        self.voice.barge_model.transcribe.return_value = "Батлер, остановись"
-        self.voice.barge_model.generate_json.return_value = {"addressed":True,"confidence":.99,"intent":"stop","criteria":"","telegram":False}
+    def test_name_stops_output_without_granting_owner_command_authority(self):
+        self.face_dialogue(); self.voice.state, self.voice.phase = 'speaking', 'playback'
         old = self.voice.token
-        self.voice._barge(bytes(self.voice.barge_audio),old,self.service.voice_gate.generation)
-        self.assertTrue(old.is_set())
-        self.inputs.cancel_playback.assert_called()
-        self.assertEqual(self.voice.jobs.qsize(),1)
-        self.assertEqual(self.voice.diagnostics()["counts"]["barge_in_accepted"],1)
-        self.assertEqual(self.store.execute("SELECT * FROM media"),[])
+        self.assertTrue(self.voice.observe_input('Батлер, остановись', 'name', owner=False))
+        self.assertTrue(old.is_set()); self.inputs.cancel_playback.assert_called()
+        self.assertTrue(self.voice.jobs.empty())
 
-    def test_unnamed_stop_interrupts_without_another_model_pass(self):
-        self.face_dialogue()
-        self.voice.state, self.voice.phase = "speaking", "playback"
-        self.voice.last_reply = HEARING_ACK
-        self.voice.barge_audio.extend(b"\1\0"*16000)
-        self.voice.barge_model.transcribe.return_value = "Подожди, не перебивай"
+    def test_verified_owner_stop_needs_no_extra_model(self):
+        self.face_dialogue(); self.voice.state, self.voice.phase = 'speaking', 'playback'
         old = self.voice.token
-        self.voice._barge(bytes(self.voice.barge_audio), old, self.service.voice_gate.generation)
-        self.assertTrue(old.is_set())
-        self.voice.barge_model.generate_json.assert_not_called()
-        self.inputs.cancel_playback.assert_called()
+        self.assertTrue(self.voice.observe_input('Подожди, не перебивай', 'stop', owner=True))
+        self.assertTrue(old.is_set()); self.voice.model.generate_json.assert_not_called()
 
     def test_permitted_pre_roll_preserves_early_words_and_is_erased_on_pause(self):
         first, second = b"\1\0"*16000, b"\2\0"*16000
         with patch.object(Conversation,"ready",new_callable=PropertyMock,return_value=True):
-            self.voice.feed(Batch(self.now-1,self.now,[],first),self.evidence())
-            self.voice.feed(Batch(self.now-1,self.now,[],second),self.evidence(frozenset({"owner"})))
-        self.assertEqual(bytes(self.voice.audio),first+second)
+            self.feed(Batch(self.now-1,self.now,[],first),self.evidence())
+            self.feed(Batch(self.now-1,self.now,[],second),self.evidence(frozenset({"owner"})))
+        self.assertEqual(bytes(self.service.listening.audio),first+second)
         self.service.control("enabled",{"value":False})
-        self.assertEqual(self.voice.pre_roll,b"")
-        self.assertEqual(self.voice.barge_audio,bytearray())
+        self.assertEqual(self.service.listening.pre_roll,b"")
+        self.assertFalse(self.voice.accepted_interruptions)
 
-    def test_name_followed_by_pause_and_question_keeps_unfinished_wake_audio(self):
-        first = b"\1\0" * 16000
-        second = b"\2\0" * 16000
-        self.voice.pending_pcm = first
-        self.voice.pending_generation = self.service.voice_gate.generation
-        self.voice.phase, self.voice.state = "address", "thinking"
-        old = self.voice.token
-        with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True):
-            self.voice.feed(Batch(self.now-1,self.now,[],second), self.evidence(frozenset({"owner"})))
-        self.assertTrue(old.is_set())
-        self.assertEqual(bytes(self.voice.audio), first + second)
-        self.service.control("enabled", {"value": False})
-        self.assertEqual(bytes(self.voice.audio), b"")
-        self.assertEqual(self.voice.pending_pcm, b"")
+    def test_name_and_continued_speech_belong_to_the_shared_capture(self):
+        first, second = b'\1\0'*16000, b'\2\0'*16000
+        self.feed(Batch(self.now-1,self.now,[],first),self.evidence(frozenset({'owner'})))
+        identifier = self.service.listening.utterance
+        self.feed(Batch(self.now-1,self.now,[],second),self.evidence(frozenset({'owner'})))
+        self.assertEqual(self.service.listening.utterance, identifier)
+        self.assertEqual(bytes(self.service.listening.audio), first+second)
+        self.assertTrue(self.voice.jobs.empty())
+        self.service.control('enabled', {'value': False})
+        self.assertFalse(self.service.listening.audio)
 
     def test_interjection_or_short_vocative_before_the_name_is_a_call(self):
         aliases = ["Бата", "Батлер", "Butler"]
@@ -317,8 +299,8 @@ class ConversationTests(unittest.TestCase):
 
     def test_other_verified_speaker_never_enters_owner_conversation(self):
         with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True):
-            self.voice.feed(Batch(0, 1, [], b"private"), self.evidence(frozenset({"guest"})))
-        self.assertFalse(self.voice.audio)
+            self.feed(Batch(0, 1, [], b"private"), self.evidence(frozenset({"guest"})))
+        self.assertFalse(self.service.listening.audio)
         self.assertTrue(self.voice.jobs.empty())
 
     def test_advice_across_voice_and_telegram_uses_same_durable_quota(self):
@@ -350,8 +332,8 @@ class ConversationTests(unittest.TestCase):
         self.face_dialogue()
         with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True):
             batch = Batch(self.now-1, self.now, [], b"\0\0"*16000)
-            self.voice.feed(batch, self.face_evidence())
-            self.voice.feed(batch, self.face_evidence(False))
+            self.feed(batch, self.face_evidence())
+            self.feed(batch, self.face_evidence(False))
         self.assertEqual(self.voice.jobs.qsize(), 1)
         self.voice.model.transcribe.return_value = "Бата, привет"
         self.voice.model.generate_json.side_effect = [
@@ -376,8 +358,8 @@ class ConversationTests(unittest.TestCase):
         self.voice.model.generate_json.return_value = {"addressed":True,"confidence":.9,"intent":"chat","criteria":"","telegram":False,"reply":"Начните с важной задачи."}
         with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True):
             batch = Batch(self.now-1, self.now, [], b"\0\0"*16000)
-            self.voice.feed(batch, self.face_evidence())
-            self.voice.feed(batch, self.face_evidence(False))
+            self.feed(batch, self.face_evidence())
+            self.feed(batch, self.face_evidence(False))
         self.voice._turn(*self.voice.jobs.get_nowait())
         self.voice.speak.assert_called_once()
         self.assertFalse(self.service.gate.permits(self.now))
@@ -388,15 +370,21 @@ class ConversationTests(unittest.TestCase):
         self.service.verifier.last_voice_failure = "voice-uncertain"
         self.service.verifier.verify.side_effect = lambda batch, refs: Evidence(batch.end, False, True,
             voice_ids=frozenset({"owner"}), speech_detected=True, voice_certain=True)
-        with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True):
+        with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True), \
+             patch.object(Listening, "speech", return_value=True), \
+             patch.object(Conversation, "_silence_tail", return_value=0):
             for _ in range(3):
                 self.now += 1
                 self.assertFalse(self.service.accept_batch(Batch(self.now-1, self.now, [], b"\0"*32000)))
             self.assertEqual(self.service.dialogue_gate.confirmed_by, "voice")
-            self.assertTrue(self.voice.alone)
+            self.assertTrue(self.service.dialogue_gate.allowed)
             self.service.verifier.verify.side_effect = lambda batch, refs: Evidence(batch.end, False, True, voice_certain=True)
             self.now += 1
-            self.service.accept_batch(Batch(self.now-1, self.now, [], b"\0"*32000))
+            with patch.object(Listening, "speech", return_value=False):
+                self.service.accept_batch(Batch(self.now-1, self.now, [], b"\0"*32000))
+        self.voice.model.transcribe.return_value = "Что сделать в первую очередь?"
+        while not self.service.listening.jobs.empty():
+            self.service.listening.process(*self.service.listening.jobs.get_nowait())
         self.voice.model.transcribe.return_value = "Что сделать в первую очередь?"
         self.voice.model.generate_json.return_value = {"addressed":True,"confidence":.9,"intent":"chat","criteria":"","telegram":False,"reply":"Начните с важного дела."}
         self.voice._turn(*self.voice.jobs.get_nowait())
@@ -416,12 +404,12 @@ class ConversationTests(unittest.TestCase):
 
     def test_service_face_lease_never_records_and_company_cancels_dialogue(self):
         self.store.set("face_wake_dialogue", True)
-        self.voice.feed = Mock()
+        self.service.listening.feed = Mock(wraps=self.service.listening.feed)
         self.service.verifier.verify.side_effect = lambda batch, refs: self.face_evidence()
         for _ in range(3):
             self.now += 1
             self.assertFalse(self.service.accept_batch(Batch(self.now-1,self.now,[b"frame"],b"\0\0"*16000)))
-        self.voice.feed.assert_called_once()
+        self.assertEqual(self.service.listening.feed.call_count, 3)
         self.assertTrue(self.service.voice_gate.permits(self.now))
         self.assertFalse(self.service.status()["recording_allowed"])
         self.assertEqual(self.store.execute("SELECT * FROM media"), [])

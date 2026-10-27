@@ -1,0 +1,68 @@
+[
+ {
+  "id": "architecture",
+  "use": "Components of a system and how they connect, grouped by role (the default for any architecture question).",
+  "mermaid": "flowchart LR\n  subgraph You[Вы]\n    Voice[Голос]\n    Panel[Панель]\n  end\n  subgraph Core[Butler]\n    Ambient[Ambient service]\n    Agent[Агент]\n    Vault[(Хранилище)]\n  end\n  subgraph World[Внешний мир]\n    Cloud[Модель]\n    Mail[Почта]\n  end\n  Voice --> Ambient\n  Panel <--> Ambient\n  Ambient --> Agent\n  Agent --> Vault\n  Agent -. подписка .-> Cloud\n  Agent --> Mail\n    classDef core fill:#143d2a,stroke:#7fbf92,color:#d6ffe0\n    classDef ext fill:#14263d,stroke:#6fa8dc,color:#d6e8ff\n    classDef store fill:#2a1440,stroke:#b38cdc,color:#ecdcff\n    classDef warn fill:#3d2a14,stroke:#e0a458,color:#ffe9c9\n  class Voice,Panel,Ambient,Agent core\n  class Cloud,Mail ext\n  class Vault store\n",
+  "title": "architecture"
+ },
+ {
+  "id": "layers",
+  "use": "A stack of layers, top to bottom (UI, services, data; levels of trust).",
+  "mermaid": "flowchart TB\n  subgraph L1[Интерфейс]\n    A1[Панель]\n    A2[Голос]\n  end\n  subgraph L2[Сервисы]\n    B1[Ambient]\n    B2[Диспетчер задач]\n  end\n  subgraph L3[Данные]\n    C1[(Заметки)]\n    C2[(Память)]\n  end\n  L1 --> L2\n  L2 --> L3\n    classDef core fill:#143d2a,stroke:#7fbf92,color:#d6ffe0\n    classDef ext fill:#14263d,stroke:#6fa8dc,color:#d6e8ff\n    classDef store fill:#2a1440,stroke:#b38cdc,color:#ecdcff\n    classDef warn fill:#3d2a14,stroke:#e0a458,color:#ffe9c9\n  class A1,A2,B1,B2 core\n  class C1,C2 store\n",
+  "title": "layers"
+ },
+ {
+  "id": "pipeline",
+  "use": "Steps of a process with a decision and a failure path.",
+  "mermaid": "flowchart LR\n  Start([Запрос]) --> Check{Разрешено?}\n  Check -- да --> Work[Выполнить]\n  Check -- нет --> Ask[Спросить владельца]\n  Ask --> Check\n  Work --> Done([Готово])\n  Work -. ошибка .-> Fail[Сообщить и остановиться]\n    classDef core fill:#143d2a,stroke:#7fbf92,color:#d6ffe0\n    classDef ext fill:#14263d,stroke:#6fa8dc,color:#d6e8ff\n    classDef store fill:#2a1440,stroke:#b38cdc,color:#ecdcff\n    classDef warn fill:#3d2a14,stroke:#e0a458,color:#ffe9c9\n  class Work,Start,Done core\n  class Ask,Fail warn\n",
+  "title": "pipeline"
+ },
+ {
+  "id": "c4-context",
+  "use": "Who uses the system and which outside systems it talks to (C4 level 1).",
+  "mermaid": "C4Context\n  title Контекст системы\n  Person(owner, \"Владелец\", \"Говорит и печатает\")\n  System(butler, \"Butler\", \"Личный ассистент\")\n  System_Ext(cloud, \"Модель\", \"Подписка\")\n  System_Ext(mail, \"Почта\", \"Mail.app\")\n  Rel(owner, butler, \"Просит\")\n  Rel(butler, cloud, \"Думает через\")\n  Rel(butler, mail, \"Читает\")\n  UpdateElementStyle(owner, $bgColor=\"#143d2a\", $fontColor=\"#d6ffe0\", $borderColor=\"#7fbf92\")\n  UpdateElementStyle(butler, $bgColor=\"#143d2a\", $fontColor=\"#d6ffe0\", $borderColor=\"#7fbf92\")\n  UpdateElementStyle(cloud, $bgColor=\"#14263d\", $fontColor=\"#d6e8ff\", $borderColor=\"#6fa8dc\")\n  UpdateElementStyle(mail, $bgColor=\"#14263d\", $fontColor=\"#d6e8ff\", $borderColor=\"#6fa8dc\")\n  UpdateRelStyle(owner, butler, $textColor=\"#d6ffe0\", $lineColor=\"#7fbf92\")\n  UpdateRelStyle(butler, cloud, $textColor=\"#d6ffe0\", $lineColor=\"#7fbf92\")\n  UpdateRelStyle(butler, mail, $textColor=\"#d6ffe0\", $lineColor=\"#7fbf92\")\n  UpdateLayoutConfig($c4ShapeInRow=\"2\", $c4BoundaryInRow=\"1\")\n",
+  "title": "c4-context"
+ },
+ {
+  "id": "sequence",
+  "use": "A request travelling between actors over time.",
+  "mermaid": "sequenceDiagram\n  autonumber\n  participant O as Владелец\n  participant P as Панель\n  participant A as Агент\n  O->>P: Вопрос\n  P->>A: Запрос\n  A-->>P: Ответ\n  P-->>O: Карточка и кнопки\n  Note over P,A: Подтверждение только в терминале\n",
+  "title": "sequence"
+ },
+ {
+  "id": "state",
+  "use": "Lifecycle of an object: states and the transitions between them.",
+  "mermaid": "stateDiagram-v2\n  [*] --> Ожидание\n  Ожидание --> Выполнение: запрос\n  Выполнение --> Готово: успех\n  Выполнение --> Ошибка: сбой\n  Ошибка --> Ожидание: повтор\n  Готово --> [*]\n",
+  "title": "state"
+ },
+ {
+  "id": "er",
+  "use": "A data model: entities and how they relate.",
+  "mermaid": "erDiagram\n  OWNER ||--o{ TASK : \"создаёт\"\n  TASK ||--o{ NOTE : \"порождает\"\n  OWNER {\n    string name\n  }\n  TASK {\n    string title\n    string status\n  }\n  NOTE {\n    string path\n  }\n",
+  "title": "er"
+ },
+ {
+  "id": "timeline",
+  "use": "A history or a plan along time.",
+  "mermaid": "timeline\n  title Этапы\n  Октябрь : Панель : Дисплей\n  Ноябрь : Кнопки : Схемы\n  Декабрь : Диагностика\n",
+  "title": "timeline"
+ },
+ {
+  "id": "bars",
+  "use": "Numbers to compare (sizes, counts, progress). Keep to 3-8 bars.",
+  "mermaid": "%%{init: {\"themeVariables\": {\"xyChart\": {\"plotColorPalette\": \"#3ddc84\"}}}}%%\nxychart-beta\n  title \"Сообщения за неделю\"\n  x-axis [\"пн\", \"вт\", \"ср\", \"чт\", \"пт\"]\n  y-axis \"Штук\" 0 --> 100\n  bar [20, 45, 30, 80, 55]\n",
+  "title": "bars"
+ },
+ {
+  "id": "quadrant",
+  "use": "Compare options on two axes (effort against value, risk against benefit).",
+  "mermaid": "quadrantChart\n  title Варианты\n  x-axis \"Дёшево\" --> \"Дорого\"\n  y-axis \"Мало пользы\" --> \"Много пользы\"\n  quadrant-1 \"Делать\"\n  quadrant-2 \"Планировать\"\n  quadrant-3 \"Забыть\"\n  quadrant-4 \"Спорно\"\n  \"Кнопки\": [0.3, 0.8]\n  \"Схемы\": [0.5, 0.7]\n  \"Диагностика\": [0.7, 0.6]\n",
+  "title": "quadrant"
+ },
+ {
+  "id": "mindmap",
+  "use": "Break a topic down into parts, or sketch options.",
+  "mermaid": "mindmap\n  root((Дисплей))\n    Карточки\n      Текст\n      Схема\n      Изображение\n    Кнопки\n      Ответ\n      Ссылка\n      Finder\n    Холст\n      Перерисовка\n",
+  "title": "mindmap"
+ }
+]

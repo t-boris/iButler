@@ -16,6 +16,9 @@ class Meeting:
         self.state = 'checking' if self.quiet else 'not-configured'
         self.fresh = False
         self.input_streak = 0      # consecutive fresh checks with a microphone app: quiet needs three (3 s)
+        self.last_sample_at = float('-inf')
+        self.last_input_apps = ()
+        self.automatic_quiet, self.automatic_state = self.quiet, self.state
 
     def update(self):
         now = self.service.clock()
@@ -30,7 +33,13 @@ class Meeting:
         valid = lambda values: isinstance(values, list) and all(isinstance(x, str) and len(x) <= 80 for x in values)
         if not valid(inputs) or not valid(outputs):
             self.fresh = False; inputs = outputs = []
-        self.input_streak = self.input_streak + 1 if (self.fresh and inputs) else 0
+        if not self.fresh:
+            self.input_streak = 0
+        elif at > self.last_sample_at:
+            signature = tuple(sorted(set(inputs)))
+            self.input_streak = (self.input_streak + 1 if signature == self.last_input_apps else 1) if inputs else 0
+            self.last_input_apps = signature
+            self.last_sample_at = at
         if self.fresh and inputs and self.input_streak >= self.REQUIRED_CHECKS:
             self.active_apps = inputs[:8]
             self.last_active = now
@@ -53,12 +62,16 @@ class Meeting:
             quiet, state = False, 'detector-unavailable'
         else:
             quiet, state = False, 'not-configured'
+        self.automatic_quiet, self.automatic_state = quiet, state
+        attention = getattr(self.service, "attention", None)
+        manual = getattr(attention, "manual_mode", None)
+        if manual == "free": quiet, state = False, 'manual-attention-free'
+        elif manual == "busy": quiet, state = True, 'manual-attention-busy'
         changed_to_quiet = quiet and not self.quiet
         if quiet != self.quiet:
             self.revision += 1
         self.quiet, self.state = quiet, state
-        if changed_to_quiet:
-            self.service.commands.clear()
+        if changed_to_quiet and manual != "busy":
             voice = self.service.voice
             if voice is not None:
                 debug = getattr(voice, '_debug', None)
@@ -71,7 +84,6 @@ class Meeting:
         return changed_to_quiet
 
     def snapshot(self):
-        self.update()
         return {'quiet':self.quiet, 'state':self.state, 'fresh':self.fresh,
                 'mode':self.service.store.get('meeting_mode', 'auto'),
                 'apps':list(self.active_apps), 'revision':self.revision,

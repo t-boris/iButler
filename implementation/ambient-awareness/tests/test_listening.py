@@ -42,6 +42,127 @@ class ListeningTests(unittest.TestCase):
         self.l.process(b'\0'*16000,self.l.token,self.now,False,time.monotonic())
         self.assertEqual(self.l.counts.get('asr-empty'),1)                      # half a second of noise stays silent
 
+    def test_visible_drafts_reconcile_with_final_identity_and_cannot_dispatch_twice(self):
+        self.admit()
+        identifier = self.l._begin(self.now-2)
+        self.l._draft(identifier, 'Эй Батлер помоги')
+        self.assertEqual(self.l.snapshot()['transcript']['state'], 'draft')
+        self.assertTrue(self.s.voice.jobs.empty())
+        self.l._draft(identifier, 'Эй Батлер помоги почистить диск')
+        self.l.utterance = None
+        self.l.model.transcribe.return_value = 'Эй, Батлер, помоги почистить диск.'
+        args = (b'\0'*64000,self.l.token,self.now,True,time.monotonic(),False,identifier)
+        self.l.process(*args)
+        self.assertEqual(self.l.snapshot()['transcript']['id'], identifier)
+        self.assertEqual(self.l.snapshot()['transcript']['state'], 'final')
+        self.assertEqual(self.s.voice.jobs.qsize(),1)
+        self.l.process(*args)
+        self.assertEqual(self.s.voice.jobs.qsize(),1)
+
+    def test_completed_phrases_keep_fifo_order_and_overflow_is_visible(self):
+        with patch.object(Listening,'speech',return_value=True), \
+             patch.object(Conversation,'_silence_tail',return_value=1):
+            for n in range(4):
+                self.now += 1
+                self.l.feed(Batch(self.now-1,self.now,[],bytes([n+1,0])*16000))
+        self.assertEqual(self.l.jobs.qsize(),3)
+        self.assertEqual([self.l.jobs.get_nowait()[0][:2] for _ in range(3)],
+                         [b'\1\0',b'\2\0',b'\3\0'])
+        self.assertEqual(self.l.counts.get('queue-full'),1)
+        self.assertEqual(self.l.snapshot()['transcript']['state'],'queue-full')
+
+    def test_owner_followup_preserves_the_disk_task_still_waiting_for_address_check(self):
+        self.admit()
+        original = 'Я хочу, чтобы ты помог почистить диск на компьютере.'
+        followup = 'И показывай каждый шаг на дисплее, переспрашивай перед удалением.'
+        self.process(original,owner=True)
+        first = self.s.voice.jobs.get_nowait()
+        original_id = self.s.feedback.by_token[first[1]]
+        self.s.voice.token = first[1]  # the worker has taken this request
+        self.s.voice.state, self.s.voice.phase = 'thinking', 'address'
+        self.now += 1
+        self.process(followup,owner=True)
+        task = self.s.voice.jobs.get_nowait()
+        self.assertEqual(task[-1], original+' '+followup)
+        self.assertTrue(first[1].is_set())
+        self.assertEqual(self.s.feedback.by_token[task[1]],original_id)
+        self.assertIn('continuation-joined',[e['event'] for e in self.s.voice.debug_events])
+        self.assertFalse(self.s.voice.jobs.qsize())
+
+    def test_sparse_speech_continues_an_admitted_phrase_without_start_threshold(self):
+        chunks = [bytes([i, 0])*16000 for i in range(1, 5)]
+        with patch.object(Listening, 'speech', side_effect=[True, False, True, False]), \
+             patch.object(Listening, 'confirmation_candidate', side_effect=[True, False]), \
+             patch.object(Conversation, '_silence_tail', return_value=0):
+            for pcm in chunks[:3]:
+                self.now += 1
+                self.l.feed(Batch(self.now-1, self.now, [], pcm))
+                self.assertTrue(self.l.jobs.empty(), 'ongoing speech became a completed turn')
+            self.now += 1
+            self.l.feed(Batch(self.now-1, self.now, [], chunks[-1]))
+        task = self.l.jobs.get_nowait()
+        self.assertTrue(task[-1])
+        self.assertEqual(task[0], b''.join(chunks))
+
+    def test_long_continuous_speech_is_one_request_with_non_actionable_segments(self):
+        self.admit()
+        self.l.model.transcribe.side_effect = [
+            'Батлер, помоги почистить диск на компьютере',
+            'на компьютере, показывай каждый шаг и спрашивай перед удалением.']
+        with patch.object(Listening, 'speech', return_value=True), \
+             patch.object(Conversation, '_silence_tail', return_value=0):
+            for _ in range(20):
+                self.now += 1
+                self.l.feed(Batch(self.now-1, self.now, [], b'\1\0'*16000))
+        identifier = self.l.utterance
+        task = self.l.jobs.get_nowait()
+        self.assertFalse(task[-1], 'buffer capacity is not end of thought')
+        self.l.process(*task)
+        self.assertTrue(self.s.voice.jobs.empty())
+        self.assertEqual(self.l.snapshot()['transcript']['state'], 'draft')
+        self.assertEqual(self.l.utterance, identifier)
+        self.assertEqual(len(self.l.audio), 32000)
+        with patch.object(Listening, 'speech', return_value=False), \
+             patch.object(Listening, 'confirmation_candidate', return_value=False), \
+             patch.object(Conversation, '_silence_tail', return_value=1):
+            self.now += 1
+            self.l.feed(Batch(self.now-1, self.now, [], b'\0'*32000))
+        task = list(self.l.jobs.get_nowait()); task[3] = True
+        self.l.process(*task)
+        self.assertEqual(self.l.snapshot()['transcript']['id'], identifier)
+        request = self.s.voice.jobs.get_nowait()
+        self.assertEqual(request[-1], 'Батлер, помоги почистить диск на компьютере, показывай каждый шаг и спрашивай перед удалением.')
+        self.l.process(*task)
+        self.assertTrue(self.s.voice.jobs.empty(), 'same final dispatched twice')
+
+    def test_missing_long_segment_cannot_dispatch_a_truncated_request(self):
+        self.admit()
+        identifier = self.l._begin(self.now-21)
+        self.l.model.transcribe.return_value = ''
+        self.l.process(b'\0'*32000, self.l.token, self.now, True, time.monotonic(), False, identifier, False)
+        self.l.model.transcribe.return_value = 'и удали всё'
+        self.l.process(b'\0'*32000, self.l.token, self.now, True, time.monotonic(), False, identifier, True)
+        self.assertTrue(self.s.voice.jobs.empty())
+        self.assertEqual(self.l.snapshot()['transcript']['state'], 'unrecognized')
+
+    def test_prefix_noise_cannot_overwrite_the_last_utterance_outcome(self):
+        self.admit(); self.process('Батлер, ты здесь?',owner=True)
+        row = self.s.feedback.rows[-1]
+        previous = dict(row['decision'])
+        self.l.mark('speech-candidate','Слышу начало фразы.')
+        self.assertEqual(row['decision'],previous)
+
+    def test_pause_and_stale_work_cannot_publish_or_dispatch_a_draft(self):
+        identifier = self.l._begin(self.now-10)
+        self.l._draft(identifier,'Батлер')
+        self.l.process(b'\0'*32000,self.l.token,self.now-9,True,time.monotonic(),False,identifier)
+        self.assertEqual(self.l.snapshot()['transcript']['state'],'expired')
+        self.l.model.transcribe.assert_not_called()
+        self.l.clear()
+        self.l._draft(identifier,'late old speech')
+        self.assertIsNone(self.l.snapshot()['transcript'])
+        self.assertTrue(self.s.voice.jobs.empty())
+
     def admit(self):
         for _ in range(3):
             self.now+=1
@@ -109,6 +230,29 @@ class ListeningTests(unittest.TestCase):
         self.assertEqual(len(task[0]),4*32000)
         self.assertEqual(task[0][:2],b'\x01\x00')
         self.assertFalse(task[3])
+
+    def test_subthreshold_wake_prefix_is_not_overwritten_before_speech_admission(self):
+        chunks=[bytes([i,0])*16000 for i in range(1,6)]
+        with patch.object(Listening,'speech',side_effect=[False,False,False,True,False]), \
+             patch.object(Listening,'confirmation_candidate',side_effect=[False,True,True,False]), \
+             patch.object(Conversation,'_silence_tail',return_value=0):
+            for pcm in chunks:
+                self.now+=1
+                self.l.feed(Batch(self.now-1,self.now,[],pcm),Evidence(self.now,False,True))
+        task=self.l.jobs.get_nowait()
+        self.assertEqual(task[0],b''.join(chunks))
+        self.assertEqual(len(task[3].items),5)
+        self.assertGreater(self.l.counts.get('speech-candidate',0),0)
+
+    def test_candidate_prefix_is_bounded_and_pause_erases_it(self):
+        with patch.object(Listening,'speech',return_value=False),patch.object(Listening,'confirmation_candidate',return_value=True):
+            for _ in range(20):
+                self.now+=1
+                self.l.feed(Batch(self.now-1,self.now,[],b'\1\0'*16000),Evidence(self.now,False,True))
+        self.assertEqual(len(self.l.pre_roll),8*32000)
+        self.assertEqual(len(self.l.pre_checks),8)
+        self.l.clear()
+        self.assertFalse(self.l.pre_roll);self.assertFalse(self.l.pre_checks)
 
     def test_complete_phrase_survives_small_positive_and_negative_pipe_jitter(self):
         # Native PCM is contiguous, but each full second is timestamped when

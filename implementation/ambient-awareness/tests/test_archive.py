@@ -306,38 +306,44 @@ class ArchiveTests(unittest.TestCase):
         self.assertEqual(batch.frames,[jpeg.tobytes()])
         self.assertLess(len(saved),len(jpeg.tobytes())/4)
 
-    def test_voice_lease_does_not_cut_the_first_two_verified_owner_speech_seconds(self):
+    def test_same_assembler_preserves_the_first_two_qualifying_owner_seconds(self):
+        from butler_ambient.conversation import Conversation
+        from butler_ambient.listening import Listening
         self.store.execute("INSERT INTO agreements VALUES ('owner','Owner',1,'{}')")
-        self.store.set('face_wake_dialogue',True);self.s.voice=Mock()
-        self.s.verifier.verify.side_effect=lambda b,r:Evidence(b.end,False,True,
+        self.store.set('face_wake_dialogue', True); self.store.set('continuous_archive', False)
+        self.s.voice = Conversation(self.s); self.s.listening = Listening(self.s)
+        self.s.verifier.verify.side_effect = lambda b,r: Evidence(b.end,False,True,
             voice_ids=frozenset({'owner'}),speech_detected=True,voice_certain=True)
-        batches=[self.batch(frames=[],pcm=bytes([value,0])*16000) for value in (1,2,3)]
-        # Simulate actual successive arrivals, not three old queued buffers.
-        for batch in batches:
-            self.now=batch.end;self.s.accept_batch(batch)
-            if batch is not batches[-1]:self.s.voice.feed.assert_not_called()
-        self.s.voice.feed.assert_called_once()
-        admitted=self.s.voice.feed.call_args.args[0]
-        self.assertEqual(admitted.pcm,b''.join(b.pcm for b in batches))
+        batches = [self.batch(frames=[],pcm=bytes([n,0])*16000) for n in (1,2,3)]
+        with patch.object(Listening, 'speech', return_value=True), patch.object(Conversation, '_silence_tail', return_value=1):
+            for b in batches:
+                self.now=b.end; self.s.accept_batch(b)
+        task = self.s.listening.jobs.get_nowait()
+        self.assertEqual(task[0], b''.join(b.pcm for b in batches))
+        self.assertEqual(len(task[3].items), 3)
+        self.assertTrue(self.s.dialogue_gate.permits(self.now))
         self.assertFalse(self.s.gate.permits(self.now))
-        self.assertEqual(self.s.dialogue_prefix,[])
+        self.assertTrue(self.s.voice.jobs.empty())
 
-    def test_pause_unknown_voice_or_capture_gap_discards_unadmitted_prefix(self):
+    def test_pause_unknown_voice_and_capture_gap_clear_only_the_unadmitted_input(self):
+        from butler_ambient.conversation import Conversation
+        from butler_ambient.listening import Listening
         self.store.execute("INSERT INTO agreements VALUES ('owner','Owner',1,'{}')")
-        self.store.set('face_wake_dialogue',True);self.s.voice=Mock()
-        self.s.verifier.verify.side_effect=lambda b,r:Evidence(b.end,False,True,
-            voice_ids=frozenset({'owner'}),speech_detected=True,voice_certain=True)
-        self.s.accept_batch(self.batch(frames=[]));self.assertTrue(self.s.dialogue_prefix)
-        self.s.control('enabled',{'value':False});self.assertEqual(self.s.dialogue_prefix,[])
-        self.s.control('enabled',{'value':True})
-        self.s.accept_batch(self.batch(frames=[]));self.assertTrue(self.s.dialogue_prefix)
-        self.s.verifier.verify.side_effect=lambda b,r:Evidence(b.end,False,True,speech_detected=True)
-        self.s.accept_batch(self.batch(frames=[]));self.assertEqual(self.s.dialogue_prefix,[])
-        self.s.verifier.verify.side_effect=lambda b,r:Evidence(b.end,False,True,
-            voice_ids=frozenset({'owner'}),speech_detected=True,voice_certain=True)
-        self.s.accept_batch(self.batch(frames=[]));self.assertTrue(self.s.dialogue_prefix)
-        self.s.accept_batch(self.batch(frames=[],gaps=('microphone',)));self.assertEqual(self.s.dialogue_prefix,[])
-        self.s.voice.feed.assert_not_called()
+        self.store.set('face_wake_dialogue', True); self.store.set('continuous_archive', False)
+        self.s.voice = Conversation(self.s); self.s.listening = Listening(self.s)
+        owner = lambda b,r: Evidence(b.end,False,True,voice_ids=frozenset({'owner'}),speech_detected=True,voice_certain=True)
+        self.s.verifier.verify.side_effect = owner
+        with patch.object(Listening, 'speech', return_value=True), patch.object(Conversation, '_silence_tail', return_value=0):
+            self.s.accept_batch(self.batch(frames=[])); self.assertTrue(self.s.listening.audio)
+            self.s.control('enabled', {'value': False}); self.assertFalse(self.s.listening.audio)
+            self.s.control('enabled', {'value': True})
+            self.s.accept_batch(self.batch(frames=[])); self.assertTrue(self.s.listening.audio)
+            self.s.verifier.verify.side_effect = lambda b,r: Evidence(b.end,False,True,speech_detected=True)
+            self.s.accept_batch(self.batch(frames=[])); self.assertFalse(self.s.listening.audio)
+            self.s.verifier.verify.side_effect = owner
+            self.s.accept_batch(self.batch(frames=[])); self.assertTrue(self.s.listening.audio)
+            self.s.accept_batch(self.batch(frames=[],gaps=('microphone',))); self.assertFalse(self.s.listening.audio)
+        self.assertTrue(self.s.voice.jobs.empty())
 
 
 if __name__=='__main__':unittest.main()

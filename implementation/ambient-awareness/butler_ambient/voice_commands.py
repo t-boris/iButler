@@ -99,6 +99,8 @@ def confirmation(text, aliases=("Бата", "Батлер", "Butler")):
     if words in {"да", "подтверждаю", "да подтверждаю", "разрешаю", "согласен", "выполняй",
             "подтверждаю выполнение этой задачи", "подтверждаю выполнение этой операции",
             "подтверждаю выполнение этой операции с указанными параметрами"}: return True
+    if re.fullmatch(r'(?:да )?(?:есть )?(?:моё|мое) подтверждение(?: есть)?', words): return True
+    if re.fullmatch(r'(?:да )?я (?:это )?(?:подтверждаю|разрешаю)', words): return True
     return None
 
 
@@ -169,6 +171,11 @@ class VoiceCommands:
 
     def clear(self):
         with self.lock:
+            pending = self.pending
+            session = getattr(getattr(self.service, 'voice', None), 'session', None)
+            digest = getattr(pending, 'digest', None)
+            if digest is not None and session is not None and getattr(session, 'proposal', None) == digest:
+                session.answered()
             self.pending = None
             self.revision += 1
             return self.revision
@@ -317,6 +324,10 @@ class VoiceCommands:
             if generation != self.service.voice_gate.generation or not self.service.voice_gate.permits(self.service.clock()):
                 return "Операция отменена: потеряно подтверждение владельца."
             self.pending = Pending(capability,dict(parameters),review,hashlib.sha256(body.encode()).hexdigest(),generation,self.service.clock()+self.TTL)
+            voice = getattr(self.service, 'voice', None)
+            if voice is not None:
+                voice.session.ask(review + '. Подтверждаете это изменение?', self.service.clock(),
+                                  expects=capability, proposal=self.pending.digest)
             self.last_result = "awaiting-owner-confirmation"
             return review + ". Подтверждаете это изменение?"
 

@@ -37,7 +37,9 @@ def main():
         # butler_ambient-0.3.10-py3-none-any.whl: compare as numbers, not text (0.3.10 sorts before 0.3.9 as text).
         return tuple(int(part) if part.isdigit() else 0 for part in path.name.split("-")[1].split("."))
     wheel = max((ROOT / "build/wheels").glob("*.whl"), key=wheel_version)
-    run("uv", "pip", "install", "--python", str(python), "--no-deps", "--reinstall", str(wheel),
+    core_wheel = max((ROOT.parent / "butler-core/build/wheels").glob("butler_core-*.whl"), key=wheel_version)
+    if wheel_version(core_wheel) < (0, 14, 0): raise RuntimeError("Build butler-core >=0.14.0 before deploying conversation feedback")
+    run("uv", "pip", "install", "--python", str(python), "--no-deps", "--reinstall", str(core_wheel), str(wheel),
         "opencv-python-headless==4.11.0.86", "resemblyzer==0.1.4", "webrtcvad-wheels==2.0.14", "typing==3.7.4.3")
     # Smart Turn v3 (pipecat-ai, BSD-2) in its own environment: its dependency set (torch, transformers) must not
     # touch the runtime venv. Idempotent; the service runs it as a resident worker (butler_ambient/endpointing.py).
@@ -85,6 +87,12 @@ def main():
         values.setdefault("image_python", str(RUNTIME / "image-env/bin/python"))
         values.setdefault("turn_python", str(RUNTIME / "turn-env/bin/python"))
         values.setdefault("voice_brain", "agent")      # DEC-067: the butler agent answers the owner's addressed words
+        values.setdefault("vault", str(HOME / "Documents/KnowledgeDB"))
+        values.setdefault("workspace", str(HOME / ".openclaw/workspace-butler"))
+        values.setdefault("butler_workspace", str(HOME / ".openclaw/workspace-butler"))
+        values.setdefault("feedback_metadata", str(HOME / ".local/share/butler-core/conversation.sqlite3"))
+        values.setdefault("require_rule_authorization", True)
+        values.setdefault("turn_control", False)  # discussion: owner-speech calibration before active rollout
         configuration.write_text(json.dumps(values, indent=2) + "\n")
         configuration.chmod(0o600)
     plist = {"Label": "com.boris.butler-awareness", "ProgramArguments": [str(contents / "MacOS/ButlerAwareness")],
@@ -94,6 +102,9 @@ def main():
     target = HOME / "Library/LaunchAgents/com.boris.butler-awareness.plist"
     target.write_bytes(plistlib.dumps(plist))
     target.chmod(0o600)
+    from dialogue_server import configure_background, install as install_dialogue
+    configure_background()
+    install_dialogue()
     # Workspace-scoped MCP is intentional: the other two bots must not inherit
     # access to Boris's personal observations through a global MCP declaration.
     workspace = HOME / ".openclaw/workspace-butler"

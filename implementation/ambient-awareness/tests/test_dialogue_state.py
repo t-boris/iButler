@@ -6,13 +6,13 @@ from butler_ambient.dialogue_state import (LipMotion, Scene, SceneAggregate, Ses
 
 
 class SessionTests(unittest.TestCase):
-    def test_answer_to_butlers_question_is_expected_from_the_same_partner_within_the_window(self):
+    def test_answer_to_pending_question_survives_an_ordinary_pause(self):
         session = Session()
         session.touch("owner", 1000.0)
         session.ask("На какое время поставить напоминание?", 1000.0, expects="time")
         self.assertTrue(session.answering("owner", 1030.0))
         self.assertFalse(session.answering("guest", 1030.0))
-        self.assertFalse(session.answering("owner", 1070.0))
+        self.assertTrue(session.answering("owner", 1070.0))
         session.answered()
         self.assertFalse(session.answering("owner", 1031.0))
 
@@ -31,13 +31,13 @@ class SessionTests(unittest.TestCase):
         snapshot = session.snapshot(500.0)
         self.assertEqual((snapshot["quiet"], snapshot["partner"]), (False, None))
 
-    def test_session_restarts_after_a_long_gap(self):
+    def test_session_survives_a_long_gap_and_ends_explicitly(self):
         session = Session()
         session.touch("owner", 0.0)
         session.touch("owner", 100.0)
         self.assertEqual(session.started_at, 0.0)
         session.touch("owner", 500.0)
-        self.assertEqual(session.started_at, 500.0)
+        self.assertEqual(session.started_at, 0.0)
         session.end()
         self.assertFalse(session.active)
 

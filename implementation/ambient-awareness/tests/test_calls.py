@@ -15,11 +15,12 @@ class CallsTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.store = Store(Path(self.temp.name))
         self.now = 10_000.0
-        self.voice = Mock(deferred=[])
+        self.voice = Mock()
         self.voice.model.generate_json.return_value = {"topic": "сроки релиза", "key_points": ["релиз в пятницу"],
                                                        "decisions": ["перенести демо"], "follow_ups": ["написать Анне"], "open_questions": []}
         self.service = Mock(store=self.store, voice=self.voice, config={"butler_workspace": self.temp.name})
         self.calls = Calls(self.service, clock=lambda: self.now)
+        self.calls.model = self.voice.model
         for offset in (10, 100, 200):
             mid = self.store.media("microphone", self.now + offset, self.now + offset + 1, b"x", "wav")
             self.store.save_observation(mid, [{"kind": "work-topic", "activity": "meeting", "topic": "релиз", "detail": "обсуждают сроки",
@@ -52,8 +53,8 @@ class CallsTests(unittest.TestCase):
         self.assertIn("обсуждают сроки", prompt)                                # the local facts, nothing else
         self.voice._debug.assert_called_with("call-summary", text)
         remember.assert_called_once_with(text)
-        self.assertEqual(self.voice.deferred[-1]["prefix"], "")
-        self.assertIn("Созвон закончился, итоги готовы: сроки релиза", self.voice.deferred[-1]["text"])
+        self.voice.dialogue.notice.assert_called_once()
+        self.assertIn("Созвон закончился, итоги готовы: сроки релиза", self.voice.dialogue.notice.call_args.args[0])
         self.assertEqual(self.calls.last_text(), text)
         self.assertEqual(self.calls.snapshot()["summaries"], 1)
 

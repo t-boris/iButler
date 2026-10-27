@@ -22,7 +22,11 @@
   // Offline rendering only: the page and the library are files inside Butler.app; nothing is fetched.
   mermaid.initialize({ startOnLoad: false, securityLevel: "strict", theme: "dark",
                        themeVariables: { fontFamily: "ui-monospace, Menlo, monospace", primaryColor: "#143d2a",
-                                         primaryTextColor: "#d6ffe0", lineColor: "#7fbf92", background: "#0b1410" } });
+                                         primaryTextColor: "#d6ffe0", lineColor: "#7fbf92", background: "#0b1410",
+                                         // Groups, edge labels and the colour scales (timeline, mindmap) follow the console palette.
+                                         clusterBkg: "#0f2418", clusterBorder: "#3f7a55", titleColor: "#d6ffe0", edgeLabelBackground: "#0f2418",
+                                         cScale0: "#143d2a", cScale1: "#14263d", cScale2: "#2a1440", cScale3: "#3d2a14", cScale4: "#143d3d", cScale5: "#3d1430",
+                                         cScaleLabel0: "#d6ffe0", cScaleLabel1: "#d6e8ff", cScaleLabel2: "#ecdcff", cScaleLabel3: "#ffe9c9", cScaleLabel4: "#d6ffff", cScaleLabel5: "#ffd6ec" } });
   let serial = 0;
   async function render(source) {
     const id = "d" + (++serial);

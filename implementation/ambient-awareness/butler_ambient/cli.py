@@ -24,7 +24,7 @@ def parser():
     p.add_argument("--state", type=Path, default=Path.home() / ".local/share/butler-ambient")
     p.add_argument("--config", type=Path)
     sub = p.add_subparsers(dest="command", required=True)
-    for command in ("run", "mcp", "status", "pause", "resume", "doctor", "screen-permission", "ui-state", "ui-visual-cancel", "ui-settings", "ui-voice-check", "ui-voice-benchmark", "ui-video-effects", "ui-owner-setup", "ui-owner-setup-cancel", "ui-components", "ui-schedules", "ui-catalog", "ui-catalog-refresh"):
+    for command in ("run", "mcp", "status", "pause", "resume", "doctor", "screen-permission", "ui-state", "ui-visual-cancel", "ui-settings", "ui-voice-check", "ui-voice-benchmark", "ui-video-effects", "ui-owner-setup", "ui-owner-setup-cancel", "ui-components", "ui-schedules", "ui-catalog", "ui-catalog-refresh", "ui-feedback", "ui-panel-chat-clear"):
         item = sub.add_parser(command)
         if command == "ui-state":
             item.add_argument("--preview", action="store_true")
@@ -75,25 +75,26 @@ def parser():
     correct.add_argument("name")
     preferences = sub.add_parser("preferences")
     preferences.add_argument("json", help='e.g. {"muted":true,"disabled_topics":["reading"],"daily_time":"20:00"}')
-    for command in ("ui-settings-update", "ui-components-update", "ui-schedule-control", "ui-display-select", "ui-display-action"):
+    for command in ("ui-settings-update", "ui-components-update", "ui-schedule-control", "ui-display-select", "ui-display-action", "ui-feedback-correct", "ui-rule", "ui-attention", "ui-send-text", "ui-dictate", "ui-observations"):
         sub.add_parser(command).add_argument("json")
     return p
 
 
 def doctor(config):
+    from . import __version__
     local = LocalAnalyzer(config.get("vision_model", "gemma3:4b"))
     try:
         local.check_local(require_vision=True)
         vision_ready = True
     except Exception:
         vision_ready = False
-    dialogue=LocalAnalyzer(config.get('conversation_model',DEFAULT_DIALOGUE_MODEL))
+    dialogue=LocalAnalyzer(config.get('conversation_model',DEFAULT_DIALOGUE_MODEL), dialogue=True)
     try:
         dialogue.check_local()
         dialogue_ready=True
     except Exception:
         dialogue_ready=False
-    return {"commands": {key: shutil.which(key) for key in ("ffmpeg", "whisper-cli", "ollama", "openclaw")},
+    return {"version": __version__, "commands": {key: shutil.which(key) for key in ("ffmpeg", "whisper-cli", "ollama", "openclaw")},
             "sensing_packages": {key: bool(importlib.util.find_spec(key)) for key in ("numpy", "cv2", "resemblyzer", "webrtcvad")},
             "models": {key: bool(config.get(key) and Path(config[key]).is_file())
                        for key in ("face_detector", "face_recognizer", "whisper_model", "person_detector")},
@@ -152,7 +153,8 @@ def main(argv=None):
                 service.catalog.refresh()
                 service.start()
                 if config.get("panel_helper"):
-                    service.panel_launch = lambda: subprocess.Popen([config["panel_helper"], str(config["owner_cli"])],
+                    service.panel_launch = lambda: subprocess.Popen([config["panel_helper"], str(config["owner_cli"]),
+                                                                    *(["--background"] if config.get("panel_start_hidden") else [])],
                                                                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                     panel = service.panel = service.panel_launch()
                 server.serve_forever(poll_interval=.2)
@@ -171,13 +173,10 @@ def main(argv=None):
                 server.server_close()
                 store.close()
             return
-        elif args.command in {"enroll", "enroll-live", "context", "summary", "voice-select"}:
+        elif args.command in {"enroll", "enroll-live", "context", "summary"}:
             store = Store(args.state)
             try:
-                if args.command in {"voice-preview", "voice-select"}:
-                    from .voice_catalog import preview, select
-                    result = (preview if args.command == "voice-preview" else select)(store, args.profile)
-                elif args.command == "enroll-live":
+                if args.command == "enroll-live":
                     from .enrollment import enroll_live
                     multiple = args.multiple_samples or bool(config.get("enrollment_multiple_samples", False))
                     if config.get("enrollment_ready_dialog", False):
@@ -211,7 +210,7 @@ def main(argv=None):
             values = vars(args)
             if command in {"pause", "resume"}:
                 command, values = "enabled", {"value": command == "resume"}
-            elif command in {"preferences", "ui-settings-update", "ui-components-update", "ui-schedule-control", "ui-display-select", "ui-display-action"}:
+            elif command in {"preferences", "ui-settings-update", "ui-components-update", "ui-schedule-control", "ui-display-select", "ui-display-action", "ui-feedback-correct", "ui-rule", "ui-attention", "ui-send-text", "ui-dictate", "ui-observations"}:
                 values = json.loads(args.json)
             elif command == "observe":
                 values = {"source": args.source}

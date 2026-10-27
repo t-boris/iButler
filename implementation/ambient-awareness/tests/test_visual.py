@@ -145,6 +145,127 @@ class VisualTests(unittest.TestCase):
         self.visual.delete(aid)
         self.assertEqual(self.visual.snapshot()["artifacts"],[])
 
+    def local(self, key, index=0):
+        return self.visual.results(key, local=True)["artifacts"][index]
+
+    def test_camera_snapshot_says_which_device_took_it_and_keeps_source_readable(self):
+        self.service.inputs = Mock(camera_name="FaceTime HD Camera")
+        mid = self.store.media("camera", self.now, self.now, b"image", "jpg")
+        self.service.request_fresh = Mock(return_value={"status": "captured", "source_id": mid})
+        key, task = self.request("show-camera")
+        self.visual._work(task)
+        item = self.local(key)
+        self.assertEqual((item["origin_kind"], item["place"], item["source"]), ("camera", "FaceTime HD Camera", "camera"))
+        self.assertEqual(item["sent"], {"state": "not-requested"})
+        self.assertTrue(Path(item["path"]).is_file())
+
+    def test_camera_without_a_named_device_falls_back_to_a_plain_word(self):
+        mid = self.store.media("camera", self.now, self.now, b"image", "jpg")
+        self.service.request_fresh = Mock(return_value={"status": "captured", "source_id": mid})   # inputs is a Mock: no usable name
+        key, task = self.request("show-camera")
+        self.visual._work(task)
+        self.assertEqual(self.local(key)["place"], "камера")
+
+    def test_screen_snapshot_is_labelled_as_the_first_display(self):
+        mid = self.store.media("screen", self.now, self.now, b"png", "png")
+        self.service.request_fresh = Mock(return_value={"status": "captured", "source_id": mid})
+        key, task = self.request("show-screen")
+        self.visual._work(task)
+        item = self.local(key)
+        self.assertEqual((item["origin_kind"], item["place"], item["source"]), ("screen", "экран (первый дисплей)", "screen"))
+
+    def test_found_material_names_its_folder_and_keeps_the_model_caption(self):
+        folder = self.root / "selected" / "holiday"; folder.mkdir(parents=True)
+        (folder / "sunset.jpg").write_bytes(b"owner image")
+        self.visual.add_root(str(self.root / "selected"))
+        self.visual.model.generate_json.side_effect = [{"reply": "Закат над озером."}, {"matches": [0]}]
+        key, task = self.request("find-image", "закат")
+        self.visual._work(task)
+        item = self.local(key)
+        self.assertEqual((item["origin_kind"], item["place"]), ("my-file", str(folder.resolve())))
+        self.assertEqual(item["caption"], "Закат над озером.")
+        self.assertEqual(item["path"], str((folder / "sunset.jpg").resolve()))
+
+    def test_generated_image_names_the_model_that_made_it(self):
+        self.service.config["image_python"] = sys.executable
+        (self.store.root / "images/model").mkdir(parents=True)
+        (self.store.root / "images/model/model_index.json").write_text("{}")
+        self.visual.model.generate_json.return_value = {"reply": "a synthetic image"}
+        key, task = self.request("generate-image", "кот")
+        original = subprocess.Popen
+        worker = ("import sys,json,os;req=json.loads(sys.stdin.readline());root=sys.argv[1];os.makedirs(root+'/generated',exist_ok=True);"
+                  "p=root+'/generated/'+req['id']+'.png';open(p,'wb').write(b'png');print(json.dumps({'file':p,'model':'sd-test'}),flush=True)")
+        def spawn(command, **kwargs): return original([sys.executable, "-c", worker, command[3]], **kwargs)
+        with patch("butler_ambient.visual.shutil.disk_usage", return_value=Mock(free=12 * 1024 ** 3)), patch("butler_ambient.visual.subprocess.Popen", side_effect=spawn):
+            self.visual._work(task)
+        item = self.local(key)
+        self.assertEqual((item["origin_kind"], item["place"]), ("generated", "sd-test"))
+
+    def test_only_the_first_image_of_a_telegram_request_is_marked_sent_and_the_receipt_stays_private(self):
+        folder = self.root / "selected"; folder.mkdir()
+        for name in ("a.jpg", "b.jpg"): (folder / name).write_bytes(b"owner image")
+        self.visual.add_root(str(folder))
+        self.visual.model.generate_json.side_effect = [{"reply": "один"}, {"reply": "два"}, {"matches": [0, 1]}]
+        key, task = self.request("find-image", "фото", telegram=True)
+        with patch("butler_ambient.delivery.Telegram.send_image", return_value="secret-receipt-123"):
+            self.visual._work(task)
+        first, second = self.local(key, 0), self.local(key, 1)
+        self.assertEqual(first["sent"], {"state": "sent", "at": self.now})
+        self.assertEqual(second["sent"], {"state": "not-sent"})
+        self.assertNotIn("secret-receipt-123", json.dumps(snapshot(self.service)))
+        history = {row["id"]: row for row in self.visual.snapshot()["artifacts"]}
+        self.assertEqual(history[first["id"]]["sent"]["state"], "sent")      # the gallery history says the same
+
+    def test_an_unknown_delivery_outcome_is_shown_as_uncertain_and_a_failed_one_as_not_sent(self):
+        mid = self.store.media("camera", self.now, self.now, b"image", "jpg")
+        self.service.request_fresh = Mock(return_value={"status": "captured", "source_id": mid})
+        key, task = self.request("show-camera", telegram=True)
+        with patch("butler_ambient.delivery.Telegram.send_image", side_effect=RuntimeError("uncertain")):
+            with self.assertRaises(RuntimeError): self.visual._work(task)
+        self.assertEqual(self.local(key)["sent"], {"state": "uncertain"})
+        self.store.execute("UPDATE visual_requests SET state='failed' WHERE id=?", (key,))
+        self.assertEqual(self.local(key)["sent"], {"state": "not-sent"})
+
+    def test_pause_hides_the_folder_with_the_path_but_keeps_the_origin(self):
+        folder = self.root / "selected"; folder.mkdir()
+        (folder / "a.jpg").write_bytes(b"owner image")
+        self.visual.add_root(str(folder))
+        self.visual.model.generate_json.side_effect = [{"reply": "один"}, {"matches": [0]}]
+        key, task = self.request("find-image", "фото")
+        self.visual._work(task)
+        self.service.control("enabled", {"value": False})
+        item = snapshot(self.service)["visual"]["artifacts"][0]
+        self.assertNotIn(str(folder), json.dumps(item))
+        self.assertNotIn("path", item)
+        self.assertEqual(item["origin_kind"], "my-file")
+
+    def test_mcp_result_carries_no_place_or_provenance(self):
+        folder = self.root / "selected"; folder.mkdir()
+        (folder / "a.jpg").write_bytes(b"owner image")
+        self.visual.add_root(str(folder))
+        self.visual.model.generate_json.side_effect = [{"reply": "один"}, {"matches": [0]}]
+        key, task = self.request("find-image", "фото")
+        self.visual._work(task)
+        shown = json.dumps(self.visual.results(key))
+        self.assertNotIn(str(folder), shown)
+        for field in ("place", "origin_kind", "sent"): self.assertNotIn(field, shown)
+
+    def test_images_made_before_provenance_existed_are_labelled_from_what_is_known(self):
+        camera = self.store.media("camera", self.now, self.now, b"image", "jpg")
+        self.store.db.executescript("""DROP TABLE visual_artifacts;
+            CREATE TABLE visual_artifacts(id TEXT PRIMARY KEY, kind TEXT NOT NULL, source_id TEXT, path TEXT NOT NULL,
+              created REAL NOT NULL, source_time REAL NOT NULL, request_id TEXT NOT NULL, caption TEXT NOT NULL DEFAULT '');""")
+        rows = [("a", "captured", camera, "/m/a.jpg", ""), ("b", "captured", "gone", "/m/b.jpg", ""), ("c", "imported", None, "/home/o/Pics/c.jpg", "море"),
+                ("d", "generated", None, "/g/d.png", "Generated locally with sd-old: кот"), ("e", "generated", None, "/g/e.png", "")]
+        for key, kind, source, path_, caption in rows:
+            self.store.db.execute("INSERT INTO visual_artifacts VALUES (?,?,?,?,?,?,?,?)", (key, kind, source, path_, 1., 1., "r", caption))
+        self.store.db.commit()
+        Visual(self.service)
+        found = {r["id"]: (r["origin_kind"], r["place"]) for r in self.store.execute("SELECT id, origin_kind, place FROM visual_artifacts")}
+        self.assertEqual(found, {"a": ("camera", ""), "b": (None, ""), "c": ("my-file", "/home/o/Pics"), "d": ("generated", "sd-old"), "e": ("generated", "")})
+        Visual(self.service)                                                     # a second start leaves the labels alone
+        self.assertEqual({r["id"]: (r["origin_kind"], r["place"]) for r in self.store.execute("SELECT id, origin_kind, place FROM visual_artifacts")}, found)
+
     def test_cancel_stops_isolated_generation_process_without_touching_capture(self):
         self.service.config["image_python"]=sys.executable
         (self.store.root / "images/model").mkdir(parents=True)

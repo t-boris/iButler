@@ -52,7 +52,7 @@ class GeneralDialogueTests(unittest.TestCase):
         # Mirrors one iteration of the worker loop for a routed general job.
         task = self.v.jobs.get_nowait()
         self.assertEqual(task[2], GENERAL)
-        self.assertIs(self.v.general_token, task[1])
+        self.assertFalse(task[1].is_set())
         self.v.visible_mode = GENERAL
         try:
             self.v._general_turn(*task)
@@ -91,9 +91,28 @@ class GeneralDialogueTests(unittest.TestCase):
         self.v.speak.assert_called()                                   # second person alone: 0.7 is enough
         self.v.speak.reset_mock()
         self.v.general_last = float('-inf')
-        self.v.model.generate_json.return_value = {**CHAT, 'addressed': False, 'confidence': .8, 'reply': ''}
+        self.v.model.generate_json.return_value = {**CHAT, 'addressed': False, 'confidence': .99, 'reply': ''}
         self.hear('Он сказал, что Батлер всё знает.'); self.run_routed()
-        self.v.speak.assert_not_called()                               # third person: not direct, judge decides
+        self.v.speak.assert_not_called()                               # Q-006: only a definitive negative can veto a name mention
+
+    def test_unsure_third_person_name_mention_generates_missing_general_reply(self):
+        self.v.model.generate_json.side_effect = [
+            {**CHAT, 'addressed': False, 'confidence': .8, 'reply': ''}, {'reply': 'Чем могу помочь?'}]
+        self.hear('Он сказал, что Батлер всё знает.'); self.run_routed()
+        self.v.speak.assert_called_once()
+        self.assertEqual(self.v.speak.call_args.args[0], 'Чем могу помочь?')
+        self.s.knowledge.recall.assert_not_called()
+
+    def test_general_followup_uses_shared_session_admission_and_honors_no_reply(self):
+        self.s.attention.engaged(self.now)
+        self.v.model.generate_json.return_value = {**CHAT, 'addressed': False, 'confidence': .99, 'reply': 'Продолжим.'}
+        self.hear('А что дальше?'); self.run_routed()
+        self.assertEqual(self.v.speak.call_args.args[0], 'Продолжим.')
+        self.assertIn('already admitted by the shared Butler session', self.prompt())
+        self.v.speak.reset_mock()
+        self.v.model.generate_json.return_value = {**CHAT, 'reply': 'NO_REPLY'}
+        self.hear('Это было другому человеку.'); self.run_routed()
+        self.v.speak.assert_not_called()
 
     def test_unnamed_speech_without_a_lease_gets_a_general_turn_unless_the_owner_is_busy(self):
         # Attention DEC-039 supersedes the name requirement: a general answer discloses nothing private.
@@ -189,10 +208,13 @@ class GeneralDialogueTests(unittest.TestCase):
         self.hear('А ещё?')
         # After the window the words still get a general turn (DEC-039); only the dialogue context is gone.
         self.assertFalse(self.v.jobs.empty())
-        self.assertEqual(self.l.counts.get('general-unnamed'), 1)
+        self.assertTrue(self.v.conversation_active())
+        self.run_routed()
+        self.assertIn('семь на восемь', self.prompt())
 
-    def test_low_confidence_unnamed_follow_up_stays_silent(self):
+    def test_low_confidence_unnamed_follow_up_stays_silent_while_busy(self):
         self.v.general_last = self.now
+        self.s.attention._busy('owner-said',self.now)
         self.v.model.generate_json.return_value = {**CHAT, 'confidence': .8}
         self.hear('Интересно, а почему?'); self.run_routed()
         self.v.speak.assert_not_called()
@@ -354,14 +376,13 @@ class GeneralDialogueTests(unittest.TestCase):
     def test_interruption_text_is_never_shown_as_general_after_routing(self):
         self.admit()
         private = self.v.token = threading.Event(); self.v.state = 'speaking'
-        self.v.barge_model = Mock(); self.v.barge_model.transcribe.return_value = 'OWNER_INTERRUPTION_WORDS'
         def route(*args):
             # A general turn is routed in the gap after the permission check.
             self.v.cancel(clear_context=False, reason='complete-new-utterance')
             self.v.token = threading.Event(); self.v.general_token = self.v.token
             return False
         with patch('butler_ambient.conversation.speech_echo', side_effect=route):
-            self.v._barge(b'\0' * 32000, private, self.s.voice_gate.generation)
+            self.v.observe_input('OWNER_INTERRUPTION_WORDS', 'race', owner=True, final=True)
         self.assertNotIn('OWNER_INTERRUPTION_WORDS', json.dumps(self.v.debug_snapshot(general_only=True), ensure_ascii=False))
         self.assertNotIn('OWNER_INTERRUPTION_WORDS', json.dumps(list(self.v.debug_events), ensure_ascii=False))
 

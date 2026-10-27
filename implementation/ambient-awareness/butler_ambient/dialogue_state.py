@@ -9,14 +9,12 @@ from __future__ import annotations
 import math
 import re
 import statistics
+import uuid
 from dataclasses import dataclass, field
 from typing import Optional
 
-ANSWER_WINDOW = 60.0          # seconds in which a reply to Butler's own question needs no name
-SESSION_WINDOW = 180.0        # seconds after the last exchange during which a follow-up counts as the same talk
 SILENCE_DEFAULT = 600.0       # «помолчи» without a duration
 SILENCE_CALL = 2 * 3600.0     # «пока я на звонке»: bounded even if the call never ends
-CONTINUATION_WAIT = 1.5       # seconds to wait for the rest of an unfinished thought
 FACING_LIMIT = 0.35           # |nose offset / eye distance| above this counts as turned away
 LIP_MOTION_LIMIT = 0.06       # mouth-ratio spread across recent frames above this counts as talking
 
@@ -42,6 +40,9 @@ class Session:
     question: Optional[str] = None
     question_at: float = float("-inf")
     expects: Optional[str] = None
+    question_id: Optional[str] = None
+    question_task: Optional[str] = None
+    proposal: Optional[str] = None
     quiet_until: float = float("-inf")
     quiet_scope: Optional[str] = None
     quiet_resume: Optional[str] = None
@@ -51,19 +52,22 @@ class Session:
         return math.isfinite(self.last_at)
 
     def touch(self, partner: str, now: float) -> None:
-        if not self.active or self.partner != partner or now - self.last_at > SESSION_WINDOW:
+        if not self.active or self.partner != partner:
             self.started_at = now
         self.partner, self.last_at = partner, now
 
-    def ask(self, question: str, now: float, expects: Optional[str] = None) -> None:
-        self.question, self.question_at, self.expects = question[:200], now, expects
+    def ask(self, question: str, now: float, expects: Optional[str] = None, *, task=None, proposal=None) -> None:
+        self.touch('owner', now)
+        self.question, self.question_at, self.expects = question[:1200], now, expects
+        self.question_id, self.question_task, self.proposal = uuid.uuid4().hex, task, proposal
 
     def answered(self) -> None:
         self.question, self.question_at, self.expects = None, float("-inf"), None
+        self.question_id = self.question_task = self.proposal = None
 
     def answering(self, partner: str, now: float) -> bool:
-        """A reply to Butler's own question: same partner, within the window."""
-        return (self.question is not None and self.partner == partner and 0 <= now - self.question_at <= ANSWER_WINDOW)
+        """The pending question survives ordinary pauses; action permission is separate."""
+        return self.question is not None and self.partner == partner and now >= self.question_at
 
     def silence(self, now: float, until: float, scope: str, resume: str) -> None:
         self.quiet_until, self.quiet_scope, self.quiet_resume = until, scope, resume
@@ -82,6 +86,7 @@ class Session:
         return {"partner": self.partner, "active": self.active,
                 "since_last_s": None if not self.active else round(now - self.last_at, 1),
                 "pending_question": self.question is not None, "expects": self.expects,
+                "question_id": self.question_id, "question_task": self.question_task,
                 "quiet": self.quiet(now), "quiet_for_s": max(0, round(self.quiet_until - now)) if self.quiet(now) else 0,
                 "quiet_scope": self.quiet_scope if self.quiet(now) else None}
 

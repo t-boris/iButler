@@ -1,6 +1,7 @@
 """Owner-local retrieval from the real Butler vault, sessions and task memory."""
 from __future__ import annotations
 import json
+import hashlib
 import os
 import select
 from . import processes as subprocess
@@ -64,6 +65,7 @@ class Knowledge:
         self.last_count=0
         self.last_seconds=None
         self.process=None
+        self.excluded_hashes=set()
 
     def cancel(self):
         process=self.process
@@ -97,6 +99,7 @@ class Knowledge:
             if process.returncode:raise ValueError('retrieval-unavailable')
             result=json.loads(data)
             if not isinstance(result,list) or len(result)>8:raise ValueError('retrieval-invalid')
+            result=[m for m in result if hashlib.sha256(m.get('snippet','').encode()).hexdigest() not in self.excluded_hashes]
             self.state='ready';self.last_count=len(result)
             return result
         except (OSError,ValueError,subprocess.TimeoutExpired):self.state='unavailable';return []

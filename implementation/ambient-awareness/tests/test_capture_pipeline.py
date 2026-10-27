@@ -225,5 +225,18 @@ class CapturePipelineTests(unittest.TestCase):
         self.assertGreaterEqual(len(self.store.execute("SELECT id FROM media WHERE source='microphone'")),2)
         self.assertTrue(self.s.voice.jobs.empty())
 
+    def test_capture_does_not_add_a_timer_between_already_queued_pcm_seconds(self):
+        self.s.input_running = True
+        calls = []
+        def read():
+            calls.append(time.monotonic())
+            if len(calls) == 2: self.s.stop_event.set()
+            return self.batch()
+        self.inputs.batch.side_effect = read
+        with patch.object(self.s, '_stage_batch', return_value=None):
+            self.s._capture_loop()
+        self.assertEqual(len(calls), 2)
+        self.assertLess(calls[1]-calls[0], .2, 'capture inserted a second clock after the audio source')
+
 
 if __name__=='__main__':unittest.main()

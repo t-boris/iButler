@@ -47,8 +47,25 @@ class Visual:
               state TEXT NOT NULL, at REAL NOT NULL, telegram INTEGER NOT NULL DEFAULT 0);
             CREATE TABLE IF NOT EXISTS visual_receipts(request_id TEXT PRIMARY KEY, receipt TEXT NOT NULL, at REAL NOT NULL);
         """)
+        self._provenance_columns()
         self.store.db.commit()
         self.store.execute("UPDATE visual_requests SET state='interrupted' WHERE state IN ('queued','working')")
+
+    def _provenance_columns(self):
+        """Where an image came from: ``origin_kind`` (camera | screen | my-file | generated) and ``place`` (device, folder or model)."""
+        columns = {row[1] for row in self.store.db.execute("PRAGMA table_info(visual_artifacts)")}
+        if "origin_kind" in columns: return
+        self.store.db.execute("ALTER TABLE visual_artifacts ADD COLUMN origin_kind TEXT")
+        self.store.db.execute("ALTER TABLE visual_artifacts ADD COLUMN place TEXT NOT NULL DEFAULT ''")
+        for row in self.store.db.execute("SELECT id, kind, source_id, path, caption FROM visual_artifacts").fetchall():
+            if row["kind"] == "captured":
+                source = self.store.db.execute("SELECT source FROM media WHERE id=?", (row["source_id"],)).fetchone()
+                origin, place = (source["source"] if source and source["source"] in {"camera", "screen"} else None), ""
+            elif row["kind"] == "imported": origin, place = "my-file", str(Path(row["path"]).parent)
+            else:
+                model = re.match(r"Generated locally with (.+?): ", row["caption"] or "")
+                origin, place = "generated", model.group(1) if model else ""
+            self.store.db.execute("UPDATE visual_artifacts SET origin_kind=?, place=? WHERE id=?", (origin, place, row["id"]))
 
     def start(self):
         self.thread = threading.Thread(target=self._run, daemon=True)
@@ -108,11 +125,15 @@ class Visual:
             if Path(path).resolve().parent != (self.store.root / "images/generated").resolve(): return None
         return path if path and Path(path).is_file() and not Path(path).is_symlink() else None
 
-    def artifact(self, kind, path, request_id, *, source_id=None, at=None):
+    def artifact(self, kind, path, request_id, *, source_id=None, at=None, origin=None, place=""):
         key, now = uuid.uuid4().hex, self.service.clock()
-        self.store.execute("INSERT INTO visual_artifacts VALUES (?,?,?,?,?,?,?,?)",
-            (key, kind, source_id, str(path), now, now if at is None else at, request_id, ""))
+        self.store.execute("INSERT INTO visual_artifacts(id, kind, source_id, path, created, source_time, request_id, caption, origin_kind, place) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            (key, kind, source_id, str(path), now, now if at is None else at, request_id, "", origin, place))
         return key
+
+    def _camera_place(self):
+        name = getattr(self.service.inputs, "camera_name", None)
+        return name if type(name) is str and name else "камера"
 
     def delete(self, key):
         for row in self.store.execute("SELECT * FROM visual_artifacts WHERE id=?", (key,)):
@@ -129,6 +150,7 @@ class Visual:
         if not request: raise ValueError("request unavailable")
         output = {"request_id": key, "status": request[0]["state"], "artifacts": []}
         output["delivered"] = bool(self.store.execute("SELECT request_id FROM visual_receipts WHERE request_id=?", (key,)))
+        ids = [row["id"] for row in self.store.execute("SELECT id FROM visual_artifacts WHERE request_id=? ORDER BY created", (key,))] if local else []
         for row in self.store.execute("SELECT * FROM visual_artifacts WHERE request_id=? ORDER BY created LIMIT 8", (key,)):
             path = self.available(row)
             item = {"id": row["id"], "kind": row["kind"], "at": row["source_time"],
@@ -136,9 +158,25 @@ class Visual:
             if row["kind"] == "captured":
                 source = self.store.execute("SELECT source FROM media WHERE id=?", (row["source_id"],))
                 item.update(source=source[0]["source"] if source else "unavailable", source_id=row["source_id"])
-            if local and path: item.update(path=path, caption=row["caption"], source=path if row["kind"] == "imported" else row["source_id"])
+            if local and path:
+                item.update(path=path, caption=row["caption"], **self._provenance(row, request[0], ids))
             output["artifacts"].append(item)
         return output
+
+    def _provenance(self, row, request, siblings):
+        """Owner-local facts about one image: where it was made, where the file is and whether it was sent.
+
+        Only the first image of a request is ever sent (``_deliver``), so only that one can be marked as sent.
+        The receipt itself is never exposed, only the time it was recorded.
+        """
+        sent = {"state": "not-requested"}
+        if request["telegram"]:
+            receipt = self.store.execute("SELECT at FROM visual_receipts WHERE request_id=?", (request["id"],))
+            if siblings[:1] != [row["id"]]: sent = {"state": "not-sent"}
+            elif receipt: sent = {"state": "sent", "at": receipt[0]["at"]}
+            elif request["state"] in {"sending", "delivery-uncertain"}: sent = {"state": "uncertain"}
+            else: sent = {"state": "not-sent"}
+        return {"origin_kind": row["origin_kind"], "place": row["place"], "sent": sent}
 
     def submit(self, intent, criteria="", *, origin="local-ui", request_id=None, telegram=False, parent_token=None):
         with self.service.lock:
@@ -225,7 +263,7 @@ class Visual:
         for index in dict.fromkeys(ranks.get("matches", [])):
             if type(index) is not int or not 0 <= index < len(candidates): continue
             row = candidates[index]
-            aid = self.artifact("imported", row["path"], key, at=row["at"])
+            aid = self.artifact("imported", row["path"], key, at=row["at"], origin="my-file", place=str(row["path"].parent))
             self.store.execute("UPDATE visual_artifacts SET caption=? WHERE id=?", (row["caption"], aid))
             ids.append(aid)
         return ids
@@ -260,7 +298,7 @@ class Visual:
             self.permitted(token, generation)
             process.wait(timeout=1)
             if process.returncode or result.get("file") != str(output) or not output.is_file(): raise ValueError("generation unavailable")
-            aid = self.artifact("generated", output, key)
+            aid = self.artifact("generated", output, key, origin="generated", place=result.get("model", "local model"))
             self.store.execute("UPDATE visual_artifacts SET caption=? WHERE id=?", ("Generated locally with "+result.get("model","local model")+": " + criteria, aid))
             keep = True
             return [aid]
@@ -303,7 +341,8 @@ class Visual:
             self.permitted(token, generation)
             if value.get("status") != "captured": raise ValueError("fresh capture unavailable")
             row = self.store.execute("SELECT path,start FROM media WHERE id=?", (value["source_id"],))[0]
-            ids = [self.artifact("captured", row["path"], key, source_id=value["source_id"], at=row["start"])]
+            place = self._camera_place() if source == "camera" else "экран (первый дисплей)"
+            ids = [self.artifact("captured", row["path"], key, source_id=value["source_id"], at=row["start"], origin=source, place=place)]
         elif intent == "find-image": ids = self._find(criteria, key, token, generation)
         else: ids = self._generate(criteria, key, token, generation)
         self.permitted(token, generation)
@@ -339,7 +378,9 @@ class Visual:
             if row["id"] in present: continue
             path = self.available(row)
             if path:
-                result["artifacts"].append({"id": row["id"], "kind": row["kind"], "at": row["source_time"],
-                    "path": path, "source": path if row["kind"] == "imported" else row["source_id"],
-                    "caption": row["caption"], "candidate": row["kind"] == "imported", "available": True})
+                request = self.store.execute("SELECT * FROM visual_requests WHERE id=?", (row["request_id"],))
+                siblings = [r["id"] for r in self.store.execute("SELECT id FROM visual_artifacts WHERE request_id=? ORDER BY created", (row["request_id"],))]
+                result["artifacts"].append({"id": row["id"], "kind": row["kind"], "at": row["source_time"], "path": path,
+                    "caption": row["caption"], "candidate": row["kind"] == "imported", "available": True,
+                    **(self._provenance(row, request[0], siblings) if request else {"origin_kind": row["origin_kind"], "place": row["place"], "sent": {"state": "not-requested"}})})
         return result

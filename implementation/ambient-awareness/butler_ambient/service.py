@@ -20,6 +20,7 @@ import wave
 from dataclasses import dataclass
 from pathlib import Path
 
+from .display import CardRefused
 from .analysis import export_observations, analysis_inference_status
 from .delivery import Delivery, Telegram, ZONE, advice_candidate, quiet
 from .policy import Gate, DialogueGate
@@ -72,7 +73,6 @@ class Service:
         self.analysis_serial = threading.Lock()
         self.check_latency_seconds = None
         self.voice = None
-        self.dialogue_prefix=[]
         self.restart = None
         if self.config.get("voice_python"):
             from .conversation import Conversation
@@ -89,10 +89,13 @@ class Service:
         self.meeting = Meeting(self)
         from .attention import Attention
         self.attention = Attention(self, clock=self.clock)
-        from .endpointing import SmartTurnShadow
-        self.smart_turn = SmartTurnShadow(self.config.get("turn_python"))
+        from .endpointing import SmartTurnShadow, SmartTurnEndpointer
+        endpoint = SmartTurnEndpointer if self.config.get("turn_control") is True else SmartTurnShadow
+        self.smart_turn = endpoint(self.config.get("turn_python"))
         from .brain import AgentBrain
         self.brain = AgentBrain(self.config, self.store, clock=self.clock)
+        from .panel_chat import PanelChat
+        self.panel_chat = PanelChat(self)         # the owner's written conversation in the panel; memory only
         from .calls import Calls
         self.calls = Calls(self, clock=self.clock)
         from .display import Display
@@ -113,6 +116,10 @@ class Service:
         if self.voice is not None:
             from .listening import Listening
             self.listening = Listening(self)
+        from .dictation import Dictation
+        self.dictation = Dictation(self)          # panel dictation: speech to text for the message field; memory only
+        from .feedback import DialogueFeedback
+        self.feedback = DialogueFeedback(self)
 
     def _set_sources(self, states, at):
         for source, state in states.items():
@@ -143,6 +150,7 @@ class Service:
             self._discard_checks()
         if clear_hearing and getattr(self,"listening",None) is not None:
             self.listening.clear()
+        if reason == "consent-revoked" and getattr(self, "panel_chat", None) is not None: self.panel_chat.clear(reason)
         if reason in {"settings-change","service-stopped"} and hasattr(self,"owner_setup"): self.owner_setup.cancel()
         if reason in {"settings-change","service-stopped"} and hasattr(self,"archive"): self.archive.invalidate()
         if reason in {"settings-change","service-stopped","owner-paused","consent-revoked"} and hasattr(self,"disclosures"):
@@ -154,10 +162,12 @@ class Service:
         close_session = clear_hearing or (not self.dialogue_gate.allowed and not preserve_dialogue)
         if close_session and hasattr(self, "commands"): self.commands.clear()
         if close_session:
-            self.dialogue_prefix.clear()
+            if hasattr(self, "feedback"): self.feedback.pause()
             self.dialogue_gate.invalidate(reason)
-            if getattr(self, "display", None) is not None:
-                self.display.clear(reason)       # REQ-011: the display history ends with the conversation
+            if clear_hearing and getattr(self, "display", None) is not None:
+                # REQ-011: the display history ends with the conversation, i.e. a real close. A lease lost for a moment
+                # (a check that blinks) keeps the cards: the owner asked that the display is not cleared for nothing (DEC-047).
+                self.display.clear(reason)
         preserve_dialogue = preserve_dialogue or not close_session
         if self.voice is not None and (not preserve_dialogue or not self.dialogue_gate.allowed):
             # DEC-062: only reasons that also end passive hearing stop general
@@ -212,7 +222,7 @@ class Service:
                 self.owner_setup.feed(batch)
                 self._set_sources({key:'paused' for key in self.sources},batch.start)
                 return None
-            hearing = self.listening.feed(batch) if self.listening is not None else None
+            hearing = self.listening.feed(batch) if self.listening is not None and self.listening.enabled else None
             archived = self.archive.capture(batch)
             return CaptureStage(self.capture_epoch,batch,archived,hearing)
 
@@ -296,6 +306,16 @@ class Service:
                     self._reject_check(prepared)
                     return False
                 result = self._apply_evidence(batch,evidence,references,prepared.archived,trusted=trusted)
+                if prepared.hearing is None and self.listening is not None and self.listening.enabled:
+                    prepared.hearing = self.listening.feed(batch, evidence)
+                elif prepared.hearing is None and self.listening is not None:
+                    owner_prefix = (self.store.get('face_wake_dialogue', False) and evidence.microphone_ok
+                        and 0 <= self.clock()-batch.end <= Gate.MAX_AGE
+                        and not DialogueGate.company(evidence, trusted)
+                        and ((evidence.voice_certain and evidence.voice_ids == frozenset({'owner'}))
+                             or (evidence.camera_certain and evidence.camera_ids == frozenset({'owner'}))))
+                    if owner_prefix: prepared.hearing = self.listening.feed(batch, evidence, prefix=True)
+                    else: self.listening.clear()
                 self.check_error = None
                 if prepared.hearing is not None: prepared.hearing.resolve(evidence,now=self.clock(),trusted=trusted)
                 return result
@@ -311,6 +331,11 @@ class Service:
         dialogue_before = self.dialogue_gate.allowed
         route_before = self.dialogue_gate.confirmed_by
         trusted = self.trusted_ids() if trusted is None else trusted
+        self.latest_evidence = evidence
+        fresh_audience = type(evidence.captured_at) in (int, float) and 0 <= self.clock() - evidence.captured_at <= Gate.MAX_AGE
+        if fresh_audience and DialogueGate.company(evidence, trusted) and self.voice is not None and self.voice.private_busy():
+            self.feedback.pause()
+            self.voice.cancel(reason="audience-changed", private_only=True)
         dialogue = self.dialogue_gate.check(evidence, self.clock(),
             self.gate.enabled and "owner" in references and self.store.get("face_wake_dialogue", False), trusted=trusted)
         if dialogue != dialogue_before and self.voice is not None:
@@ -319,24 +344,21 @@ class Service:
             self.voice._debug("session", ("Личная сессия открыта: вы подтверждены по " + ("голосу" if self.dialogue_gate.confirmed_by == "voice" else "лицу") + ".")
                               if dialogue else "Личная сессия закрыта: " + CLOSE_TEXT.get(reason, str(reason)) + ".")
         if dialogue_before and not dialogue and self.voice is not None:
-            if self.voice.turn_committed:
+            if self.dialogue_gate.closed_reason == "company":
+                self.feedback.pause()
+                self.voice.cancel(reason="audience-changed", private_only=True)
+            elif self.voice.turn_committed:
                 # The utterance was admitted under a valid lease; a cough or a turned head must not drop
                 # the answer (REQ-039). The lease is re-checked as soon as the turn ends.
                 self.voice._mark("lease_loss_deferred")
             else:
                 self.voice.cancel(reason=getattr(self.verifier, "last_voice_failure" if route_before == "voice" else "last_failure", None) or "participant-check-failed",
                     private_only=True)
-        if (dialogue and self.listening is not None and self.listening.enabled
-                and self.voice.state == 'speaking'):
-            self.voice.feed(batch,evidence)
-        voice_batch=self._dialogue_batch(batch,evidence,dialogue,dialogue_before)
         before = self.gate.allowed
         allowed = self.gate.check(evidence, self.clock())
         if not allowed:
             if before:
                 self._invalidate(preserve_dialogue=self.dialogue_gate.streak > 0)
-            if dialogue and self.voice is not None and not (self.listening is not None and self.listening.enabled):
-                self.voice.feed(voice_batch, evidence)
             self._set_sources({"camera": "paused" if evidence.camera_ok else "unavailable",
                                "microphone": "paused" if evidence.microphone_ok else "unavailable", "screen": "paused"}, batch.start)
             return archived
@@ -353,9 +375,6 @@ class Service:
                 except AnalysisBufferFull:
                     self.store.event(source,'analysis-buffer-full',batch.start,batch.end)
                     self._set_sources({source:'unavailable'},batch.start)
-        if (self.voice is not None and (dialogue or not self.store.get("face_wake_dialogue", False))
-                and not (self.listening is not None and self.listening.enabled)):
-            self.voice.feed(voice_batch, evidence)
         now = self.clock()
         if not self.archive.enabled and now - self.last_screen >= 60:
             self.last_screen = now
@@ -369,31 +388,6 @@ class Service:
         self._fulfill_requests(batch)
         return True
 
-    def _dialogue_batch(self,batch,evidence,allowed,before):
-        # DEC-038 already authorizes this passive local PCM. Keep at most the
-        # first two fresh, individually owner-matched voice seconds while the
-        # three-check dialogue lease is being established. No ASR/output/action
-        # occurs before admission; unknown/gapped/stale samples cannot join it.
-        now=self.clock()
-        owner=(self.voice is not None and self.archive.enabled and self.store.get('face_wake_dialogue',False)
-            and evidence.voice_certain and evidence.voice_ids==frozenset({'owner'})
-            and 0<=now-evidence.captured_at<=Gate.MAX_AGE and len(batch.pcm)==32000
-            and 'microphone' not in batch.gaps)
-        if (not owner or before or self.dialogue_prefix and
-                (not 0<=batch.start-self.dialogue_prefix[-1][1]<=.25
-                 or not 0<=now-self.dialogue_prefix[0][1]<=Gate.MAX_AGE)):
-            self.dialogue_prefix.clear()
-        if not owner:return batch
-        if allowed:
-            prefix=self.dialogue_prefix;self.dialogue_prefix=[]
-            if prefix:
-                from .sensing import Batch
-                return Batch(prefix[0][0],batch.end,batch.frames,
-                    b''.join(item[2] for item in prefix)+batch.pcm,frame_at=batch.frame_at,gaps=batch.gaps)
-        else:
-            self.dialogue_prefix.append((batch.start,batch.end,bytes(batch.pcm)))
-            self.dialogue_prefix[:]=self.dialogue_prefix[-2:]
-        return batch
 
     def recording_frames(self, frames):
         # Keep the same configured compact archive format on both recording
@@ -682,12 +676,12 @@ class Service:
                         self.inputs.start()
                         self.input_running = True
                     self.inputs.recover_sources()
-                    started = time.monotonic()
                     batch = self.inputs.batch()
                     prepared = self._stage_batch(batch)
                     if prepared is not None: self._queue_check(prepared)
-                    # Capture/hearing never wait for numerical identity work.
-                    self.stop_event.wait(max(0, 1 - (time.monotonic() - started)))
+                    # batch() already blocks for one captured PCM second.
+                    # Additional wall-clock pacing slowly accumulates lag,
+                    # eventually overflowing the queue and losing speech.
                 except Exception as error:
                     if isinstance(error,sqlite3.Error) or (isinstance(error,OSError) and error.errno in {errno.ENOSPC,errno.EDQUOT}):
                         # Durable-storage failure must not reopen the devices or
@@ -845,9 +839,9 @@ class Service:
         now = self.clock()
         self.store.expire(now)
         with self.lock:
-            if self.dialogue_prefix and not 0<=now-self.dialogue_prefix[0][1]<=Gate.MAX_AGE:
-                self.dialogue_prefix.clear()
             self.meeting.update()
+            if self.voice is not None and self.voice.thread is not None:
+                self.voice.ensure_running()
             if getattr(self, "calls", None) is not None: self.calls.poll(now)
             if (self.store.get("face_wake_dialogue", False) and not self.dialogue_gate.permits(now) and self.voice is not None
                     and self.voice.busy and not self.voice.turn_committed):
@@ -908,6 +902,7 @@ class Service:
         return self.panel is not None
 
     def start(self):
+        self.feedback.start()
         if self.voice is not None:
             self.voice.start()
         if self.visual is not None:
@@ -928,8 +923,10 @@ class Service:
             self._invalidate("service-stopped")
         if self.voice is not None:
             self.voice.stop()
+        self.panel_chat.stop()
         if self.visual is not None:
             self.visual.stop()
+        self.feedback.stop()
         for thread in self.threads:
             thread.join(timeout=5)
         self.screen_worker.shutdown(wait=True, cancel_futures=True)
@@ -1024,6 +1021,7 @@ class Service:
             raise ValueError("unknown control")
 
     def status(self):
+        from . import __version__
         with self.lock:
             if self.gate.allowed and not self.gate.permits(self.clock()):
                 self._invalidate("stale-participant-check", preserve_dialogue=self.dialogue_gate.permits(self.clock()))
@@ -1031,7 +1029,17 @@ class Service:
             if not gate["recording_allowed"]:
                 self.sources = {k: ("unavailable" if v == "unavailable" else "paused") for k, v in self.sources.items()}
             archive = self.archive.snapshot()
-            return {**gate, "recording_allowed":archive["enabled"] or gate["recording_allowed"],
+            voice = self.voice
+            evidence = getattr(self, "latest_evidence", None)
+            state, phase = getattr(voice,"state",None), getattr(voice,"phase",None)
+            local_models = (getattr(voice,"model",None),getattr(voice,"vision_model",None))
+            local_inference = any(isinstance(getattr(model,"operations",None),set) and bool(model.operations) for model in local_models)
+            analysis_busy = ((evidence is not None and 0 <= self.clock() - evidence.captured_at <= Gate.MAX_AGE and evidence.speech_detected)
+                or getattr(getattr(self,"listening",None),"phase",None) in {"listening","transcription","participant-check"}
+                or state in {"listening", "synthesizing", "speaking"}
+                or state == "thinking" and phase in {"transcription","address","awaiting-continuation"}
+                or local_inference)
+            return {**gate, "version": __version__, "analysis_busy": analysis_busy, "recording_allowed":archive["enabled"] or gate["recording_allowed"],
                     "reason":"passive-local-recording" if archive["enabled"] else gate["reason"],"action_reason":gate["reason"],
                     "action_permission":gate["recording_allowed"], "archive":archive,
                     "sources":archive["sources"] if archive["enabled"] else dict(self.sources), "analysis_error": self.analysis_error,
@@ -1073,14 +1081,35 @@ class RPCServer(socketserver.ThreadingUnixStreamServer):
 
 
 class Handler(socketserver.StreamRequestHandler):
+    def _reply(self, payload: bytes, command) -> None:
+        try:
+            self.wfile.write(payload)
+        except OSError:
+            # The client (the panel kills a slow poll) went away; nothing to answer and nothing to crash on.
+            logging.getLogger("butler.ambient").info("client closed before the %s reply", command)
+
     def handle(self):
         self.connection.settimeout(120)
+        command = None
         try:
             request = json.loads(self.rfile.readline(65537))
             command, args = request["command"], request.get("args", {})
             service = self.server.service
             if command == "status":
                 result = service.status()
+            elif command == "ui-feedback":
+                result = service.feedback.snapshot(service.voice_gate.permits(service.clock()))
+            elif command == "ui-attention":
+                if set(args) != {"mode"}: raise ValueError("invalid attention control")
+                result = service.attention.manual(args["mode"])
+                service.meeting.update()
+            elif command == "ui-feedback-correct":
+                result = service.feedback.correct(args)
+            elif command == "ui-rule":
+                result = service.feedback.rule_control(args)
+            elif command == "ui-rule-context":
+                if set(args) != {"turn"}: raise ValueError("invalid rule context request")
+                result = service.feedback.agent_context(args["turn"])
             elif command == "ui-state":
                 from .local_ui import snapshot
                 result = snapshot(service, want_preview=args.get("preview") is True)
@@ -1090,6 +1119,11 @@ class Handler(socketserver.StreamRequestHandler):
             elif command == "voice-preview":
                 if service.voice is None: raise ValueError("voice unavailable")
                 result = service.voice.preview(args["profile"])
+            elif command == "voice-select":
+                # Through the running service's own store: a second process opening the live database raced its housekeeping.
+                if set(args) != {"profile"} or args["profile"] not in {"calm", "baritone", "warm"}: raise ValueError("invalid voice profile")
+                from .voice_catalog import select
+                result = select(service.store, args["profile"])
             elif command == "ui-settings":
                 from .local_settings import snapshot
                 result = snapshot(service)
@@ -1102,10 +1136,14 @@ class Handler(socketserver.StreamRequestHandler):
                 result = {"opened": True}
             elif command == "ui-guest-setup":
                 if set(args)!={"name"}:raise ValueError("invalid guest setup request")
-                result=service.owner_setup.start(guest_name=args["name"])
+                # The refusals of start() are fixed owner-facing sentences, never sensing or model output.
+                try: result=service.owner_setup.start(guest_name=args["name"])
+                except ValueError as error: result={"queued":False,"message":str(error)[:300]}
             elif command in {"ui-owner-setup","ui-owner-setup-cancel"}:
                 if args: raise ValueError("invalid owner setup request")
-                if command == "ui-owner-setup": result = service.owner_setup.start()
+                if command == "ui-owner-setup":
+                    try: result = service.owner_setup.start()
+                    except ValueError as error: result = {"queued":False,"message":str(error)[:300]}
                 else:
                     service.owner_setup.cancel()
                     result = {"cancelled":True}
@@ -1163,11 +1201,31 @@ class Handler(socketserver.StreamRequestHandler):
             elif command == "ui-visual-cancel":
                 service.visual.cancel()
                 result = {"cancelled": True}
+            elif command == "ui-send-text":
+                # The owner's written message from the panel. Returns at once; the answer arrives through ui-state.
+                if set(args) != {"text"}: raise ValueError("invalid panel message")
+                try:
+                    result = service.panel_chat.send(args["text"])
+                except ValueError as error:
+                    # The refusal is about the owner's own message (empty, too long, queue full): explained on the panel only.
+                    result = {"queued": False, "message": str(error)[:300]}
+            elif command == "ui-observations":
+                from .observation_browser import browse
+                result = browse(service, args)
+            elif command == "ui-dictate":
+                if set(args) != {"action"} or args["action"] not in {"start", "stop"}: raise ValueError("invalid dictation request")
+                result = service.dictation.start() if args["action"] == "start" else service.dictation.stop()
+            elif command == "ui-panel-chat-clear":
+                if args: raise ValueError("invalid panel chat request")
+                result = service.panel_chat.clear("owner")
             elif command == "display":
                 # The agent's card (MCP butler_display) or any owner-local caller: validated, shown, window forward.
-                if not service.voice_gate.permits(service.clock()):
-                    raise ValueError("display needs the owner's dialogue session")
-                result = service.display.present(args, origin="agent")
+                # No privacy gate (owner, 2026-10-27, DEC-048): a valid card is shown whatever the state of the private session.
+                try:
+                    result = service.display.present(args, origin="agent")
+                except CardRefused as error:
+                    # A malformed card is the agent's to correct: the reason names a field or a rule, never content.
+                    result = {"shown": False, "refused": str(error)[:160]}
             elif command == "ui-display-select":
                 result = service.display.select(args["id"])
             elif command == "ui-display-action":
@@ -1183,7 +1241,12 @@ class Handler(socketserver.StreamRequestHandler):
                     result = summarize(service.store, float(args["start"]), float(args["end"]))
             else:
                 result = service.control(command, args)
-            self.wfile.write(json.dumps({"result": result}).encode() + b"\n")
-        except Exception:
-            # Never forward raw capture, transcript, model, or subprocess errors.
-            self.wfile.write(b'{"error":"request unavailable, invalid or prohibited by observation policy"}\n')
+            self._reply(json.dumps({"result": result}).encode() + b"\n", command)
+        except Exception as error:
+            # Never forward raw capture, transcript, model, or subprocess errors to the client. The server log keeps
+            # the command, the exception class and the frames only, never the message text, so a failed poll can be
+            # told apart from a policy refusal without leaking content.
+            import traceback
+            frames = " < ".join(f"{Path(f.filename).name}:{f.lineno}" for f in reversed(traceback.extract_tb(error.__traceback__)[-4:]))
+            logging.getLogger("butler.ambient").warning("request %s failed: %s (%s)", command, type(error).__name__, frames)
+            self._reply(b'{"error":"request unavailable, invalid or prohibited by observation policy"}\n', command)

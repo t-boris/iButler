@@ -15,6 +15,7 @@ from . import processes as subprocess
 import threading
 import time
 import wave
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -33,6 +34,9 @@ class Batch:
     frame_at: float | None = None
     gaps: tuple[str, ...] = ()
     frame_times: tuple[float, ...] = ()
+    stream_id: str | None = None
+    sample_start: int | None = None
+    sample_end: int | None = None
 
     def wav(self):
         out = io.BytesIO()
@@ -54,6 +58,8 @@ class Inputs:
         self.ffmpeg_cli = ffmpeg_cli
         self.frames = queue.Queue(maxsize=15)
         self.audio = queue.Queue(maxsize=2)
+        self.audio_stream = uuid.uuid4().hex
+        self.audio_samples = 0
         self.processes = []
         self.stopped = threading.Event()
         self.dropped = {"camera": 0, "microphone": 0}
@@ -306,6 +312,7 @@ class Inputs:
                 buffer.clear()
 
     def _audio(self, proc):
+        self.audio_stream, self.audio_samples = uuid.uuid4().hex, 0
         buffer = bytearray()
         while not self.stopped.is_set():
             block = proc.stdout.read(32000 - len(buffer))
@@ -328,7 +335,9 @@ class Inputs:
         at = time.time()
         rms = math.sqrt(sum(float(x) * x for x in samples) / max(len(samples), 1)) / 32768
         self.input_signal = {"at": at, "rms_dbfs": round(20 * math.log10(max(rms, 1e-5)), 1)}
-        if self._put(self.audio, (at, pcm)): self.dropped["microphone"] += 1
+        start = self.audio_samples
+        self.audio_samples += len(pcm)//2
+        if self._put(self.audio, (at, pcm, self.audio_stream, start)): self.dropped["microphone"] += 1
 
     def _native_audio_exited(self, proc):
         """The native helper stopped (2026-10-25: it died unnoticed; the voice went «unavailable», replies were cancelled
@@ -357,6 +366,7 @@ class Inputs:
             self.processes[1] = process
         threading.Thread(target=self._errors, args=("microphone", process), daemon=True).start()
         # No recursive fallback after FFmpeg EOF.
+        self.audio_stream, self.audio_samples = uuid.uuid4().hex, 0
         buffer = bytearray()
         while not self.stopped.is_set():
             block = process.stdout.read(32000 - len(buffer))
@@ -369,17 +379,15 @@ class Inputs:
 
     def batch(self):
         try:
-            at, pcm = self.audio.get(timeout=2)
+            block = self.audio.get(timeout=2)
+            at, pcm = block[:2]
+            stream, start = block[2:] if len(block) == 4 else (None, None)
         except queue.Empty:
             return Batch(time.time() - 1, time.time(), [], b"")
-        # Recover to the freshest complete second after a slow check. Mark
-        # skipped audio as a gap; do not pair old audio with newer video.
-        while True:
-            try:
-                at, pcm = self.audio.get_nowait()
-                self.dropped["microphone"] += 1
-            except queue.Empty:
-                break
+        # Capture is separate from the identity worker. Consume every queued
+        # second in order: draining to the newest block threw away actual
+        # words after even a one-second scheduling delay. Real overflow and
+        # stale capture still fail the freshness checks below.
         frames = []
         frame_times = []
         frame_at = None
@@ -402,7 +410,8 @@ class Inputs:
             # A muted device can emit complete silent PCM buffers. It cannot
             # provide participant evidence or a dialogue microphone lease.
             pcm = b""
-        return Batch(at - 1, at, frames, pcm, frame_at, gaps,tuple(frame_times))
+        return Batch(at - 1, at, frames, pcm, frame_at, gaps,tuple(frame_times), stream, start,
+                     start + len(pcm)//2 if start is not None else None)
 
     def drain(self):
         for q in (self.frames, self.audio):
@@ -497,12 +506,15 @@ class Verifier:
     def _voices(self, pcm):
         np = self.np
         voiced = []
+        activity = []
         for offset in range(0, len(pcm) - 959, 960):
             frame = pcm[offset:offset + 960]
-            if self.vad.is_speech(frame, 16000):
+            speech = self.vad.is_speech(frame, 16000)
+            activity.append(speech)
+            if speech:
                 voiced.append(frame)
         # A cough or a click fires one or two VAD frames; speech is at least 0.3 s of voiced audio.
-        self.speech_detected = len(voiced) >= SPEECH_FRAMES
+        self.speech_detected = sum(all(activity[i:i+2]) for i in range(0, len(activity)-1, 2)) >= SPEECH_FRAMES
         if not voiced:
             return []
         # Do not authorize short/unreliable speech. Every half-second window

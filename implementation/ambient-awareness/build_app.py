@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 BUNDLE_ID = "com.boris.butler-ui"
 # Resources next to the icon: the offline Mermaid page used by the "Display" section.
-RESOURCES = ("Butler.icns", "mermaid.min.js", "diagram.html")
+RESOURCES = ("Butler.icns", "mermaid.min.js", "diagram.html", "diagram_templates.json", "drawing_example.svg")
 
 
 def package_version() -> str:

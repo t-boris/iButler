@@ -60,7 +60,10 @@ class SmartTurnShadow:
         if process is not None and process.poll() is None:
             process.terminate()
             try: process.wait(timeout=2)
-            except subprocess.TimeoutExpired: process.kill()
+            except subprocess.TimeoutExpired: process.kill(); process.wait(timeout=2)
+        if process is not None:
+            for stream in (process.stdin, process.stdout):
+                if stream is not None: stream.close()
 
     # -- judgement -----------------------------------------------------------------------------
 
@@ -95,6 +98,7 @@ class SmartTurnShadow:
                 return None
             result = {"complete_p": round(float(verdict.get("probability", 0.0)), 3), "ms": verdict.get("ms"),
                       "round_trip_ms": round((self.clock() - started) * 1000)}
+            if "voiced_ms" in verdict: result["voiced_ms"] = verdict["voiced_ms"]
             self.state, self.samples, self.last = "ready", self.samples + 1, result
             return result
 
@@ -127,7 +131,10 @@ def worker():
     import numpy as np
     try:
         from pipecat.audio.turn.smart_turn.local_smart_turn_v3 import LocalSmartTurnAnalyzerV3
+        from pipecat.audio.vad.silero import SileroVADAnalyzer
         analyzer = LocalSmartTurnAnalyzerV3()
+        analyzer._log_data = False  # feedback v1 never retains acoustic examples
+        vad = SileroVADAnalyzer(sample_rate=16000)
     except Exception as error:
         sys.stdout.write(json.dumps({"error": "load:" + type(error).__name__}) + "\n"); sys.stdout.flush()
         return 1
@@ -137,12 +144,33 @@ def worker():
             audio = np.frombuffer(pcm, dtype=np.int16).astype(np.float32) / 32768.0
             started = time.monotonic()
             verdict = analyzer._predict_endpoint(audio)
+            # Silero works on 512-sample (32 ms) windows at 16 kHz. Recreate
+            # its state per utterance; no speaker/audio state crosses requests.
+            vad._model.reset_states()
+            voiced = sum(vad.voice_confidence(pcm[i:i + 1024]) >= .7
+                         for i in range(0, len(pcm) - 1023, 1024))
             out = {"probability": float(verdict.get("probability", 0.0)), "prediction": int(verdict.get("prediction", 0)),
-                   "ms": round((time.monotonic() - started) * 1000)}
+                   "voiced_ms": voiced * 32, "ms": round((time.monotonic() - started) * 1000)}
         except Exception as error:
             out = {"error": type(error).__name__}
         sys.stdout.write(json.dumps(out) + "\n"); sys.stdout.flush()
     return 0
+
+
+class SmartTurnEndpointer(SmartTurnShadow):
+    """Active Pipecat/Silero/Smart Turn admission, opt-in after owner-speech calibration.
+
+    The transport still supplies complete PCM seconds. Endpoint decisions run
+    on the hearing worker, never the capture thread; ASR runs only after a
+    completed thought. Failure degrades to the previous bounded endpointer.
+    """
+    def complete(self, pcm):
+        verdict = self.judge(pcm)
+        if verdict is None: return None
+        return verdict["complete_p"] >= .5
+
+    def snapshot(self):
+        return {**super().snapshot(), "mode": "active: Pipecat Silero + Smart Turn v3"}
 
 
 if __name__ == "__main__":

@@ -28,6 +28,41 @@ class StateMachineTests(unittest.TestCase):
     def evidence(self, voices=frozenset(), scene=Scene(), certain=True):
         return Evidence(self.now, True, True, voice_ids=voices, voice_certain=certain, scene=scene)
 
+    def test_manual_free_survives_unchanged_application_and_unknown_camera(self):
+        self.a._busy("mic-app", self.now, ("Chrome",))
+        self.a.manual("free")
+        for _ in range(10):
+            self.now += 60
+            self.a._busy("mic-app", self.now, ("Chrome",))
+            self.a.observe(Evidence(self.now, False, False), self.now)
+            self.assertEqual(self.a.state(), IDLE)
+            self.assertEqual(self.a.snapshot()["override"], "free")
+        self.a._busy("mic-app", self.now, ("Zoom",))
+        self.assertEqual(self.a.snapshot()["override"], "auto")
+        self.assertEqual(self.a.state(), BUSY)
+
+    def test_manual_busy_auto_reset_and_confirmed_end_do_not_change_permissions(self):
+        self.a.manual("busy")
+        self.now += 3600
+        self.assertEqual(self.a.state(), BUSY)
+        self.a.manual("auto")
+        self.assertEqual(self.a.state(), IDLE)
+        self.a._busy("mic-app", self.now, ("Chrome",))
+        self.a.manual("free")
+        self.a._situation("mic-app", False, self.now)
+        self.assertEqual(self.a.snapshot()["override"], "auto")
+        self.assertEqual(self.a.state(), IDLE)
+        self.service.gate.enabled = False
+        self.a.manual("free")
+        self.assertEqual(self.a.state(), PAUSED)
+        self.service.gate.enable.assert_not_called()
+
+    def test_explicit_spoken_cue_can_replace_button_choice(self):
+        self.a.manual("busy")
+        self.assertEqual(self.a.spoken_cue("я свободен"), "free")
+        self.assertEqual(self.a.state(), IDLE)
+        self.assertEqual(self.a.snapshot()["override"], "auto")
+
     def test_other_voice_face_and_mic_app_make_busy_and_busy_expires(self):
         self.assertEqual(self.a.state(), IDLE)
         self.a.observe(self.evidence(frozenset({"guest"})), self.now)
@@ -52,12 +87,14 @@ class StateMachineTests(unittest.TestCase):
         self.a.observe(self.evidence(scene=away), self.now)
         self.assertEqual((self.a.state(), self.a.busy_cause), (BUSY, "looking-away-talking"))
 
-    def test_name_clears_busy_and_an_answer_starts_a_session_that_ends_on_request(self):
+    def test_name_opens_session_without_erasing_busy_evidence_dec072(self):
         self.a.observe(self.evidence(frozenset({"guest"})), self.now)
         self.a.named(self.now)
+        self.assertEqual(self.a.state(), BUSY)
+        self.now += 31
         self.assertEqual(self.a.state(), ENGAGED)
         self.now += 301
-        self.assertEqual(self.a.state(), IDLE)
+        self.assertEqual(self.a.state(), ENGAGED)
         self.a.engaged(self.now); self.assertEqual(self.a.state(), ENGAGED)
         self.a.ended(self.now); self.assertEqual(self.a.state(), IDLE)
         self.service.gate.enabled = False
@@ -124,7 +161,7 @@ class IntegrationTests(unittest.TestCase):
         self.inputs = Mock(audio_status={"ready": True, "echo_cancellation": True}, playback={"state": "idle", "id": None})
         self.service = Service(self.store, self.inputs, Mock(), Mock(), clock=lambda: self.now, transport=Mock())
         self.voice = Conversation(self.service); self.service.voice = self.voice
-        self.voice.model = Mock(); self.voice.barge_model = Mock(); self.voice.vision_model = Mock()
+        self.voice.model = Mock(); self.voice.vision_model = Mock()
         self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
         self.store.set("face_wake_dialogue", True)
         self.service.gate.enable(True, self.now)
@@ -137,24 +174,35 @@ class IntegrationTests(unittest.TestCase):
     def tearDown(self):
         self.service.stop(); self.store.close(); self.temp.cleanup()
 
+    def finish(self):
+        deadline = time.monotonic()+2
+        while self.voice.dialogue.active and time.monotonic()<deadline: time.sleep(.005)
+        self.assertFalse(self.voice.dialogue.active, 'agent fixture did not finish')
+        self.voice.state = 'ready'
+        with patch.object(Conversation, 'ready', new_callable=PropertyMock, return_value=True):
+            for _ in range(64): self.voice._deliver_dialogue()
+
     def test_busy_owner_is_not_answered_unnamed_but_the_name_always_works(self):
         self.service.attention.observe(Evidence(self.now, True, True, voice_ids=frozenset({"guest"}), voice_certain=True), self.now)
         self.voice.model.generate_json.return_value = {"addressed": True, "confidence": .99, "intent": "chat", "criteria": "", "telegram": False, "reply": "Ответ."}
         self.voice.model.transcribe.return_value = "Что сегодня по плану?"
         self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
         self.voice.speak.assert_not_called()
         self.voice.model.generate_json.assert_not_called()
         self.assertEqual(self.voice.diagnostics()["turns"][-1]["outcome"], "owner-busy")
         self.voice.model.transcribe.return_value = "Батлер, что сегодня по плану?"
         self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
         self.voice.speak.assert_called_once()
-        self.assertEqual(self.service.attention.state(self.now), ENGAGED)
+        self.assertEqual(self.service.attention.state(self.now), BUSY)
 
     def test_a_private_answer_keeps_an_unnamed_general_follow_up_addressed(self):
         # The lease flaps between turns; the Butler session (attention ENGAGED) does not (2026-10-25).
         self.voice.model.generate_json.return_value = {"addressed": True, "confidence": .99, "intent": "chat", "criteria": "", "telegram": False, "reply": "Ответ."}
         self.voice.model.transcribe.return_value = "Батлер, сколько будет семь на восемь?"
         self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
         self.voice.speak.assert_called_once()
         self.assertEqual(self.service.attention.state(self.now), ENGAGED)
         self.assertTrue(self.voice.conversation_active())
@@ -186,6 +234,7 @@ class IntegrationTests(unittest.TestCase):
             self.voice.vision_model.generate_json.return_value = {"phone_at_ear": False, "talking_to_person": True, "person_visible": True}
             self.voice.model.transcribe.return_value = "Ты можешь мне помочь с Батлером?"
             self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
+            self.finish()
             self.voice.speak.assert_called_once()                                      # alone: the frame verdict is not company
             self.voice.token = threading.Event()
             self.service.attention.vision = {"at": float("-inf"), "result": None}
@@ -194,138 +243,104 @@ class IntegrationTests(unittest.TestCase):
         self.assertTrue(self.voice.token.is_set())                                     # the phone at the ear stops this turn
         self.assertEqual(self.voice.diagnostics()["turns"][-1]["outcome"], "owner-busy")
 
-    def test_agent_brain_answers_named_and_unnamed_turns_and_falls_back_locally(self):
-        from butler_ambient.brain import BrainUnavailable
-        from butler_ambient.conversation import Conversation as C
-        self.store.set("voice_brain", "agent")
-        brain = self.service.brain; brain.ask = Mock(return_value="Аренда — это плата за пользование.")
-        self.voice.model.transcribe.return_value = "Батлер, что такое аренда?"
-        self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
-        self.voice.speak.assert_called_once_with("Аренда — это плата за пользование.", unittest.mock.ANY, unittest.mock.ANY)
-        for call in self.voice.model.generate_json.call_args_list:                     # the name decides: no local judge
-            self.assertNotIn("Examples of decisions", call.args[0])                   # (the local model only phrases the wait)
-        self.assertEqual(brain.ask.call_args.args[0], "Батлер, что такое аренда?")
-        self.assertIn("владелец один", brain.ask.call_args.args[1])
-        turn = self.voice.diagnostics()["turns"][-1]
-        self.assertEqual((turn["outcome"], turn["brain"], turn["judge"]), ("replied", "agent", "name"))
-        # Unnamed follow-up inside the open session, nobody else around: no local judge at all, the agent answers.
-        self.voice.speak.reset_mock(); brain.ask.reset_mock(); self.voice.token = threading.Event(); self.voice.state = "ready"
-        self.voice.model.generate_json.return_value = {"addressed": True, "confidence": .95, "intent": "chat", "criteria": "", "telegram": False}
-        self.voice.model.transcribe.return_value = "А чем она отличается от лизинга?"
-        self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
-        self.voice.model.generate_json.assert_not_called()                             # a fast answer needs no local call at all
-        self.assertEqual(self.voice.diagnostics()["turns"][-1]["judge"], "session")
-        brain.ask.assert_called_once(); self.voice.speak.assert_called_once()
-        # The gateway is down: the local model answers with the same guard rails.
-        self.voice.speak.reset_mock(); self.voice.token = threading.Event(); self.voice.state = "ready"
-        brain.ask.side_effect = BrainUnavailable("gateway http 503")
-        self.voice.model.generate_json.return_value = {"reply": "Локальный ответ."}
-        self.voice.model.transcribe.return_value = "Батлер, а что такое ипотека?"
-        self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
-        self.voice.speak.assert_called_once_with("Локальный ответ.", unittest.mock.ANY, unittest.mock.ANY)
-        self.assertEqual(self.voice.diagnostics()["counts"].get("brain_unavailable"), 1)
-        # A slow agent is not an absent one: no local improvisation, an honest sentence instead.
-        self.voice.speak.reset_mock(); self.voice.model.generate_json.reset_mock(); self.voice.token = threading.Event(); self.voice.state = "ready"
-        brain.ask.side_effect = BrainUnavailable("TimeoutError")
-        self.voice.model.transcribe.return_value = "Батлер, прочитай почту"
-        self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
-        self.voice.speak.assert_called_once_with(C.BRAIN_TIMEOUT_REPLY, unittest.mock.ANY, unittest.mock.ANY)
+    def test_agent_preserves_one_conversation_and_failure_has_explicit_local_fallback(self):
+        from butler_ambient.brain import BrainUnavailable, BrainSilent
+        self.store.set('voice_brain', 'agent')
+        brain = self.service.brain; brain.ask = Mock(return_value='Аренда — плата за пользование.')
+        self.voice.model.transcribe.return_value = 'Батлер, что такое аренда?'
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
+        self.assertEqual(self.voice.speak.call_args.args[0], 'Аренда — плата за пользование.')
+        self.assertEqual(self.voice.diagnostics()['turns'][-1]['judge'], 'name')
+        self.voice.token = threading.Event(); self.voice.speak.reset_mock()
+        self.voice.model.transcribe.return_value = 'А чем она отличается от лизинга?'
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish(); self.assertEqual(self.voice.diagnostics()['turns'][-1]['judge'], 'session')
+        for error in [BrainUnavailable('http'), BrainUnavailable('TimeoutError'), BrainUnavailable('agent-error')]:
+            self.voice.token = threading.Event(); self.voice.speak.reset_mock()
+            brain.ask.side_effect = error
+            self.voice.model.transcribe.return_value = 'Батлер, объясни ещё раз'
+            self.voice.model.generate_json.return_value = {'reply': 'Локальное объяснение.'}
+            self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+            self.finish()
+            spoken = ' '.join(c.args[0] for c in self.voice.speak.call_args_list)
+            self.assertIn('Агент сейчас недоступен', spoken); self.assertIn('Локальное объяснение', spoken)
+        brain.ask.side_effect = BrainSilent(); self.voice.speak.reset_mock(); self.voice.token = threading.Event()
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish(); self.voice.speak.assert_not_called()
+
+    def test_direct_speech_shortcut_respects_other_people(self):
+        verdict = {'addressed': False, 'confidence': .95, 'intent': 'chat', 'criteria': '', 'telegram': False}
+        self.assertTrue(Conversation._addressed(verdict, False, False, True, direct=True))
+        self.assertFalse(Conversation._addressed(verdict, False, False, True, direct=False))
+        self.assertFalse(Conversation._addressed(verdict, False, False, True, direct=True,
+            scene=Mock(available=True, others_present=True, owner_facing=False)))
+
+    def test_long_work_is_observable_without_holding_the_voice_turn(self):
+        entered, release = threading.Event(), threading.Event()
+        def run(*args, **kwargs):
+            entered.set(); release.wait(1); return 'Писем три, срочных нет.'
+        self.store.set('voice_brain', 'agent'); self.service.brain.ask = Mock(side_effect=run)
+        self.voice.model.transcribe.return_value = 'Батлер, прочитай почту'
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.assertTrue(entered.wait(1)); self.assertEqual(self.voice.state, 'ready')
+        self.assertTrue(self.voice.dialogue.active)
+        release.set(); self.finish()
+        spoken = ' '.join(c.args[0] for c in self.voice.speak.call_args_list)
+        self.assertIn('Писем три, срочных нет.', spoken); self.assertNotIn('Готово.', spoken)
+
+    def test_failed_result_delivery_does_not_kill_the_next_request(self):
+        self.store.set('voice_brain', 'agent'); self.service.brain.ask = Mock(return_value='Ответ после проверки.')
+        self.voice.speak.side_effect = RuntimeError('local audio deadline')
+        self.voice.model.transcribe.return_value = 'Батлер, проверь статус'
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish(); self.assertEqual(self.voice.state, 'ready')
+        self.assertEqual(self.voice.dialogue.snapshot(True)['requests'][-1]['delivery'], 'failed')
+        self.voice.speak.side_effect = None; self.voice.token = threading.Event()
+        self.service.brain.ask.return_value = 'Следующий ответ.'
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish(); self.assertEqual(self.voice.speak.call_args.args[0], 'Следующий ответ.')
+
+    def test_agent_question_is_visible_and_retains_its_identity_after_a_pause(self):
+        self.store.set('voice_brain', 'agent'); self.service.brain.ask = Mock(return_value='Показать список файлов?')
+        self.voice.model.transcribe.return_value = 'Батлер, подготовь список'
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish(); question = self.voice.session.question_id
+        self.now += 1200
+        self.assertTrue(self.voice.session.answering('owner', self.now))
+        self.assertEqual(self.voice.session.question_id, question)
+
+    def test_fast_answer_needs_no_generated_waiting_text(self):
+        self.store.set('voice_brain', 'agent'); self.service.brain.ask = Mock(return_value='Сегодня три задачи.')
+        self.voice.model.transcribe.return_value = 'Батлер, что сегодня по задачам?'
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
+        self.assertEqual([c.args[0] for c in self.voice.speak.call_args_list], ['Сегодня три задачи.'])
         self.voice.model.generate_json.assert_not_called()
-        # NO_REPLY from the agent is silence (2026-10-25: Butler said «NO_REPLY» aloud).
-        from butler_ambient.brain import BrainSilent
-        self.voice.speak.reset_mock(); self.voice.token = threading.Event(); self.voice.state = "ready"
-        brain.ask.side_effect = BrainSilent()
-        self.voice.model.transcribe.return_value = "Батлер, ну ладно"
-        self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
-        self.voice.speak.assert_not_called()
-        self.assertEqual(self.voice.diagnostics()["turns"][-1].get("brain_silent"), True)
-        self.assertEqual(self.voice.diagnostics()["counts"].get("brain_silent"), 1)
 
-    def test_direct_speech_outranks_the_local_judge_and_progress_is_spoken_while_the_agent_works(self):
-        from butler_ambient.conversation import Conversation as C
-        verdict = {"addressed": False, "confidence": .95, "intent": "chat", "criteria": "", "telegram": False}
-        self.assertTrue(C._addressed(verdict, False, False, True, direct=True))                 # alone + second person
-        self.assertFalse(C._addressed(verdict, False, False, True, direct=False))
-        beside = Mock(available=True, others_present=True, owner_facing=False)
-        self.assertFalse(C._addressed(verdict, False, False, True, scene=beside, direct=True))  # talking to the person beside
-        self.store.set("voice_brain", "agent")
-        brain = self.service.brain
-        def slow(*args, **kwargs):
-            time.sleep(.7); return "Сегодня три задачи."
-        brain.ask = Mock(side_effect=slow)
-        with patch.object(C, "BRAIN_FILLER_AFTER", .2), patch.object(C, "BRAIN_THINK_AFTER", 0), patch.object(C, "BRAIN_FILLER_EVERY", .25):
-            self.voice.model.transcribe.return_value = "Батлер, что у меня сегодня по задачам?"
-            self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
-        spoken = [call.args[0] for call in self.voice.speak.call_args_list]
-        self.assertEqual(spoken[0], "Сейчас посмотрю.")                                          # progress, never silence
-        self.assertEqual(spoken[-1], "Сегодня три задачи.")
-        self.assertGreaterEqual(self.voice.diagnostics()["counts"].get("brain_filler"), 1)
+    def test_delayed_reaction_is_bound_to_the_real_request_and_is_not_repeated(self):
+        entered, release = threading.Event(), threading.Event()
+        def run(*args, **kwargs): entered.set(); release.wait(1); return 'Содержательный ответ.'
+        self.store.set('voice_brain', 'agent'); self.service.brain.ask = Mock(side_effect=run)
+        self.voice.model.transcribe.return_value = 'Батлер, объясни устройство диска'
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.assertTrue(entered.wait(1))
+        request = next(iter(self.voice.dialogue.requests.values())); request.queued_at -= 2
+        with patch.object(Conversation, 'ready', new_callable=PropertyMock, return_value=True):
+            self.voice._deliver_dialogue(); self.voice._deliver_dialogue()
+        self.assertEqual(self.voice.speak.call_count, 1)
+        self.assertIn('устройство диска', self.voice.speak.call_args.args[0])
+        release.set(); self.finish()
+        self.assertEqual(self.voice.speak.call_count, 2)
+        self.voice.model.generate_json.assert_not_called()
 
-    def test_long_agent_work_is_detached_and_its_result_is_spoken_later(self):
-        from butler_ambient.conversation import Conversation as C
-        self.store.set("voice_brain", "agent")
-        brain = self.service.brain
-        release = threading.Event()
-        def slow(*args, **kwargs):
-            release.wait(2); return "Писем три, срочных нет."
-        brain.ask = Mock(side_effect=slow)
-        with patch.object(C, "BRAIN_FILLER_AFTER", 5), patch.object(C, "BRAIN_DETACH_AFTER", .3):
-            self.voice.model.transcribe.return_value = "Батлер, прочитай почту"
-            self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
-        self.voice.speak.assert_called_once_with(C.BRAIN_DETACHED_REPLY, unittest.mock.ANY, unittest.mock.ANY)
-        self.assertEqual(self.voice.diagnostics()["turns"][-1]["brain"], "agent-detached")
-        release.set()
-        deadline = time.time() + 2
-        while not self.voice.deferred and time.time() < deadline: time.sleep(.05)
-        self.assertEqual(self.voice.deferred[-1]["text"], "Писем три, срочных нет.")   # the work was never cut off
-        self.voice.speak.reset_mock(); self.voice.state = "ready"
-        self.voice._speak_deferred()                                                  # at the next idle moment
-        self.voice.speak.assert_called_once_with("Готово. Писем три, срочных нет.", unittest.mock.ANY, unittest.mock.ANY)
-        self.assertEqual(self.voice.history[-1]["butler"], "Готово. Писем три, срочных нет.")
-        self.assertFalse(self.voice.deferred)
-        self.service.attention.observe(Evidence(self.now, True, True, voice_ids=frozenset({"guest"}), voice_certain=True), self.now)
-        self.voice.deferred.append({"at": self.now, "request": "x", "text": "y"}); self.voice.speak.reset_mock()
-        self.voice._speak_deferred()                                                  # busy with someone: it waits
-        self.voice.speak.assert_not_called(); self.assertTrue(self.voice.deferred)
-
-    def test_the_wait_for_the_agent_is_acknowledged_with_request_aware_phrases(self):
-        # The owner's rule (2026-10-25): no canned «сейчас посмотрю»; what Butler says while the agent works is about this request.
-        from butler_ambient.conversation import Conversation as C
-        self.store.set("voice_brain", "agent")
-        brain = self.service.brain
-        def slow(*args, **kwargs):
-            time.sleep(1.0); return "Сегодня три задачи."
-        brain.ask = Mock(side_effect=slow)
-        self.voice.model.generate_json.return_value = {"ack": "Смотрю задачи на сегодня", "progress": ["Задачи ещё собираю.", "Список почти готов."]}
-        with patch.object(C, "BRAIN_FILLER_AFTER", .2), patch.object(C, "BRAIN_THINK_AFTER", 0), patch.object(C, "BRAIN_FILLER_EVERY", .25):
-            self.voice.model.transcribe.return_value = "Батлер, что у меня сегодня по задачам?"
-            self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
-        spoken = [call.args[0] for call in self.voice.speak.call_args_list]
-        self.assertEqual(spoken[:2], ["Смотрю задачи на сегодня.", "Задачи ещё собираю."])
-        self.assertEqual(spoken[-1], "Сегодня три задачи.")
-        self.assertNotIn("Сейчас посмотрю.", spoken)
-        prompt = self.voice.model.generate_json.call_args.args[0]
-        self.assertIn("что у меня сегодня по задачам", prompt)                                  # only the owner's words go in
-        self.assertEqual(self.voice.diagnostics()["counts"].get("brain_ack_local"), 1)
-
-    def test_an_acknowledgement_with_a_number_or_from_a_failed_model_falls_back_to_the_canned_phrase(self):
-        from butler_ambient.conversation import Conversation as C
-        self.assertIsNone(C._phrase("Нашёл 3 письма"))                                              # a number would be an invented result
-        self.assertIsNone(C._phrase("**Смотрю**")); self.assertIsNone(C._phrase("Да")); self.assertIsNone(C._phrase(None))
-        self.assertEqual(C._phrase(" «Проверяю почту» "), "Проверяю почту.")
-        self.store.set("voice_brain", "agent")
-        brain = self.service.brain
-        def slow(*args, **kwargs):
-            time.sleep(.7); return "Писем три."
-        brain.ask = Mock(side_effect=slow)
-        self.voice.model.generate_json.side_effect = ValueError("local model unavailable")
-        with patch.object(C, "BRAIN_FILLER_AFTER", .2), patch.object(C, "BRAIN_THINK_AFTER", 0), patch.object(C, "BRAIN_ACK_GRACE", .1), patch.object(C, "BRAIN_FILLER_EVERY", .25):
-            self.voice.model.transcribe.return_value = "Батлер, прочитай почту"
-            self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
-        spoken = [call.args[0] for call in self.voice.speak.call_args_list]
-        self.assertEqual(spoken[0], "Сейчас посмотрю.")                                            # progress, never silence
-        self.assertEqual(spoken[-1], "Писем три.")
-        self.assertEqual(self.voice.diagnostics()["counts"].get("brain_ack_failed"), 1)
+    def test_status_question_reports_only_real_coordinator_state(self):
+        self.store.set('voice_brain', 'agent')
+        self.voice.model.transcribe.return_value = 'Что ты делаешь сейчас?'
+        self.service.brain.ask = Mock()
+        self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.assertIn('Сейчас слушаю', self.voice.speak.call_args.args[0])
+        self.service.brain.ask.assert_not_called()
 
     def test_a_desktop_busy_cause_appearing_during_the_look_does_not_veto_the_turn(self):
         # 2026-10-25: a Meet tab took the microphone while the frame was being judged; the veto threw away an answer the
@@ -348,11 +363,13 @@ class IntegrationTests(unittest.TestCase):
         brain.ask = Mock(return_value="Пятьдесят шесть.")
         self.voice.model.transcribe.return_value = "Батлер, сколько будет семь на восемь?"
         self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
         self.assertEqual(self.service.attention.state(self.now), ENGAGED)
         self.voice.token = threading.Event(); self.voice.speak.reset_mock(); self.voice.model.generate_json.reset_mock()
         self.voice.model.generate_json.return_value = {"addressed": False, "confidence": .99, "intent": "chat", "criteria": "", "telegram": False}
         self.voice.model.transcribe.return_value = "А почему так?"                              # no name, no second person
         self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
         self.assertEqual(self.voice.diagnostics()["turns"][-1]["judge"], "session")
         self.assertEqual(brain.ask.call_count, 2)                                                 # the agent, not a local judge, decides
         self.voice.speak.assert_called_once_with("Пятьдесят шесть.", unittest.mock.ANY, unittest.mock.ANY)
@@ -364,6 +381,7 @@ class IntegrationTests(unittest.TestCase):
         brain = self.service.brain; brain.ask = Mock(return_value="Вижу стол и лампу.")
         self.voice.model.transcribe.return_value = "Батлер, я на встрече"
         self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
         brain.ask.assert_not_called()                                                  # a local mode control, not a question
         self.assertTrue(self.voice.model.generate_json.called)                         # the local command interpreter ran
         self.voice.token = threading.Event(); self.voice.state = "ready"
@@ -377,6 +395,7 @@ class IntegrationTests(unittest.TestCase):
         self.service.request_fresh = Mock(return_value={"status": "captured", "source_id": mid, "generation": self.service.gate.generation})
         self.voice.model.transcribe.return_value = "Батлер, посмотри, что у меня на столе?"
         self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
         self.assertEqual(brain.ask.call_args.kwargs["images"], [b"\xff\xd8frame"])
         self.assertEqual(self.voice.diagnostics()["turns"][-1]["frames"], 1)
         # Someone else in the frame: the words go, the frame does not.
@@ -385,6 +404,7 @@ class IntegrationTests(unittest.TestCase):
                                           data=Mock(return_value={}))
         self.voice.model.transcribe.return_value = "Батлер, посмотри ещё раз"
         self.voice._turn(b"\0" * 32000, self.voice.token, self.service.voice_gate.generation, True)
+        self.finish()
         self.assertEqual(brain.ask.call_args.kwargs["images"], [])
 
     def test_without_a_lease_unnamed_speech_gets_a_general_turn_unless_busy(self):

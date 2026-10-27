@@ -25,7 +25,6 @@ class TurnTakingTests(unittest.TestCase):
         self.voice = Conversation(self.service)
         self.service.voice = self.voice
         self.voice.model = Mock()
-        self.voice.barge_model = Mock()
         self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
         self.store.set("face_wake_dialogue", True)
         self.service.gate.enable(True, self.now)
@@ -44,55 +43,28 @@ class TurnTakingTests(unittest.TestCase):
     def replying(self):
         self.voice.turn_active, self.voice.state, self.voice.phase = True, "thinking", "reply"
 
-    def test_speech_between_streamed_sentences_is_a_candidate_interruption_not_a_stop(self):
-        self.replying()
-        old = self.voice.token
-        with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True), \
-             patch.object(Conversation, "_barge") as barge:
-            self.voice.feed(Batch(self.now - 1, self.now, [], b"\1\0" * 16000), self.evidence())
-        self.assertFalse(old.is_set())                                  # nothing cancelled
-        self.assertEqual(self.voice.state, "thinking")
-        self.assertTrue(barge.called or self.voice.barge_thread is not None)
+    def test_raw_speech_between_sentences_is_collected_without_stopping_output(self):
+        listening = self.passive(); self.replying(); old = self.voice.token
+        with patch.object(Listening, 'speech', return_value=True), patch.object(Conversation, '_silence_tail', return_value=0):
+            listening.feed(Batch(self.now-1, self.now, [], b'\1\0'*16000), self.evidence())
+        self.assertFalse(old.is_set())
+        self.assertEqual(len(listening.audio), 32000)
+        self.assertTrue(self.voice.jobs.empty())
 
-    def test_other_voice_and_fragments_do_not_stop_playback_but_the_name_and_owner_stop_words_do(self):
-        self.voice.state, self.voice.phase = "speaking", "playback"
-        self.voice.last_reply = "Начните с подготовки отчёта."
-        old = self.voice.token
-        # Someone else, classified by the model as addressed: ignored.
-        self.voice.barge_owner, self.voice.barge_other = False, True
-        self.voice.barge_model.transcribe.return_value = "А ты что думаешь про отчёт?"
-        self.voice.barge_model.generate_json.return_value = {"addressed": True, "confidence": .99}
-        self.voice._barge(b"\1\0" * 16000, old, self.service.voice_gate.generation)
-        self.assertFalse(old.is_set())
-        self.assertEqual(self.voice.diagnostics()["counts"].get("barge_in_ignored_other_voice"), 1)
-        # Someone else saying a stop word: ignored too.
-        self.voice.barge_model.transcribe.return_value = "Подожди"
-        self.voice._barge(b"\1\0" * 16000, old, self.service.voice_gate.generation)
-        self.assertFalse(old.is_set())
-        # The owner's two-word fragment: ignored.
-        self.voice.barge_owner, self.voice.barge_other = True, False
-        self.voice.barge_model.transcribe.return_value = "Да нет"
-        self.voice._barge(b"\1\0" * 16000, old, self.service.voice_gate.generation)
-        self.assertFalse(old.is_set())
-        self.assertEqual(self.voice.diagnostics()["counts"].get("barge_in_ignored_fragment"), 1)
-        self.voice.barge_model.generate_json.assert_not_called()
-        # Anyone naming Butler: stops.
-        self.voice.barge_owner, self.voice.barge_other = False, True
-        self.voice.barge_audio.extend(b"\1\0" * 16000)
-        self.voice.barge_model.transcribe.return_value = "Батлер, хватит"
-        self.voice._barge(b"\1\0" * 16000, old, self.service.voice_gate.generation)
+    def test_other_voices_fragments_name_and_owner_stop_keep_their_distinct_authority(self):
+        self.replying(); old = self.voice.token
+        for text, owner, other in [('А ты что думаешь про отчёт?', False, True), ('Подожди', False, True),
+                                    ('Да нет', True, False), ('Хватит, достаточно', False, False)]:
+            self.assertFalse(self.voice.observe_input(text, text, owner=owner, other=other, final=True))
+            self.assertFalse(old.is_set())
+        self.voice.model.generate_json.assert_not_called()
+        self.assertTrue(self.voice.observe_input('Батлер, хватит', 'named', other=True, final=True))
+        self.assertTrue(old.is_set()); self.inputs.cancel_playback.assert_called()
+        self.voice.token = old = threading.Event(); self.replying()
+        self.assertTrue(self.voice.observe_input('Подожди', 'owner-stop', owner=True, final=True))
         self.assertTrue(old.is_set())
-        self.inputs.cancel_playback.assert_called()
-        # The owner's stop word, uncertain short voice: stops.
-        self.voice.token = token = threading.Event()
-        self.voice.state, self.voice.phase = "speaking", "playback"
-        self.voice.barge_owner, self.voice.barge_other = False, False
-        self.voice.barge_audio.extend(b"\1\0" * 16000)
-        self.voice.barge_model.transcribe.return_value = "Хватит, достаточно"
-        self.voice._barge(b"\1\0" * 16000, token, self.service.voice_gate.generation)
-        self.assertTrue(token.is_set())
 
-    def test_lease_loss_during_a_committed_turn_is_deferred_until_the_turn_ends(self):
+    def test_positive_company_stops_committed_private_output_dec066(self):
         self.replying()
         self.voice.history.append({"at": self.now, "owner": "вопрос", "butler": "ответ"})
         old = self.voice.token
@@ -104,12 +76,7 @@ class TurnTakingTests(unittest.TestCase):
                 self.now += 1
                 self.service.accept_batch(Batch(self.now - 1, self.now, [], b"\0" * 32000))   # another person: the session closes (DEC-066)
             self.assertFalse(self.service.dialogue_gate.permits(self.now))
-        self.assertFalse(old.is_set())
-        self.assertTrue(self.voice.history)
-        self.assertEqual(self.voice.diagnostics()["counts"].get("lease_loss_deferred"), 1)
-        self.voice.turn_active, self.voice.state = False, "ready"
-        with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True):
-            self.voice.cancel(reason="dialogue-permission-lost", private_only=True)
+        self.assertTrue(old.is_set())
         self.assertFalse(self.voice.history)
 
     def test_pause_still_stops_a_reply_immediately(self):
@@ -131,6 +98,73 @@ class TurnTakingTests(unittest.TestCase):
         self.assertFalse(old.is_set())
         self.assertEqual(listening.counts.get("playback-input"), 1)
         self.assertTrue(self.voice.jobs.empty())
+
+    def passive(self):
+        self.service.listening = Listening(self.service)
+        self.service.listening.model = Mock()
+        self.store.set('continuous_archive', True)
+        self.store.set('voice_enabled', True)
+        self.store.set('voice_profile', 'baritone')
+        return self.service.listening
+
+    def test_named_draft_stops_output_and_only_the_complete_request_is_dispatched(self):
+        listening = self.passive(); self.replying(); old = self.voice.token
+        identifier = listening._begin(self.now-1); pcm = b'\1\0'*16000
+        listening.audio.extend(pcm)
+        listening._draft(identifier, 'Эй, Батлер')
+        self.assertTrue(old.is_set()); self.assertTrue(self.voice.jobs.empty())
+        self.assertEqual(bytes(listening.audio), pcm)
+        text = 'Эй, Батлер, почисти систему и сначала покажи, что можно удалить.'
+        listening.model.transcribe.return_value = text
+        listening.process(pcm*4, listening.token, self.now, True, self.now, False, identifier)
+        self.assertEqual(self.voice.jobs.get_nowait()[-1], text)
+        self.assertTrue(self.voice.jobs.empty())
+
+    def test_final_before_optional_draft_dispatches_the_whole_request_once(self):
+        listening = self.passive(); self.replying()
+        identifier = listening._begin(self.now-2)
+        text = 'Эй, Батлер, почисти систему, но сначала покажи весь список.'
+        listening.model.transcribe.return_value = text
+        args = (b'\2\0'*64000, listening.token, self.now, True, self.now, False, identifier)
+        listening.process(*args)
+        listening.utterance = None
+        listening._draft(identifier, 'Эй, Батлер')
+        listening.process(*args)
+        self.assertEqual(self.voice.jobs.get_nowait()[-1], text)
+        self.assertTrue(self.voice.jobs.empty())
+
+    def test_draft_during_final_decode_cannot_dispatch_its_prefix(self):
+        listening = self.passive(); self.replying(); old = self.voice.token
+        identifier = listening._begin(self.now-2)
+        text = 'Батлер, почисти систему и спроси перед удалением.'
+        def decode(*args, **kwargs):
+            listening._draft(identifier, 'Батлер')
+            self.assertTrue(old.is_set()); self.assertTrue(self.voice.jobs.empty())
+            return text
+        listening.model.transcribe.side_effect = decode
+        listening.process(b'\1\0'*64000, listening.token, self.now, True, self.now, False, identifier)
+        self.assertEqual(self.voice.jobs.get_nowait()[-1], text)
+        self.assertTrue(self.voice.jobs.empty())
+
+    def test_pause_clears_draft_admission_and_rejects_old_final(self):
+        listening = self.passive(); self.replying()
+        identifier = listening._begin(self.now-1); token = listening.token
+        listening._draft(identifier, 'Батлер')
+        self.assertIn(identifier, self.voice.accepted_interruptions)
+        self.service.control('enabled', {'value': False})
+        self.assertFalse(self.voice.accepted_interruptions)
+        self.service.control('enabled', {'value': True})
+        listening.model.transcribe.return_value = 'Батлер, старая просьба.'
+        listening.process(b'\1\0'*16000, token, self.now, True, self.now, False, identifier)
+        self.assertTrue(self.voice.jobs.empty())
+
+    def test_neighboring_complete_inputs_remain_independent_and_ordered(self):
+        listening = self.passive()
+        for text in ['Батлер, это предыдущая просьба.', 'Батлер, это следующая просьба.']:
+            listening.model.transcribe.return_value = text
+            listening.process(b'\1\0'*16000, listening.token, self.now, True, self.now)
+        self.assertEqual([self.voice.jobs.get_nowait()[-1] for _ in range(2)],
+                         ['Батлер, это предыдущая просьба.', 'Батлер, это следующая просьба.'])
 
     def test_lease_streak_survives_pauses_and_turned_heads_but_not_another_person(self):
         from butler_ambient.policy import DialogueGate
@@ -163,14 +197,29 @@ class TurnTakingTests(unittest.TestCase):
         from butler_ambient.conversation import Canceled
         with self.assertRaises(Canceled): self.voice._permitted(token, generation)
         self.voice.turn_active = False
+        self.voice.state, self.voice.phase = "ready", "idle"
         with self.assertRaises(Canceled): self.voice._permitted(threading.Event(), generation)
 
-    def test_speech_needs_a_third_of_a_second_of_voice(self):
+    def test_passive_speech_needs_five_sixty_ms_windows(self):
         vad = Mock()
         with patch("webrtcvad.Vad", return_value=vad):
             vad.is_speech.side_effect = lambda frame, rate: frame[0] == 1
             self.assertFalse(Listening.speech(b"\1\0" * 320 * 10 + b"\0\0" * 320 * 40))   # 0.2 s of voice
+            self.assertFalse(Listening.speech(b"\1\0" * 320 * 14 + b"\0\0" * 320 * 36))   # below 300 ms
+            self.assertTrue(Listening.speech(b"\1\0" * 320 * 15 + b"\0\0" * 320 * 35))    # 300 ms
             self.assertTrue(Listening.speech(b"\1\0" * 320 * 20 + b"\0\0" * 320 * 30))    # 0.4 s
+            self.assertTrue(Listening.speech(b"\1\0" * 320 * 45 + b"\0\0" * 320 * 5))     # 0.9 s
+
+    def test_ignored_draft_cannot_erase_audio_arriving_for_the_same_utterance(self):
+        listening = self.passive(); self.replying()
+        identifier = listening._begin(self.now-1)
+        prefix, suffix = b'\1\0'*16000, b'\2\0'*16000
+        listening.audio.extend(prefix)
+        listening._draft(identifier, 'Да нет')
+        listening.audio.extend(suffix)
+        listening._draft(identifier, 'Да нет я продолжаю')
+        self.assertEqual(bytes(listening.audio), prefix+suffix)
+        self.assertTrue(self.voice.jobs.empty())
 
 
 if __name__ == "__main__":

@@ -177,7 +177,7 @@ class PassiveArchive:
         else:
             for key in ('camera','microphone','system-audio'):
                 if states[key]=='active' and not 0 <= now-self.last.get(key,float('-inf')) <= 3:states[key]='unavailable'
-        return {'enabled':self.enabled,'policy':'owner-enabled local passive archive; action identity separate',
+        return {'enabled':self.enabled,'preference':bool(self.service.store.get('continuous_archive',False)),'policy':'owner-enabled local passive archive; action identity separate',
                 'sources':states,'last_capture':dict(self.last),'raw_retention_hours':24,'generation':self.generation,
                 'storage_error':self.storage_error,'free_disk_bytes':self.free_bytes,'minimum_free_disk_bytes':256*1024*1024,
                 'system_audio_error':self.system_error,'system_audio_dbfs':self.system_dbfs}

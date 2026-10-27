@@ -22,7 +22,7 @@ from pathlib import Path
 MIN_CALL = 180.0            # seconds a busy episode must last to count as a call
 QUIET_AFTER = 60.0          # seconds after the episode before concluding (the call may resume)
 MAX_FACTS = 160             # facts handed to the local model
-CALL_CAUSES = {"mic-app", "meeting", "call-app", "phone-at-ear", "owner-said", "other-voice", "looking-away-talking", "talking-to-person"}
+CALL_CAUSES = {"mic-app", "meeting", "call-app", "phone-at-ear", "owner-said"}
 SCHEMA = {"type": "object", "additionalProperties": False,
           "required": ["topic", "key_points", "decisions", "follow_ups", "open_questions"],
           "properties": {"topic": {"type": "string", "maxLength": 160},
@@ -58,6 +58,9 @@ class Calls:
         self.episodes = deque(maxlen=20)    # (start, end, causes, concluded) metadata
         self.summaries = deque(maxlen=5)    # {"start", "end", "text"} (owner-local)
         self.counts = {}
+        from .analysis import LocalAnalyzer
+        config = service.config if isinstance(getattr(service, 'config', None), dict) else {}
+        self.model = LocalAnalyzer(config.get('conversation_model', 'qwen3.5:9b'))
         self.remember_tool = Path(service.config.get("butler_workspace", Path.home() / ".openclaw/workspace-butler")) / "bin/butler-remember" \
             if isinstance(getattr(service, "config", None), dict) else None
 
@@ -114,7 +117,7 @@ class Calls:
 
     def conclude(self, start, end):
         voice = getattr(self.service, "voice", None)
-        model = getattr(voice, "model", None)
+        model = self.model
         debug = getattr(voice, "_debug", None)
         try:
             facts = self.facts(start, end)
@@ -138,11 +141,9 @@ class Calls:
         if callable(debug):
             debug("call-summary", text)
         self.remember(text)
-        deferred = getattr(voice, "deferred", None)
-        if deferred is not None:
-            deferred.append({"at": self.clock(), "request": "итоги созвона", "prefix": "",
-                             "text": "Созвон закончился, итоги готовы: " + (value.get("topic") or "тема не определена")
-                                     + ". Скажите «итоги звонка», и я расскажу."})
+        if voice is not None:
+            voice.dialogue.notice("Созвон закончился, итоги готовы: " + (value.get("topic") or "тема не определена")
+                                  + ". Скажите «итоги звонка», и я расскажу.")
         return text
 
     def remember(self, text):

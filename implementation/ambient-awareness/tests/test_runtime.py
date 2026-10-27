@@ -135,6 +135,28 @@ class RuntimeTests(unittest.TestCase):
             self.assertEqual(len(batch.pcm)==32000,available)
             self.assertEqual(batch.frames,[b'synthetic-frame'])
 
+    def test_two_fresh_queued_microphone_seconds_are_both_delivered_in_order(self):
+        source = Inputs()
+        first, second = b'\1\0'*16000, b'\2\0'*16000
+        source.audio.put((100, first))
+        source.audio.put((101, second))
+        with patch('butler_ambient.sensing.time.time', return_value=101.1):
+            a, b = source.batch(), source.batch()
+        self.assertEqual((a.pcm, b.pcm), (first, second))
+        self.assertEqual((a.end, b.end), (100, 101))
+        self.assertNotIn('microphone', a.gaps)
+        self.assertNotIn('microphone', b.gaps)
+
+    def test_stale_fifo_audio_stays_unavailable_and_actual_overflow_stays_visible(self):
+        source = Inputs()
+        source.audio.put((90, b'\1\0'*16000))
+        with patch('butler_ambient.sensing.time.time', return_value=101):
+            self.assertFalse(source.batch().pcm)
+        with patch('butler_ambient.sensing.time.time', side_effect=[100, 101, 102]):
+            for n in (1, 2, 3): source._audio_frame(bytes([n, 0])*16000)
+        with patch('butler_ambient.sensing.time.time', return_value=102.1):
+            self.assertIn('microphone', source.batch().gaps)
+
     def test_native_audio_health_updates_are_metadata_only(self):
         import io
         source=Inputs()

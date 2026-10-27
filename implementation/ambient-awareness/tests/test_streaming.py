@@ -138,7 +138,7 @@ class StreamingTests(unittest.TestCase):
             self.voice._turn(b"\0"*32000, self.voice.token, self.service.voice_gate.generation, True)
             self.assertEqual(self.voice.speak.call_count, 2)
 
-    def test_naming_butler_in_second_person_overrides_an_unsure_judge_but_company_restores_the_rule(self):
+    def test_any_name_mention_overrides_an_unsure_judge_even_after_company(self):
         self.voice.speak = Mock()
         self.voice.model.generate_json.return_value = {"addressed": False, "confidence": .6, "intent": "chat", "criteria": "", "telegram": False,
                                                        "reply": "С чем помочь?"}
@@ -147,9 +147,12 @@ class StreamingTests(unittest.TestCase):
         self.assertEqual(self.voice.speak.call_count, 1)
         self.service.attention.observe(Evidence(self.now, True, True, voice_ids=frozenset({"guest"}), voice_certain=True), self.now)
         self.now += 31                                                       # busy is over, but company was heard a moment ago
+        for _ in range(3):
+            self.now += .1
+            self.service.gate.check(Evidence(self.now, True, True, frozenset({"owner"}), True), self.now)
         self.voice.last_direct = float("-inf")
         self.voice._turn(b"\0"*32000, self.voice.token, self.service.voice_gate.generation, True)
-        self.assertEqual(self.voice.speak.call_count, 1)                     # the ordinary rule: the judge's "no" stands
+        self.assertEqual(self.voice.speak.call_count, 2)                     # Q-006: name mentions override an unsure negative with company too
 
     def test_a_call_app_or_playing_audio_restores_the_ordinary_rule(self):
         self.voice.speak = Mock()
@@ -222,22 +225,19 @@ class StreamingTests(unittest.TestCase):
         self.voice._turn(b"\0"*32000, self.voice.token, self.service.voice_gate.generation, True, source="synthetic-check")
         self.voice.speak.assert_not_called()
 
-    def test_actual_local_model_accepts_unnamed_followup_during_playback(self):
-        from butler_ambient.analysis import LocalAnalyzer,DEFAULT_DIALOGUE_MODEL
-        model = LocalAnalyzer(DEFAULT_DIALOGUE_MODEL)
+    def test_actual_local_model_accepts_a_followup_from_the_shared_asr(self):
+        from butler_ambient.analysis import LocalAnalyzer, DEFAULT_DIALOGUE_MODEL
+        model = LocalAnalyzer(DEFAULT_DIALOGUE_MODEL, dialogue=True)
         try: model.check_local()
-        except RuntimeError: self.skipTest("installed local dialogue model required")
-        self.voice.barge_model = model
-        model.transcribe = Mock(return_value="А почему именно с этой задачи?")
-        self.voice.state, self.voice.phase = "speaking", "playback"
-        self.voice.last_spoken = "Начните с подготовки важного отчёта, затем разберите почту."
-        self.voice.last_direct = self.now - 5
-        self.voice.history.append({"at": self.now-5, "owner": "Что сначала сделать сегодня?", "butler": self.voice.last_spoken})
-        self.voice.barge_audio.extend(b"\0"*32000)
-        self.voice.barge_owner = True                                        # the verified owner's voice (REQ-001)
-        self.voice._barge(bytes(self.voice.barge_audio), self.voice.token, self.service.voice_gate.generation)
-        self.assertEqual(self.voice.diagnostics()["counts"].get("barge_in_accepted"), 1)
-        self.assertFalse(self.voice.jobs.empty())
+        except RuntimeError: self.skipTest('installed local dialogue model required')
+        self.voice.model = model
+        self.voice.state, self.voice.phase = 'speaking', 'playback'
+        self.voice.last_spoken = 'Начните с подготовки важного отчёта, затем разберите почту.'
+        self.voice.last_direct = self.now-5
+        self.voice.history.append({'at': self.now-5, 'owner': 'Что сначала сделать сегодня?', 'butler': self.voice.last_spoken})
+        self.assertTrue(self.voice.observe_input('А почему именно с этой задачи?', 'followup', owner=True))
+        self.assertEqual(self.voice.diagnostics()['counts'].get('barge_in_accepted'), 1)
+        self.assertTrue(self.voice.jobs.empty(), 'a partial recognition must not dispatch')
 
     def streaming_fixture(self):
         output = self.store.root / "voice/output"
@@ -273,6 +273,37 @@ class StreamingTests(unittest.TestCase):
         self.assertTrue(commands[0]["stream"])
         self.assertEqual(sum(c.get("command") == "credit" for c in commands), 3)
         worker.terminate.assert_not_called()
+
+    def test_real_playback_completion_preserves_committed_reply_gap(self):
+        self.streaming_fixture()
+        self.voice.turn_active = True
+        self.voice.state, self.voice.phase = "thinking", "reply"
+        with patch.object(Conversation, "ready", new_callable=PropertyMock, return_value=True), \
+             patch("butler_ambient.conversation.uuid.uuid4", return_value=Mock(hex="request")):
+            self.voice.speak("Проверяю вашу просьбу.", self.voice.token, self.service.voice_gate.generation)
+        self.assertEqual((self.voice.state,self.voice.phase),("thinking","reply"))
+        self.assertTrue(self.voice.reply_in_progress)
+        self.assertTrue(self.voice.turn_committed)
+        self.assertEqual(self.voice.diagnostics()['delivery']['state'],'completed')
+        self.assertEqual(self.voice.diagnostics()['delivery']['completed_characters'],len('Проверяю вашу просьбу.'))
+        generation=self.service.voice_gate.generation
+        self.service.gate.invalidate("capture-gap")
+        self.voice._permitted(self.voice.token,generation)
+        self.assertFalse(self.voice.token.is_set())
+
+    def test_agent_wait_does_not_consume_the_playback_deadline(self):
+        self.streaming_fixture()
+        self.voice.turn_started = time.monotonic()-200
+        def append(path, key, sequence):
+            self.inputs.playback = {'id': key, 'state': 'started', 'completed_chunks': 0}
+        self.inputs.append_stream.side_effect = append
+        self.voice.ended = Mock(is_set=Mock(return_value=False))
+        self.voice.ended.wait.side_effect = lambda seconds: self.inputs.playback.update(completed_chunks=1)
+        with patch.object(Conversation, 'ready', new_callable=PropertyMock, return_value=True), \
+             patch('butler_ambient.conversation.uuid.uuid4', return_value=Mock(hex='request')):
+            self.voice.speak('Ответ после долгой проверки.', self.voice.token, self.service.voice_gate.generation)
+        self.assertEqual(self.inputs.append_stream.call_count, 3)
+        self.assertEqual(self.voice.delivery['state'], 'completed')
 
     def test_pause_between_chunk_arrival_and_append_never_plays_stale_audio(self):
         worker, paths = self.streaming_fixture()

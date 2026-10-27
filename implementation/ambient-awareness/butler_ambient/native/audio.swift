@@ -136,7 +136,7 @@ func meetingActivity() -> [String: Any] {
                   let output = number(kAudioProcessPropertyIsRunningOutput) else { complete = false; continue }
             // Only fixed public application labels leave this helper.
             let label: String
-            if name.contains("chrome") { label = "Chrome / возможный Google Meet" }
+            if name.contains("chrome") { label = "Chrome (микрофон активен)" }
             else if name.contains("safari") || name.contains("webkit") { label = "Safari / WebKit" }
             else if name.contains("firefox") { label = "Firefox" }
             else if name.contains("microsoft.edg") { label = "Microsoft Edge" }

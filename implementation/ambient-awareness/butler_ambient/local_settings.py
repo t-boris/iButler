@@ -159,7 +159,7 @@ def update(service, values):
             raise ValueError("selected camera does not report this resolution at 30 fps")
     for key in ("vision_model", "conversation_model"):
         if key in changes:
-            LocalAnalyzer(changes[key]).check_local(require_vision=key == "vision_model")
+            LocalAnalyzer(changes[key], dialogue=key == "conversation_model").check_local(require_vision=key == "vision_model")
     path = service.store.root / "config.json"
     # Read/merge the private installed configuration, preserving all unrelated
     # paths and settings. A change becomes effective after the own-service restart.
