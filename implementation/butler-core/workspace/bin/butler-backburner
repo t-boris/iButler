@@ -1,0 +1,28 @@
+#!/bin/zsh
+# butler-backburner — Back Burner researcher: long-running research folders improved nightly.
+#
+# Usage:
+#   butler-backburner list                          (folders, status, runs, last result)
+#   butler-backburner new "<Name>" --goal "..."     (create Back Burner/<Name>/_brief.md)
+#   butler-backburner pause|resume|done <name>      (changes only the status line of the brief)
+#   butler-backburner run <name> [--dry-run]        (one folder now; --dry-run validates and writes nothing)
+#   butler-backburner status <name> | history <name>
+#   butler-backburner undo <name> [--run <id>]      (put back what a run changed; nothing is deleted)
+#   butler-backburner cycle [--only <name>] [--id <cycle id>] [--ignore-window]   (the nightly job; butler-core runs this)
+#
+# Folders live in the vault under  Back Burner/<Name>/  (a folder needs a _brief.md to count).
+# Playbook: docs/back-burner.md.  State: state/backburner/.  Log: logs/backburner.jsonl.
+
+set -e
+WORKSPACE=/Users/boris/.openclaw/workspace-butler
+export PYTHONPATH="$WORKSPACE"
+cd "$WORKSPACE"
+
+case "$1" in
+  ""|-h|--help)
+    sed -n '2,14p' "$0" | sed -E 's/^# ?//'
+    ;;
+  *)
+    exec /opt/miniconda3/bin/python -m lib.backburner "$@"
+    ;;
+esac

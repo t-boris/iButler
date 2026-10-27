@@ -2,6 +2,14 @@
 
 Semantic versioning per package (DEC-040). Each entry names the migration wave and the decisions it implements.
 
+## 0.17.0 — 2026-10-27 (Back Burner nightly research)
+
+- Add the `backburner.cycle` operation: one tracked, detached night cycle (adapter `backburner`) that runs every due research folder through `lib.backburner`, with the identity check, stop-on-cancel and no-restart rules of the dispatcher.
+- Schedule it once per local day between the configured start and last-start times from the new `backburner` configuration section (`time`, `last_start`, `zone`, `max_runs`); the schedule is passed on to the cycle. The scenario switch `backburner` ships OFF.
+- Raise alarms `backburner:cycle` (a failed or interrupted cycle) and `backburner:folders` (folders failing three nights in a row); each clears on the next good cycle.
+- Hold the harness's `research` notes outside quiet hours with a daily cap (delivery initiative kind `research`).
+- Workspace harness only, installed without a core release (DEC-006): a run that speaks also shows one card on the Butler display through the ambient service socket, redrawing the folder's earlier card (`replaces`) and shown again as a new card when the display has forgotten it. Text the worker wrote is escaped so it cannot become a link or other markup on the display. A display that is down or refuses the card is recorded as `display_error` and never fails the run; the Telegram note is still sent.
+
 ## 0.16.0 — 2026-10-26 (voice dialogue support)
 
 - Extend metadata-only feedback and learning receipts to bind voice turns, corrections, decisions and rule revisions.

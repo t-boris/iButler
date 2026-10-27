@@ -7,7 +7,9 @@ before it can become active.
 from __future__ import annotations
 
 import hashlib
+import re
 import time
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from . import contracts
 from .store import dumps, loads
@@ -17,6 +19,7 @@ APPROVAL = ("none", "required")
 RECONCILE = ("auto", "owner")
 SYSTEM1 = ("off", "shadow", "active")
 GRANT_KINDS = ("source", "action", "task", "persona")
+_CLOCK = re.compile(r"([01]\d|2[0-3]):[0-5]\d")
 
 
 class ConfigError(ValueError):
@@ -40,7 +43,7 @@ def validate_content(content, adapters=None):
     if not isinstance(content, dict) or content.get("schema") != 1:
         raise ConfigError("schema: version 1 required")
     allowed = {"schema", "owner", "personas", "grants", "exports", "operations", "scenarios", "delivery", "limits",
-               "bridge", "routing", "approval", "backup", "cron", "mail", "system3"}
+               "bridge", "routing", "approval", "backup", "cron", "mail", "backburner", "system3"}
     unknown = sorted(set(content) - allowed)
     if unknown:
         raise ConfigError(f"{unknown[0]}: unknown section")
@@ -131,6 +134,20 @@ def validate_content(content, adapters=None):
         if not isinstance(slot, str) or len(slot.split(":")) != 2 or not all(part.isdigit() for part in slot.split(":")):
             raise ConfigError(f"mail.times[{index}]: HH:MM required")
     _number(mail.get("lookback_hours", 24), "mail.lookback_hours", 1, 24 * 14)
+    backburner = content.get("backburner", {})
+    if not isinstance(backburner, dict):
+        raise ConfigError("backburner: object required")
+    for field in ("time", "last_start"):
+        slot = backburner.get(field, "00:30" if field == "time" else "06:00")
+        if not isinstance(slot, str) or not _CLOCK.fullmatch(slot):
+            raise ConfigError(f"backburner.{field}: HH:MM required")
+    if backburner.get("time", "00:30") >= backburner.get("last_start", "06:00"):
+        raise ConfigError("backburner.time: the night window must start before it ends")
+    _number(backburner.get("max_runs", 5), "backburner.max_runs", 1, 20)
+    try:
+        ZoneInfo(backburner.get("zone", "America/Chicago"))
+    except (ZoneInfoNotFoundError, ValueError, TypeError):
+        raise ConfigError("backburner.zone: a known time zone required") from None
     system3 = content.get("system3", {})
     if not isinstance(system3, dict):
         raise ConfigError("system3: object required")

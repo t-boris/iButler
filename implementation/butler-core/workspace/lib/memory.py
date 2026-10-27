@@ -47,6 +47,7 @@ DEFAULT_VAULT_ROOTS = [
     "News",
     "People",
     "Companies",
+    "Back Burner",      # long-running research folders improved nightly (lib/backburner.py)
 ]
 
 # Skip files larger than this — almost never useful for recall, slow to read.
