@@ -211,6 +211,9 @@ def list_recordings(service, args):
             rows = sessions + gaps + [i for i in extra if start <= i["start"] < end and (not request["source"] or i["source"] == request["source"])]
             rows.sort(key=lambda i: (i["start"], i.get("id", "")), reverse=True)
         offset, limit = request["offset"], request["limit"]
+        # Large histories can outlive a participant lease even while holding
+        # the service lock. Check the clock again before releasing content.
+        if not _allowed(service):return {"hidden": True, "items": [], "days": [], "total": 0}
         return {"hidden": False, "day": day, "timezone": str(ZONE), "days": days, "total": len(rows),
                 "items": rows[offset:offset+limit], "offset": offset, "limit": limit,
                 "meeting": meeting_state(service), "summary": {"gaps": _coverage(gaps)},

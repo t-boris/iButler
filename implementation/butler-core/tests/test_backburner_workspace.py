@@ -5,6 +5,7 @@ WORKSPACE and the vault path are pointed at temporary folders, so nothing here c
 log, snapshots or butler-core (L-2026-10-26-2). A canary at module level proves the real audit log and vault
 were not touched. `BUTLER_BACKBURNER_UNDER_TEST` points the tests at a mutant copy of the library.
 """
+from support import require_files
 import contextlib
 import datetime as dt
 import importlib
@@ -75,6 +76,7 @@ class Env:
     """A temporary workspace + vault with the real vault library and policy, and the library under test."""
 
     def __init__(self, core=False):
+        require_files(INSTALLED / "lib/vault.py", INSTALLED / "policies/write.yaml")
         self.root = Path(tempfile.mkdtemp(prefix="bb-ws-")).resolve()
         self.ws = self.root / "ws"
         self.vault = self.root / "vault"

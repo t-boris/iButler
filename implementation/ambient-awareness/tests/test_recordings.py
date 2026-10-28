@@ -74,6 +74,16 @@ class RecordingsTest(unittest.TestCase):
         self.authorize(); self.s.gate.invalidate(self.now)
         self.assertTrue(list_recordings(self.s, {})['hidden'])
 
+    def test_participant_lease_expiring_during_browse_withholds_the_entire_result(self):
+        self.observe()
+        from butler_ambient.recordings import _sessions
+        def slow(items,gaps):
+            result=_sessions(items,gaps)
+            self.now += 3
+            return result
+        with patch('butler_ambient.recordings._sessions',side_effect=slow):
+            self.assertEqual(list_recordings(self.s,{}),{'hidden':True,'items':[],'days':[],'total':0})
+
     def test_media_file_actions_leave_shared_facts_transcripts_and_other_files(self):
         oid, mid = self.observe()
         self.store.execute('INSERT INTO observation_media VALUES (?,?)', ('other', mid))

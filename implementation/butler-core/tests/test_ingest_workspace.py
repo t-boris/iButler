@@ -4,6 +4,7 @@ The installed ``lib/inbox.py`` is copied with its workspace pointed at a tempora
 folder and talks to a real core over its socket. The buffer file keeps the text;
 the core's ingest store gets the stable key and metadata only.
 """
+from support import require_files
 import json
 import os
 import shutil
@@ -22,6 +23,7 @@ CLIENT = Path(__file__).resolve().parents[1] / "butler_core/client.py"
 
 
 def fake_workspace(root):
+    require_files(INSTALLED / "lib/inbox.py")
     ws = (root / "ws").resolve()
     (ws / "lib").mkdir(parents=True)
     source = substitute((INSTALLED / "lib/inbox.py").read_text(), 'WORKSPACE = Path("/Users/boris/.openclaw/workspace-butler")',

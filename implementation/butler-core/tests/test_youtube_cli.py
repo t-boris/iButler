@@ -6,6 +6,7 @@ core runs that same CLI again with ``--core-operation``; the test observes that 
 daily run uploads under the standing authorization, a research run waits for the
 owner, and the legacy path still runs when the switch is off.
 """
+from support import require_files
 import json
 import os
 import shutil
@@ -111,6 +112,7 @@ def channel_info(profile="default"):
 
 
 def fake_workspace(root):
+    require_files(INSTALLED / "bin/butler-youtube")
     ws = (root / "ws").resolve()
     (ws / "bin").mkdir(parents=True)
     (ws / "lib").mkdir()

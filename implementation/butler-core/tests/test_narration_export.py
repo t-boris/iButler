@@ -4,6 +4,7 @@ The installed library is copied next to a stand-in core client and driven by the
 workspace interpreter. A refused or unreachable core degrades the episode to the
 offline macOS voice; nothing is synthesized in these tests.
 """
+from support import require_files
 import json
 import subprocess
 import unittest
@@ -38,6 +39,7 @@ EPISODE = {"episode_id": "daily-2026-10-24-morning", "title": "t", "scenes": [{"
 
 
 def harness(root, mode):
+    require_files(INSTALLED / "lib/news_video.py", PYTHON)
     ws = root / "ws"
     (ws / "lib").mkdir(parents=True, exist_ok=True)
     (ws / "lib/__init__.py").write_text("")
