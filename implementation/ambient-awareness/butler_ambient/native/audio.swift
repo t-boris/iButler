@@ -356,9 +356,11 @@ func selectedOutput(_ requested: String) -> AudioDeviceID? {
 
 func pinPlayback(_ device: AudioDeviceID?) -> Bool {
     guard let selected = device else { return false }
+    #if compiler(>=6.4)
     if #available(macOS 27, *) {
         do { try playbackEngine.outputNode.withAUAudioUnit { unit in try unit.setDeviceID(selected) }; return true } catch { return false }
     }
+    #endif
     return false     // older systems keep the system default output
 }
 
@@ -556,10 +558,17 @@ do {
     guard rate > 0, let playback = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: rate, channels: 1, interleaved: false) else { exit(3) }
     playbackEngine.attach(player)
     stage = "connect-output"
+    // Xcode 27 / Swift 6.4 exposes the renamed throwing audio APIs.
+    // Runtime availability alone cannot hide those symbols from older SDKs.
+    #if compiler(>=6.4)
     if #available(macOS 27, *) { try playbackEngine.connectNode(player, to: playbackEngine.mainMixerNode, format: playback) }
     else { playbackEngine.connect(player, to: playbackEngine.mainMixerNode, format: playback) }
     if #available(macOS 27, *) { try playbackEngine.connectNode(playbackEngine.mainMixerNode, to: playbackEngine.outputNode, format: nil) }
     else { playbackEngine.connect(playbackEngine.mainMixerNode, to: playbackEngine.outputNode, format: nil) }
+    #else
+    playbackEngine.connect(player, to: playbackEngine.mainMixerNode, format: playback)
+    playbackEngine.connect(playbackEngine.mainMixerNode, to: playbackEngine.outputNode, format: nil)
+    #endif
     // Input-only AUHAL owns the selected microphone clock. Playback has its
     // own AVAudioEngine, so output clock changes cannot stop microphone input.
     let input = microphone!.format
@@ -587,11 +596,15 @@ do {
             echo.reference(Array(UnsafeBufferPointer(start: samples[0], count: Int(converted.frameLength))))
         }
     }
+    #if compiler(>=6.4)
     if #available(macOS 27, *) {
         try playbackEngine.mainMixerNode.installAudioTap(onBus: 0, bufferSize: 1024, format: nil) { buffer, time in
             referenceTap(AVAudioPCMBuffer(copying: buffer), time)
         }
     } else { playbackEngine.mainMixerNode.installTap(onBus: 0, bufferSize: 1024, format: nil, block: referenceTap) }
+    #else
+    playbackEngine.mainMixerNode.installTap(onBus: 0, bufferSize: 1024, format: nil, block: referenceTap)
+    #endif
     var converterFormat: AVAudioFormat?
     var converter: AVAudioConverter?
     let tap: AVAudioNodeTapBlock = { buffer, _ in
@@ -709,8 +722,12 @@ do {
             }
         }
         if !player.isPlaying {
+            #if compiler(>=6.4)
             if #available(macOS 27, *) { try player.playAudio() }
             else { player.play() }
+            #else
+            player.play()
+            #endif
         }
         if sequence == nil || sequence == 0 { report(["playback": "started", "id": id]) }
     }
