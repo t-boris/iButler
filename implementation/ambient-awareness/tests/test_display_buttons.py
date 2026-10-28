@@ -160,6 +160,15 @@ class ButtonSecrecyTests(ButtonCase):
         actions = self.state()["actions"]
         self.assertEqual([set(a) for a in actions], [{"id", "label", "kind", "hint"}, {"id", "label", "kind", "hint"}, {"id", "label", "kind", "used", "chosen"}])
 
+    def test_persistent_display_clear_requires_owner_and_removes_the_database_rows(self):
+        self.display.present(self.card([{"label":"Да","kind":"reply"}]))
+        self.service.dialogue_gate.invalidate("participant-check-failed")
+        self.assertIn("error",self.run_command("ui-display-clear",{}))
+        self.assertEqual(len(self.store.execute("SELECT * FROM local_ui_history WHERE namespace='display'")),1)
+        self.renew_owner()
+        self.assertTrue(self.run_command("ui-display-clear",{})["result"]["cleared"])
+        self.assertEqual(self.store.execute("SELECT * FROM local_ui_history WHERE namespace='display'"),[])
+
     def test_the_buttons_stay_after_a_brief_loss_of_the_lease_and_a_real_close_takes_them_away(self):
         shown = self.display.present(self.card([{"label": "Да", "kind": "reply"}]))
         self.service.dialogue_gate.invalidate("participant-check-failed")                     # as when a participant check fails

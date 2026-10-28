@@ -25,6 +25,8 @@ def sources():
             if any(part in IGNORED or part.endswith(".egg-info") for part in relative.parts): continue
             if path.is_file() and path.suffix in {".py", ".swift", ".toml", ".js", ".json", ".html", ".wav", ".icns"}:
                 result[str(path.relative_to(PROJECT))] = hashlib.sha256(path.read_bytes()).hexdigest()
+    playbook = CORE / "workspace/docs/back-burner.md"
+    result[str(playbook.relative_to(PROJECT))] = hashlib.sha256(playbook.read_bytes()).hexdigest()
     return result
 
 

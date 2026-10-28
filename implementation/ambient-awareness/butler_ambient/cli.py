@@ -24,7 +24,7 @@ def parser():
     p.add_argument("--state", type=Path, default=Path.home() / ".local/share/butler-ambient")
     p.add_argument("--config", type=Path)
     sub = p.add_subparsers(dest="command", required=True)
-    for command in ("run", "mcp", "status", "pause", "resume", "doctor", "screen-permission", "ui-state", "ui-visual-cancel", "ui-settings", "ui-voice-check", "ui-voice-benchmark", "ui-video-effects", "ui-owner-setup", "ui-owner-setup-cancel", "ui-components", "ui-schedules", "ui-catalog", "ui-catalog-refresh", "ui-feedback", "ui-panel-chat-clear"):
+    for command in ("run", "mcp", "status", "pause", "resume", "doctor", "screen-permission", "ui-state", "ui-visual-cancel", "ui-settings", "ui-voice-check", "ui-voice-benchmark", "ui-video-effects", "ui-owner-setup", "ui-owner-setup-cancel", "ui-components", "ui-schedules", "ui-catalog", "ui-catalog-refresh", "ui-feedback", "ui-panel-chat-clear", "ui-display-clear"):
         item = sub.add_parser(command)
         if command == "ui-state":
             item.add_argument("--preview", action="store_true")

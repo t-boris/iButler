@@ -168,7 +168,7 @@ class DisplayTests(unittest.TestCase):
 
     # -- history (REQ-011) -------------------------------------------------------------------
 
-    def test_history_is_navigable_reopening_runs_nothing_and_the_session_close_clears_it(self):
+    def test_history_is_navigable_reopening_runs_nothing_and_owner_clear_removes_it(self):
         first = self.display.present({"kind": "text", "title": "Первый", "markdown": "1"})
         self.mail_output["card"] = {"key": "k", "sender": "A", "subject": "S", "date": "d", "account": "acc", "summary": "", "body": "b", "draft": "Ответ."}
         second = self.display.present({"kind": "email", "key": "k"})
@@ -183,20 +183,21 @@ class DisplayTests(unittest.TestCase):
         with self.service.lock:
             self.service._invalidate("owner-paused")                                           # a hard close of the owner session
         state = self.display.snapshot()
-        self.assertEqual((state["cards"], state["current"], state["cleared_reason"]), ([], None, "owner-paused"))
-        fresh = Display(self.service)                                                          # a restart starts empty: nothing persisted
+        self.assertEqual((state["cards"], state["current"], state["cleared_reason"]), ([], None, None))
+        fresh = Display(self.service)                                                          # persisted, but still owner-gated
         self.assertEqual(fresh.snapshot()["cards"], [])
         self.renew_owner()
+        self.assertEqual(len(fresh.snapshot()["cards"]), 2)
         for index in range(module.HISTORY + 5):
             self.display.present({"kind": "text", "markdown": str(index)})
-        self.assertEqual(len(self.display.snapshot()["cards"]), module.HISTORY)
+        self.assertEqual(len(self.display.snapshot()["cards"]), module.HISTORY + 7)
 
-    def test_a_brief_loss_of_the_lease_keeps_the_history_and_only_a_real_close_clears_it(self):
+    def test_access_loss_hides_persistent_history_until_owner_returns(self):
         # Owner, 2026-10-26 (DEC-047): the display is not cleared "for nothing"; it ends with the conversation, not with a blink.
         for reason in ("permission-paused", "stale-participant-check", "participant-check-gap", "participant-check-unavailable", "source-unavailable"):
             with self.subTest(soft=reason):
                 self.renew_owner()
-                self.display.clear("fixture")
+                self.display.clear("owner")
                 self.display.present({"kind": "text", "title": "Схема", "markdown": "x"})
                 self.display.present({"kind": "text", "title": "Вторая", "markdown": "y"})
                 before = self.display.snapshot()
@@ -209,11 +210,13 @@ class DisplayTests(unittest.TestCase):
         for reason in ("owner-paused", "consent-revoked", "settings-change", "service-stopped", "owner-voice-enrollment", "owner-reference-updated"):
             with self.subTest(hard=reason):
                 self.renew_owner()
-                self.display.clear("fixture")
+                self.display.clear("owner")
                 self.display.present({"kind": "text", "title": "Схема", "markdown": "x"})
                 self.lose_the_lease(reason)
                 after = self.display.snapshot()
-                self.assertEqual((after["cards"], after["current"], after["cleared_reason"]), ([], None, reason))
+                self.assertEqual((after["cards"], after["current"], after["cleared_reason"]), ([], None, None))
+                self.renew_owner()
+                self.assertEqual(len(self.display.snapshot()["cards"]), 1)
 
     def test_a_blink_does_not_clear_a_card_the_owner_has_answered_or_replaced(self):
         first = self.display.present({"kind": "text", "title": "Выбор", "markdown": "x", "buttons": [{"label": "Да", "kind": "reply"}, {"label": "Нет", "kind": "reply"}]})

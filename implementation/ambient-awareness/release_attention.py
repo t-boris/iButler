@@ -135,7 +135,7 @@ def main():
     active_config = core("doctor")["config"]
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     backup = AS / "release-backups" / stamp; backup.mkdir(parents=True, mode=0o700)
-    targets = [AS / "config.json", WORKSPACE / "AGENTS.md", WORKSPACE / "LESSONS.md", WORKSPACE / "state/memory-index.db", CS / "feedback-summaries.jsonl", HOME / "Applications/Butler.app"]
+    targets = [AS / "config.json", WORKSPACE / "AGENTS.md", WORKSPACE / "LESSONS.md", WORKSPACE / "docs/back-burner.md", WORKSPACE / "state/memory-index.db", CS / "feedback-summaries.jsonl", HOME / "Applications/Butler.app"]
     targets += [WORKSPACE / "lib" / n for n in ("lessons.py", "memory.py", "embeddings.py", "knowledge_sources.py", "butler_rules.py")]
     for runtime in (AR, CR):
         for site in (runtime / ".venv/lib").glob("python*/site-packages"):
@@ -179,6 +179,7 @@ def main():
     for name in ("lessons.py", "memory.py", "embeddings.py", "knowledge_sources.py"):
         copy_file(CORE / "workspace/lib" / name, WORKSPACE / "lib" / name)
     copy_file(CORE / "butler_core/rules.py", WORKSPACE / "lib/butler_rules.py")
+    copy_file(CORE / "workspace/docs/back-burner.md", WORKSPACE / "docs/back-burner.md")
     agents = WORKSPACE / "AGENTS.md"
     text = agents.read_text()
     exception = ("\n### Voice rules reload (DEC-075)\n\n"

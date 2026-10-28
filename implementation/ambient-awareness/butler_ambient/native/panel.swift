@@ -1475,13 +1475,23 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     func managementView(isAI: Bool) -> NSView {
         let stack = vertical()
         let table = isAI ? componentTable : jobTable
-        fill(stack, tableScroll(table, columns: isAI ? [("status", "Состояние", 110), ("title", "Компонент", 250), ("model", "Модель / путь", 350)] : [("status", "Состояние", 110), ("name", "Задание", 260), ("schedule", "Расписание", 240)]))
+        let tableArea = tableScroll(table, columns: isAI ? [("status", "Состояние", 120), ("title", "Компонент", 340), ("model", "Модель / путь", 320)] : [("status", "Состояние", 110), ("name", "Задание", 260), ("schedule", "Расписание", 240)])
+        if isAI {
+            table.rowHeight = 50
+            table.columnAutoresizingStyle = .uniformColumnAutoresizingStyle
+            tableArea.hasHorizontalScroller = false
+            tableArea.heightAnchor.constraint(equalToConstant: 300).isActive = true
+        }
+        fill(stack, tableArea)
         stack.addArrangedSubview(NSButton(title: "Обновить состояние", target: self, action: #selector(loadManagement)))
         if isAI {
             componentModel.isEditable = true
             fill(stack, title("Модель / локальный файл или папка")); fill(stack, componentModel)
             fill(stack, title("CLI / интерпретатор")); fill(stack, componentCLI)
-            fill(stack, componentNote); fixedLabel(componentNote, height: 48)
+            componentNote.font = Theme.font(12); componentNote.textColor = Theme.dim
+            componentNote.maximumNumberOfLines = 0; componentNote.lineBreakMode = .byWordWrapping
+            fill(stack, componentNote)
+            componentNote.heightAnchor.constraint(greaterThanOrEqualToConstant: 64).isActive = true
             componentNote.isSelectable = true
             componentSave.target = self; componentSave.action = #selector(applyComponent); componentSave.isEnabled = false
             stack.addArrangedSubview(componentSave)
@@ -1502,7 +1512,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
             fill(stack, jobMessage); fixedLabel(jobMessage, height: 66); jobMessage.maximumNumberOfLines = 4
             jobMessage.isSelectable = true
         }
-        return card(stack)
+        return card(isAI ? scrolling(stack) : stack)
     }
 
     // MARK: Conversational display
@@ -1523,7 +1533,9 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         displayTable.headerView = nil
         displayTable.rowHeight = 26
         displayTable.setAccessibilityLabel("История показов")
-        let historyTitle = label("История показов · очищается после разговора")
+        let historyLabel = label("История показов · до нажатия «Очистить»")
+        let clearDisplayButton = NSButton(title: "Очистить", target: self, action: #selector(clearDisplayHistory))
+        let historyTitle = row([historyLabel, NSView(), clearDisplayButton])
         historyTitle.setContentCompressionResistancePriority(.init(1), for: .horizontal)
         let left = NSView()
         for child in [chatHeader, chatFeed, historyTitle, scroll] { left.addSubview(child); child.translatesAutoresizingMaskIntoConstraints = false }
@@ -1678,6 +1690,9 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         default:
             if dictationActive { dictationActive = false; dictateButton.title = "Диктовать"; dictateButton.isEnabled = true }
         }
+    }
+    @objc func clearDisplayHistory() {
+        command(["ui-display-clear"]) { _ in self.refresh() }
     }
     @objc func clearChat() {
         command(["ui-panel-chat-clear"]) { _ in
@@ -2556,10 +2571,21 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
             let isAI = tableView !== jobTable
             let ready = isAI ? value["ready"] as? Bool == true : value["enabled"] as? Bool == true && value["status"] as? String != "error"
             let running = value["running"] as? Bool == true
-            label.stringValue = "● " + (running ? "выполняется" : isAI ? (ready ? "доступен" : "недоступен") : ["ready": "готов", "ok": "выполнено", "paused": "пауза", "scheduled": "ожидает", "error": "ошибка" ][value["status"] as? String ?? ""] ?? value["status"] as? String ?? "—")
+            let componentState = ["configured": "настроен", "timeout": "таймаут", "cancelled": "отменён", "not-configured": "не настроен"][value["status"] as? String ?? ""]
+            label.stringValue = "● " + (running ? "выполняется" : isAI ? (componentState ?? (ready ? "доступен" : "недоступен")) : ["ready": "готов", "ok": "выполнено", "paused": "пауза", "scheduled": "по плану", "disabled": "выключено", "unknown": "неизвестно", "error": "ошибка" ][value["status"] as? String ?? ""] ?? value["status"] as? String ?? "—")
             label.textColor = ready ? Theme.accent : Theme.error
         } else { label.stringValue = key == "title" && tableView === routeTable ? taskTitle(value) : value[key] as? String ?? "—" }
         label.toolTip = label.stringValue
+        if tableView === componentTable {
+            if key == "title" { label.maximumNumberOfLines = 2; label.lineBreakMode = .byWordWrapping; label.cell?.wraps = true }
+            label.setContentCompressionResistancePriority(.init(1), for: .horizontal)
+            let cell = NSTableCellView(); cell.wantsLayer = true; cell.layer?.masksToBounds = true
+            cell.addSubview(label); cell.textField = label; label.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([label.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 8),
+                label.trailingAnchor.constraint(equalTo: cell.trailingAnchor, constant: -8),
+                label.topAnchor.constraint(equalTo: cell.topAnchor, constant: 4), label.bottomAnchor.constraint(equalTo: cell.bottomAnchor, constant: -4)])
+            return cell
+        }
         return label
     }
     func tableView(_ tableView: NSTableView, rowViewForRow row: Int) -> NSTableRowView? {
@@ -2613,7 +2639,8 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
             for field: NSControl in [jobCron, jobZone, jobModel] { field.isEnabled = cron }
             jobDailyTime.stringValue = value["daily_time"] as? String ?? ""
             jobDailyTime.isEnabled = value["id"] as? String == "builtin:daily"
-            jobMessage.stringValue = "Следующий: \(time(value["next_run"])) · Последний: \(time(value["last_run"]))\nМодель: \(value["model"] ?? "—")\n\(value["error"] ?? "")"
+            let last = value["last_result"].map { " · \($0)" } ?? ""
+            jobMessage.stringValue = "Следующий по плану: \(time(value["next_run"]))\nПоследний подтверждённый: \(time(value["last_run"]))\(last)\nМодель: \(value["model"] ?? "—")\n\(value["error"] ?? "")"
         }
     }
     func reconcile(_ table: NSTableView, id: String?) {
@@ -4567,6 +4594,22 @@ func runLayoutTests(output: String) -> Int32 {
     check("component-save-sends-nothing-for-read-only-rows", !s6Commands(since: s6Mark).contains("ui-components-update"))
     panel.componentTable.selectRowIndexes(IndexSet(integer: panel.components.firstIndex { $0["id"] as? String == "s6-asr" }!), byExtendingSelection: false)
     check("component-save-is-enabled-for-editable-rows", panel.componentSave.isEnabled && panel.componentMessage.stringValue.isEmpty)
+    let longComponent: [String: Any] = ["id": "knowledge", "title": "Знания Butler · проекты, память, история", "model": "/synthetic/workspace-butler", "executable": "/synthetic/python", "ready": true, "status": "configured",
+        "note": "Настроен; первый поиск ещё не выполнялся. " + String(repeating: "Полное описание компонента и его локальных настроек. ", count: 8)]
+    panel.receiveComponents([longComponent]); panel.select(.components)
+    for width in [CGFloat(1120), 1280] {
+        panel.window.setContentSize(NSSize(width: width, height: 820)); layout()
+        let page = panel.pages[.components]!
+        let tableArea = panel.componentTable.enclosingScrollView!
+        let titleCell = panel.componentTable.view(atColumn: 1, row: 0, makeIfNecessary: true) as? NSTableCellView
+        let statusCell = panel.componentTable.view(atColumn: 0, row: 0, makeIfNecessary: true) as? NSTableCellView
+        check("components-contain-table-at-\(Int(width))", page.bounds.contains(tableArea.convert(tableArea.bounds, to: page)) && !tableArea.hasHorizontalScroller)
+        check("components-wrap-titles-at-\(Int(width))", titleCell?.textField?.maximumNumberOfLines == 2 && titleCell?.textField?.lineBreakMode == .byWordWrapping && titleCell!.bounds.contains(titleCell!.textField!.frame))
+        check("components-configured-knowledge-is-not-unavailable-at-\(Int(width))", statusCell?.textField?.stringValue == "● настроен")
+        check("components-help-wraps-without-line-pruning-at-\(Int(width))", panel.componentNote.maximumNumberOfLines == 0 && panel.componentNote.lineBreakMode == .byWordWrapping && panel.componentNote.bounds.width < page.bounds.width)
+    }
+    export("butler-components-fixed")
+    panel.window.setContentSize(NSSize(width: 1280, height: 820))
     panel.receiveComponents(s6SavedComponents)
 
     panel.select(.voice)

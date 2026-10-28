@@ -99,7 +99,7 @@ class Service:
         from .calls import Calls
         self.calls = Calls(self, clock=self.clock)
         from .display import Display
-        self.display = Display(self)              # the conversation's cards (DEC-042); history in memory only
+        self.display = Display(self)              # owner-gated local history, retained until explicit Clear (Q-007)
         self.panel = None                         # the owner panel process, when this service launched it
         self.panel_launch = None                  # how to launch it again (set by the CLI)
         from .work_tasks import WorkTasks
@@ -1255,6 +1255,11 @@ class Handler(socketserver.StreamRequestHandler):
                 except CardRefused as error:
                     # A malformed card is the agent's to correct: the reason names a field or a rule, never content.
                     result = {"shown": False, "refused": str(error)[:160]}
+            elif command == "ui-display-clear":
+                if args: raise ValueError("invalid display clear request")
+                from .recordings import _allowed
+                if not _allowed(service):raise CardRefused("verified owner required")
+                result = service.display.clear("owner") or {"cleared": True}
             elif command == "ui-display-select":
                 result = service.display.select(args["id"])
             elif command == "ui-display-action":

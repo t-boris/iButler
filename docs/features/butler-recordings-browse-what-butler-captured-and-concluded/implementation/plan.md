@@ -39,6 +39,21 @@ issues:
     summary: Add a local voice command that opens Recordings at a requested time. Ensure the navigation request and recording content are not sent to the cloud agent.
     requirements: [REQ-008, REQ-005]
     decisions: [DEC-001]
+  - id: I-7
+    status: implemented
+    title: Repair component layout and Knowledge status
+    requirements: [REQ-009]
+    decisions: [DEC-008]
+  - id: I-8
+    status: implemented
+    title: Confirm Back Burner scheduling and catch-up execution
+    requirements: [REQ-010]
+    decisions: [DEC-008]
+  - id: I-9
+    status: implemented
+    title: Persist UI history with owner access checks
+    requirements: [REQ-011]
+    decisions: [DEC-008]
 updated: 2026-10-28
 ---
 
@@ -93,3 +108,7 @@ I-1–I-6 are implemented and undergoing full release verification. Focused regr
 ## Code complete
 
 All six tasks are implemented; all eight requirements have automated coverage. Delivery uses the full local verification and GitHub CI gates. See [verification](verification.md).
+
+## Owner follow-up — 2026-10-28
+
+I-7–I-9 are implemented under DEC-008 and undergoing the complete release gate. Q-007 retains the owner gate with persistent history. Q-008 authorizes both daytime catch-up runs. The original 0.10.2 delivery receipt remains in `evidence/recordings/completion.json`; follow-up evidence is under `evidence/followup/`.

@@ -1,5 +1,11 @@
 # Changelog — butler-ambient
 
+## 0.11.0 — 2026-10-28 (persistent local history and honest settings)
+
+- Retain Display and written conversation history locally until Clear, including across service restarts and pauses. Preserve verified-owner Display visibility and actions; interrupted written turns are not replayed. Mail bodies/drafts are not duplicated in the history database.
+- Wrap component names and help text, contain table drawing, and keep component controls reachable at supported window widths. Show configured Knowledge separately from a successful or failed search.
+- Read the active core Back Burner switch and time window. Show the future plan separately from last confirmed execution; disabled or unavailable automation cannot claim an enabled next run. Folder resume no longer claims the nightly scenario is enabled.
+
 ## 0.10.2 — 2026-10-28 (large recording days)
 
 - Resolve media containment directories once per browse request, retaining individual file/symlink validation while avoiding repeated filesystem walks on large capture days.

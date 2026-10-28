@@ -100,7 +100,7 @@ class CanvasTests(ButtonCase):
 
     def test_a_card_cleared_with_the_conversation_cannot_be_replaced(self):
         shown = self.display.present(self.diagram("graph TD; A-->B"))
-        self.display.clear("test")
+        self.display.clear("owner")
         with self.assertRaises(CardRefused):
             self.display.present(self.diagram("graph TD; A-->C", replaces=shown["id"]))
         self.assertEqual(self.snapshot()["cards"], [])

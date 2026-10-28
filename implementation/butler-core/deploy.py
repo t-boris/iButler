@@ -243,8 +243,8 @@ def wave_backburner(content):
                    {"category": "project-context", "recipient": "anthropic"},
                    {"category": "search-query", "recipient": "web-search"}]}
     content["personas"]["butler"]["actions"].append("backburner.cycle")
-    content["scenarios"]["backburner"] = {"enabled": False}
-    content["backburner"] = {"time": "00:30", "last_start": "06:00", "zone": "America/Chicago", "max_runs": 5}
+    content["scenarios"].setdefault("backburner", {"enabled": False})
+    content.setdefault("backburner", {"time": "00:30", "last_start": "06:00", "zone": "America/Chicago", "max_runs": 5})
     content["delivery"]["initiative"]["research"] = {"per_day": 5, "interval": 0}
     content["limits"]["workers"]["backburner"] = 1
 

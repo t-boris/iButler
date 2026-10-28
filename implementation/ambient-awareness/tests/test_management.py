@@ -32,6 +32,8 @@ class ManagementTests(unittest.TestCase):
         self.real_backburner = Schedules.backburner
         patcher = patch.object(Schedules,"backburner",return_value=[])     # cron tests stay about cron; Back Burner has its own below
         self.burner = patcher.start()
+        nightly = patch.object(Schedules,"nightly_state",return_value={"enabled":True,"time":"00:30","last_start":"06:00","zone":"America/Chicago"})
+        self.nightly = nightly.start(); self.addCleanup(nightly.stop)
         self.addCleanup(patcher.stop)
         self.job = {"id":"ours","agentId":"butler","enabled":True,"sessionTarget":"isolated",
                     "name":"Daily","schedule":{"kind":"cron","expr":"0 9 * * *","tz":"America/Chicago"},
@@ -78,12 +80,28 @@ class ManagementTests(unittest.TestCase):
         with patch("butler_ambient.schedules.command",return_value=self.cron_response()):
             row=self.burner_row(runs_total=4,last_run_at="2026-10-22T00:40:00-05:00",last_status="applied")
         self.assertEqual((row["id"],row["name"],row["enabled"],row["running"],row["status"]),
-                         ("backburner:sirius-art-c09dd7","Back Burner · Sirius Art",True,False,"ok"))
-        self.assertEqual(row["schedule"],"каждую ночь 00:30–06:00 · America/Chicago · приоритет 3")
-        self.assertEqual(row["model"],"claude-opus-5-5 · прогонов: 4")
+                         ("backburner:sirius-art-c09dd7","Back Burner · Sirius Art",True,False,"scheduled"))
+        self.assertEqual(row["schedule"],"план: каждую ночь 00:30–06:00 · America/Chicago · приоритет 3")
+        self.assertEqual(row["model"],"claude-opus-5-5 · подтверждённых прогонов: 4")
         self.assertEqual(row["next_run"],dt.datetime(2026,10,23,0,30,tzinfo=ZONE).timestamp())
         self.assertEqual(row["last_run"],dt.datetime(2026,10,22,0,40,tzinfo=ZONE).timestamp())
         self.assertEqual(row["error"],"")
+
+    def test_disabled_or_unavailable_nightly_automation_never_claims_a_future_run(self):
+        for nightly,status in (({"enabled":False,"time":"00:30","last_start":"06:00","zone":"America/Chicago"},"disabled"),(None,"unknown")):
+            self.nightly.return_value=nightly
+            with patch("butler_ambient.schedules.command",return_value=self.cron_response()):
+                row=self.burner_row(runs_total=1,last_run_at="2026-10-21T16:17:38-05:00",last_status="applied")
+            self.assertFalse(row['enabled']);self.assertIsNone(row['next_run']);self.assertEqual(row['status'],status)
+            self.assertEqual(row['last_result'],'applied');self.assertIsNotNone(row['last_run'])
+            self.assertNotIn('каждую ночь',row['schedule']);self.assertIn('автоматик',row['error'])
+
+    def test_next_plan_uses_active_core_window_without_inventing_a_receipt(self):
+        self.nightly.return_value={"enabled":True,"time":"02:15","last_start":"05:30","zone":"America/Chicago"}
+        with patch("butler_ambient.schedules.command",return_value=self.cron_response()):row=self.burner_row()
+        self.assertEqual(row['next_run'],dt.datetime(2026,10,23,2,15,tzinfo=ZONE).timestamp())
+        self.assertIsNone(row['last_run']);self.assertEqual(row['last_result'],'прогонов нет')
+        self.assertEqual(row['status'],'scheduled');self.assertIn('02:15–05:30',row['schedule'])
 
     def test_back_burner_status_tells_paused_done_waiting_failed_and_new_apart(self):
         cases=[({"status":"paused","waiting":"status is paused","next_run_at":None},"paused",False,""),
@@ -92,7 +110,7 @@ class ManagementTests(unittest.TestCase):
                ({"waiting":"3 runs without progress; waiting for your edits","next_run_at":None,"runs_total":3},"scheduled",True,
                 "Папка ждёт ваших правок: несколько прогонов подряд без прогресса."),
                ({"last_status":"failed","failures":2,"runs_total":1,"last_reason":"worker timed out"},"error",True,"Последний запуск: worker timed out"),
-               ({"runs_total":0},"ready",True,"")]
+               ({"runs_total":0},"scheduled",True,"")]
         with patch("butler_ambient.schedules.command",return_value=self.cron_response()):
             for values,status,enabled,error in cases:
                 row=self.burner_row(**values)
@@ -102,7 +120,7 @@ class ManagementTests(unittest.TestCase):
     def test_a_skipped_last_run_shows_its_reason_and_a_long_one_is_cut(self):
         with patch("butler_ambient.schedules.command",return_value=self.cron_response()):
             row=self.burner_row(runs_total=2,last_status="applied",last_reason="x"*900)
-        self.assertEqual(row["status"],"ok")
+        self.assertEqual(row["status"],"scheduled")
         self.assertEqual(row["error"],"Последний запуск: "+"x"*300)
 
     def test_back_burner_failure_does_not_hide_cron_jobs_and_cron_failure_does_not_hide_folders(self):
@@ -125,7 +143,7 @@ class ManagementTests(unittest.TestCase):
 
     def test_back_burner_pause_and_resume_go_through_the_harness_cli_by_name(self):
         self.burner.return_value=[self.folder()]
-        said={"pause":"Папка на паузе: ночной цикл её пропустит.","resume":"Папка включена: ночной цикл возьмёт её.",
+        said={"pause":"Папка на паузе: ночной цикл её пропустит.","resume":"Папка активна; ночной запуск зависит от включённой автоматики ядра.",
               "stop":"Папка на паузе. Уже идущий прогон дойдёт до конца: он оформляет результат целиком."}
         for action,verb in (("pause","pause"),("resume","resume"),("stop","pause")):
             with patch("butler_ambient.schedules.command",return_value="") as cli:

@@ -8,6 +8,7 @@ import re
 import threading
 import uuid
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from .components import command, running_dispatches, WORKSPACE
 from .delivery import ZONE, core_client
@@ -29,16 +30,40 @@ class Schedules:
     def backburner(self):
         return json.loads(command(str(self.workspace/"bin/butler-backburner"),"list","--json"))
 
-    def _backburner_row(self,value):
+    def nightly_state(self):
+        """Read the active core switch, never infer execution from an active brief."""
+        core=core_client(self.workspace)
+        if core is None:return None
+        try:
+            content=core.Client(timeout=2).call("config.active")["content"]
+            enabled=content.get("scenarios",{}).get("backburner",{}).get("enabled",False)
+            if type(enabled) is not bool:raise ValueError("invalid nightly switch")
+            rule=content.get("backburner",{})
+            return {"enabled":enabled,"time":rule.get("time","00:30"),"last_start":rule.get("last_start","06:00"),
+                    "zone":rule.get("zone","America/Chicago")}
+        except (OSError,RuntimeError,ValueError,KeyError,TypeError):return None
+
+    def _backburner_row(self,value,nightly):
         active=value["status"]=="active";stamp=lambda text:dt.datetime.fromisoformat(text).timestamp() if text else None
         note={"paused":"","done":"Исследование отмечено завершённым."}.get(value["status"],"В брифе не указан status: папка не запускается.")
         error=note if not active else "Папка ждёт ваших правок: несколько прогонов подряд без прогресса." if value["waiting"] else ""
         if not error and value["last_reason"]:error="Последний запуск: "+value["last_reason"][:300]
-        return {"id":"backburner:"+value["slug"],"kind":"backburner","name":"Back Burner · "+value["name"],"enabled":active,"running":False,
-            "status":"paused" if not active else "scheduled" if value["waiting"] else "error" if value["last_status"]=="failed" else "ok" if value["runs_total"] else "ready",
-            "schedule":"каждую ночь "+value["window"].replace("-","–")+" · "+value["zone"]+" · приоритет "+str(value["priority"]),
-            "next_run":stamp(value["next_run_at"]),"last_run":stamp(value["last_run_at"]),
-            "model":(value["model"] or "—")+" · прогонов: "+str(value["runs_total"]),"error":error}
+        enabled=nightly is not None and nightly["enabled"]
+        plan=(nightly["time"]+"–"+nightly["last_start"]+" · "+nightly["zone"] if nightly else value["window"].replace("-","–")+" · "+value["zone"])
+        next_run=None
+        if active and enabled and not value["waiting"]:
+            zone=ZoneInfo(nightly["zone"]);local=dt.datetime.fromtimestamp(self.service.clock(),zone)
+            start=dt.datetime.combine(local.date(),dt.time.fromisoformat(nightly["time"]),zone)
+            last=dt.datetime.fromisoformat(value["last_run_at"]).astimezone(zone) if value["last_run_at"] else None
+            next_run=(start+dt.timedelta(days=1) if (last and last.date()==local.date()) or local.strftime("%H:%M")>=nightly["last_start"]
+                      else start if local<start else local).timestamp()
+        if active and not enabled:
+            error=("Ночная автоматика выключена в ядре." if nightly is not None else "Состояние ночной автоматики не подтверждено: ядро недоступно.")+ (" "+error if error else "")
+        return {"id":"backburner:"+value["slug"],"kind":"backburner","name":"Back Burner · "+value["name"],"enabled":active and enabled,"running":False,
+            "status":"paused" if not active else "unknown" if nightly is None else "disabled" if not enabled else "error" if value["last_status"]=="failed" else "scheduled",
+            "schedule":("план: каждую ночь " if enabled else "автоматика выключена · окно " if nightly is not None else "автоматика не подтверждена · окно ")+plan+" · приоритет "+str(value["priority"]),
+            "next_run":next_run,"last_run":stamp(value["last_run_at"]),"last_result":value["last_status"] or "прогонов нет",
+            "model":(value["model"] or "—")+" · подтверждённых прогонов: "+str(value["runs_total"]),"error":error}
 
     def snapshot(self):
         rows=[];error=None
@@ -57,7 +82,10 @@ class Schedules:
                     "error":state.get("lastError",state.get("lastDiagnosticSummary",""))[:1500]})
         except Exception:
             error="Не удалось получить задания OpenClaw. Локальные задания показаны отдельно."
-        try:rows+=[self._backburner_row(value) for value in self.backburner()]
+        try:
+            folders=self.backburner()
+            nightly=self.nightly_state() if folders else None
+            rows+=[self._backburner_row(value,nightly) for value in folders]
         except Exception:error=(error+" " if error else "")+"Не удалось получить папки Back Burner."
         s=self.service;now=s.clock();local=dt.datetime.fromtimestamp(now,ZONE)
         daily=s.store.get("daily_time","20:00")
@@ -155,7 +183,7 @@ class Schedules:
         if action=="update":raise ValueError("Расписание Back Burner здесь не редактируется: приоритет и статус задаются в _brief.md папки.")
         if action=="run":return self._backburner_run(name,row["status"])
         command(cli,"resume" if action=="resume" else "pause",name)
-        return {"ok":True,"message":{"resume":"Папка включена: ночной цикл возьмёт её.","pause":"Папка на паузе: ночной цикл её пропустит.",
+        return {"ok":True,"message":{"resume":"Папка активна; ночной запуск зависит от включённой автоматики ядра.","pause":"Папка на паузе: ночной цикл её пропустит.",
             "stop":"Папка на паузе. Уже идущий прогон дойдёт до конца: он оформляет результат целиком."}[action]}
 
     def _backburner_run(self,name,status):
