@@ -195,15 +195,15 @@ class PanelChatTests(unittest.TestCase):
         self.assertTrue(answered(chat, second))
         self.assertEqual(order, [("start", "one"), ("end", "one"), ("start", "two"), ("end", "two")])
 
-    def test_old_rows_go_after_a_day_and_the_thread_stays_bounded(self):
+    def test_old_rows_survive_days_and_are_not_pruned_by_count(self):
         chat = self.make(lambda text, on_text, token: "ok")
         turn = chat.send("old")["id"]
         self.assertTrue(answered(chat, turn))
         self.service.now[0] += panel_chat.RETENTION + 1
-        self.assertEqual(chat.snapshot()["entries"], [])
+        self.assertEqual(len(chat.snapshot()["entries"]), 2)
         for index in range(MAX_ENTRIES):
             self.assertTrue(answered(chat, chat.send(f"m{index}")["id"]))
-        self.assertLessEqual(len(chat.snapshot()["entries"]), MAX_ENTRIES)
+        self.assertEqual(len(chat.snapshot()["entries"]), 2 * (MAX_ENTRIES + 1))
         self.assertEqual(row(chat, chat.snapshot()["entries"][-2]["id"])["text"], f"m{MAX_ENTRIES - 1}")
 
     # -- clearing ---------------------------------------------------------------------------

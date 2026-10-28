@@ -23,7 +23,7 @@ Marking takes effect from the explicit mark; it does not recover previously dele
 
 All transcript expiry and marked-media expiry are measured from capture start; preserve never extends them. Ordinary manually preserved originals and event frames retain their existing independent policy. Deleting the selected media removes its raw/preserved copies and playback derivative while leaving observations, facts, other media and transcripts intact. Generated images already have durable local storage; the existing visual-delete control deletes a generated artifact without deleting an imported owner original.
 
-Display history remains in memory and keeps the existing hard-close clearing behavior. Loss of verification hides it immediately at the next local state response and blocks actions; re-verification can restore the still-live history. Recordings clears cached text, paths and playback on denied access or service disconnection. Older MCP observation tools retain coverage/status metadata but withhold observation content.
+DEC-008/Q-007 supersedes the earlier in-memory/hard-close deletion behavior: Display and written conversation history persist locally until explicit Clear, across pause and restart. Loss of verification hides it immediately at the next local state response and blocks actions; re-verification can restore the retained history. Recordings clears cached text, paths and playback on denied access or service disconnection. Older MCP observation tools retain coverage/status metadata but withhold observation content.
 
 ## Validation status
 
@@ -38,7 +38,7 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 
 - Branch: `feat/butler-recordings`, created from fetched `origin/main` at `2d8aea6` after the owner-authorized main migration.
 - Pull requests: https://github.com/t-boris/iButler/pull/1 (feature and existing work), https://github.com/t-boris/iButler/pull/2 (installer repair), https://github.com/t-boris/iButler/pull/3 (media days/index) and https://github.com/t-boris/iButler/pull/4 (containment-root performance). All target main and include test plans.
-- Ambient version: **0.10.2**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
+- Ambient version: **0.11.0**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
 - Local full verification: `implementation/ambient-awareness/evidence/attention-implementation/release-verification.json` and referenced exact-command logs.
 - Existing Back Burner/workspace deliverables included under DEC-007 were hash-compared with installed copies: backburner library/CLI/prompt/docs, knowledge_sources, memory and lessons all match.
 - Native evidence: `implementation/ambient-awareness/evidence/ui-preview/native-panel-layout.json` and `butler-recordings.png` (synthetic only).
@@ -51,3 +51,11 @@ F-009 handles this Mac’s absent optional Homebrew model-service plist. F-010 i
 F-011 adds an observation/media index for pending-original browsing. A deterministic full-browser backlog regression exceeded its database-work budget before the index and passes after it. This supplements the smaller synthetic timeline benchmark above.
 
 F-012 resolves containment roots once per request while retaining each file's canonical path validation and both access checks. The 0.10.1 exact-source gate passed all suites (872 ambient tests, 402 core tests, 264 native checks); main CI run 40635608628 passed both jobs. The same 45,000-file synthetic browse fell from 4.07 to 1.996 seconds. Final 0.10.2 uses the same exact-source gate and CI before normal deployment. The final machine-readable delivery receipt, `implementation/ambient-awareness/evidence/recordings/completion.json`, ties the merged PRs and green main CI to the clean main checkout, matching source fingerprints and verified installed/running release. Its referenced release and deployment reports are the authoritative final outcomes.
+
+## Owner follow-up verification
+
+DEC-008 records inclusion of the newer Display/history changes, the Components screenshot repair and the Back Burner execution request. Q-007 retains owner visibility; Q-008 authorizes two daytime catch-up runs. REQ-009–REQ-011 and I-7–I-9 track this scope. Focused management/settings suites pass (31 + 13 tests). Native and full release checks remain required for 0.11.0. Versioned nightly activation changes only `scenarios.backburner.enabled` (12 → 14); evidence and tracked operation receipts are in `evidence/followup/`.
+
+Follow-up focused results: 272 packaged native checks, 31 management tests, 13 settings tests, 35 core Back Burner tests, 7 persistent-history tests and 16 original Recordings tests pass. Actual catch-up receipts are `applied`, not inferred from scheduling. Final source-fingerprint, CI, deployment and clean-tree outcomes are recorded in `evidence/followup/completion.json` and its referenced release reports.
+
+F-015 updates the cross-package Back Burner card validator to construct persistent Display with a real temporary Store. The focused validator passes; the full installed-environment gate is repeated. The initial 12 sensing skips were also rerun against the existing cached models, all passing, and the cache is present for the final full run.

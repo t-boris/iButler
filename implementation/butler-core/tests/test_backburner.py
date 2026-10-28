@@ -207,6 +207,16 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(wave["backburner"], {"time": "00:30", "last_start": "06:00", "zone": "America/Chicago", "max_runs": 5})
         self.assertIn(deploy.wave_backburner, deploy.WAVES)
 
+    def test_redeploy_preserves_the_owner_enabled_nightly_switch_and_window(self):
+        wave=base_config()
+        schedule={"time":"02:15","last_start":"05:30","zone":"America/Chicago","max_runs":2}
+        wave["scenarios"]["backburner"]={"enabled":True}
+        wave["backburner"]=schedule.copy()
+        deploy.wave_backburner(wave)
+        validate_content(wave,self.ADAPTERS)
+        self.assertEqual(wave["scenarios"]["backburner"],{"enabled":True})
+        self.assertEqual(wave["backburner"],schedule)
+
     def test_the_cycle_exports_are_named_and_match_the_dispatch_exports(self):
         wave = base_config()
         deploy.wave_backburner(wave)

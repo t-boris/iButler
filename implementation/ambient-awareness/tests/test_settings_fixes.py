@@ -33,6 +33,18 @@ class ComponentSaveTests(unittest.TestCase):
         with patch.object(components, "snapshot", return_value={"components": [row]}), patch.object(components.local_settings, "update", return_value={"saved": True, "restart_required": True, "changed": ["x"]}) as save:
             return components.update(self.service, values, self.workspace), save
 
+    def test_configured_knowledge_is_distinct_from_a_successful_or_failed_search(self):
+        self.service.catalog=None
+        self.service.knowledge=Mock()
+        for state,ready in [('configured',True),('ready',True),('unavailable',False),('not-configured',False)]:
+            self.service.knowledge.snapshot.return_value={'state':state}
+            self.service.knowledge.workspace=self.workspace
+            with patch.object(components,'LocalAnalyzer',return_value=Mock()), patch.object(components,'agent_status',side_effect=ValueError('offline')):
+                value=next(row for row in components.snapshot(self.service,self.workspace)['components'] if row['id']=='knowledge')
+            self.assertEqual((value['status'],value['ready']),(state,ready))
+            if state=='configured':self.assertIn('первый поиск ещё не выполнялся',value['note'])
+        self.service.knowledge.recall.assert_not_called()
+
     def test_a_read_only_component_is_not_reported_as_saved(self):
         row = {"id": "camera", "model": "m", "executable": "e", "model_key": None, "cli_key": None}
         result, save = self.update(row, {"id": "camera"})

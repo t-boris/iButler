@@ -177,7 +177,9 @@ def snapshot(service, workspace=WORKSPACE):
     if knowledge is not None:
         info=knowledge.snapshot()
         row("knowledge","Знания Butler · проекты, память, история",str(knowledge.workspace),core_python,
-            ready=info["state"]=="ready",note="Реальный локальный lib.memory.recall; история и факты остаются на Mac. Состояние: "+info["state"])
+            ready=info["state"] in {"configured", "ready"},status=info["state"],
+            note="Реальный локальный lib.memory.recall; история и факты остаются на Mac. " +
+                 ("Настроен; первый поиск ещё не выполнялся." if info["state"]=="configured" else "Состояние последнего поиска: "+info["state"]))
     return {"components":rows,"catalog":model_catalog.snapshot() if model_catalog is not None else {},"privacy":"owner-local; no credential or prompt content","settings_hooks":{
         "dispatch": "BUTLER_OWNER_AI_SETTINGS" in (workspace/"lib/dispatch.py").read_text() if (workspace/"lib/dispatch.py").exists() else False,
         "embedding": "BUTLER_OWNER_AI_SETTINGS" in (workspace/"lib/embeddings.py").read_text() if (workspace/"lib/embeddings.py").exists() else False}}

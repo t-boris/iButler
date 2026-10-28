@@ -7,8 +7,8 @@ so the reply of a panel turn is never delivered to a channel, and a Telegram tur
 in Telegram without passing through here.
 
 Boundaries:
-- The thread lives in memory only: bounded, dropped after a day, when the owner clears it, when
-  consent is revoked and when the service stops. It is never written to the store, never given to the
+- The thread is stored locally until the owner presses Clear. It survives service restarts,
+  pauses and elapsed days, with no automatic count pruning. It is never given to
   feedback/episode capture, MCP or any other channel; ``ui-state`` is a local Unix-socket response.
 - Nothing is spoken. The dialogue coordinator that voices replies is not used.
 - A failure is shown as a failure with its reason. There is no silent fallback to the local model for
@@ -102,6 +102,18 @@ class PanelChat:
         self.ended = threading.Event()
         self.worker = None
         self.counts = {"sent": 0, "answered": 0, "silent": 0, "failed": 0, "followup": 0}
+        from .local_history import LocalHistory
+        self.journal = LocalHistory(service.store, "panel-chat")
+        self.entries = self.journal.load()
+        for entry in self.entries:
+            if entry.get("state") in {"queued", "running", "streaming"}:
+                entry.update(state="failed", error="Работа прервана перезапуском службы; автоматический повтор не выполнялся.")
+                self.journal.put(entry)
+
+    def _persist(self):
+        for entry in self.entries:
+            self.journal.put({k: v for k, v in entry.items() if k != "context"})
+
 
     # -- the owner's side -------------------------------------------------------------------
 
@@ -145,6 +157,7 @@ class PanelChat:
             self.queue.append(turn)
             self.counts["sent"] += 1
             self._trim()
+            self._persist()
             if self.worker is None or not self.worker.is_alive():
                 self.worker = threading.Thread(target=self._loop, name="butler-panel-chat", daemon=True)
                 self.worker.start()
@@ -161,7 +174,14 @@ class PanelChat:
             self.epoch += 1
             self.cancel.set()
             self.cancel = threading.Event()
-            self.entries.clear()
+            if reason == "owner":
+                self.journal.clear()
+                self.entries.clear()
+            else:
+                for entry in self.entries:
+                    if entry.get("state") in {"queued", "running", "streaming"}:
+                        entry.update(state="failed", error="Работа прервана остановкой службы; автоматический повтор не выполнялся.")
+                self._persist()
             self.queue.clear()
             self.last_activity = None
             if self.follower is not None:
@@ -223,6 +243,7 @@ class PanelChat:
             if epoch != self.epoch or row is None:
                 return False
             row.update(fields)
+            self.journal.put({k: v for k, v in row.items() if k != "context"})
             self.condition.notify_all()
             return True
 
@@ -294,6 +315,7 @@ class PanelChat:
                 self.counts["followup"] += 1
             self.last_activity = now
             self._trim()
+            self._persist()
             self.condition.notify_all()
         LOG.info("panel chat follow-up received (%d)", len(texts))
 
@@ -311,16 +333,9 @@ class PanelChat:
         return {e["turn"] for e in self.entries if e["who"] == "butler" and e["state"] in {"queued", "running", "streaming"}}
 
     def _expire(self):
-        cutoff = self.clock() - RETENTION
-        if any(e["at"] < cutoff for e in self.entries):
-            active = self._active()
-            self.entries[:] = [e for e in self.entries if e["at"] >= cutoff or e["turn"] in active]
+        # Owner 2026-10-28: history remains until Clear, regardless of age.
+        pass
 
     def _trim(self):
-        """Keep the newest rows."""
-        active = self._active()
-        while len(self.entries) > MAX_ENTRIES:
-            drop = next((e["turn"] for e in self.entries if e["turn"] not in active), None)
-            if drop is None:
-                break
-            self.entries[:] = [e for e in self.entries if e["turn"] != drop]
+        # No automatic row-count deletion. Queue and per-message limits remain.
+        pass

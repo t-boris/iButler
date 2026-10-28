@@ -12,11 +12,10 @@ What this module guards:
   ~/.openclaw/media), never arbitrary files.
 - An email card carries only a message key when it arrives; sender, subject, date, summary, body
   and the stored draft are read here from the local mail store (REQ-002: bodies never travel).
-- History is this conversation's only: in memory, at most HISTORY cards, cleared when the owner
-  session really closes (pause, consent revoked, settings change, enrollment, stop) or the service
-  restarts; never persisted (REQ-011). A brief loss of the lease does not clear it (DEC-047).
-- Visibility: Recordings DEC-004 supersedes DEC-047/048. Display cards and history are
-  returned only while the verified owner and observation gates both permit access.
+- History is owner-local and persistent until an explicit owner Clear (owner 2026-10-28).
+  No age/count pruning; pause, settings changes and restarts do not delete the journal.
+- Visibility: Recordings DEC-004 and Q-007 retain verified-owner visibility and action
+  checks. Loss of access hides history without deleting the persistent journal.
 - The only action with an external effect opens a prefilled reply in Mail.app; it never sends,
   never grants approval, and a failure is reported as a failure (REQ-008, REQ-009).
 - A card may replace an earlier one (``replaces``): the same card, same place in the history, new content and a
@@ -108,7 +107,7 @@ class Display:
     def __init__(self, service, *, run=subprocess.run):
         self.service, self.run = service, run
         self.lock = threading.Lock()
-        self.history = deque(maxlen=HISTORY)
+        self.history = deque()
         self.current = None
         self.raise_serial = 0
         self.cleared_reason = None
@@ -117,6 +116,20 @@ class Display:
         workspace = Path(config.get("butler_workspace", Path.home() / ".openclaw/workspace-butler")) if isinstance(config, dict) \
             else Path.home() / ".openclaw/workspace-butler"
         self.mail_tool = workspace / "bin/butler-mail"
+        from .local_history import LocalHistory
+        self.journal = LocalHistory(service.store, "display")
+        self.history.extend(self.journal.load())
+        self.current = service.store.get("display_current", None)
+        if not isinstance(self.current, str) or not any(c["id"] == self.current for c in self.history):
+            self.current = self.history[-1]["id"] if self.history else None
+
+    def _persist_card(self, card):
+        saved = {k: v for k, v in card.items() if k != "outgoing_id"}
+        if saved.get("kind") == "email":
+            # The mail store owns bodies/drafts and their retention. Keep only a reference and display metadata.
+            saved["email"] = {k: v for k, v in saved.get("email", {}).items() if k not in {"body", "draft"}}
+        self.journal.put(saved)
+
 
     # -- validation -----------------------------------------------------------------------
 
@@ -299,6 +312,8 @@ class Display:
             self.current = shown["id"]
             self.cleared_reason = None
             self.counts[shown["kind"]] = self.counts.get(shown["kind"], 0) + 1
+            self._persist_card(shown)
+            self.service.store.set("display_current", self.current)
         voice = getattr(self.service, "voice", None)
         if voice is not None and callable(getattr(voice, "_debug", None)):
             voice._debug("display", f"{shown['title']} · {KIND_TITLES[shown['kind']].lower()}")
@@ -358,7 +373,11 @@ class Display:
             from .recordings import _allowed
             if not _allowed(self.service):raise CardRefused("verified owner required")
             card = self._card(card_id)
+            if card.get("kind") == "email" and "body" not in card.get("email", {}):
+                try: card.update(self.email_card(card["email"]["key"]))
+                except CardRefused: pass
             self.current = card["id"]
+            self.service.store.set("display_current", self.current)
             self.counts["reopened"] = self.counts.get("reopened", 0) + 1
         return {"id": card["id"], "kind": card["kind"], "title": card["title"]}
 
@@ -389,6 +408,7 @@ class Display:
             card["status"] = status
             card["action_at"] = self.service.clock()
             self.counts[count] = self.counts.get(count, 0) + 1
+            self._persist_card(card)
         return {"status": status, **({"locked": True} if locked else {})}
 
     def _reply_context(self, card, chosen):
@@ -411,6 +431,7 @@ class Display:
             if card.get("reply_choice") is not None:
                 return {"status": STATUS_REPLY_AGAIN, "locked": True}
             card["reply_choice"] = entry["id"]            # reserved before sending: a second click cannot send twice
+            self._persist_card(card)
         try:
             chat.send(entry["label"], context=self._reply_context(card, entry))
         except ValueError as error:
@@ -454,9 +475,13 @@ class Display:
         return {"status": status}
 
     def clear(self, reason):
-        """The conversation really ended (the reasons that also end hearing) or the service restarts: the display history goes with it."""
+        """Only an explicit owner Clear removes persistent display history."""
+        if reason != "owner":
+            return {"cleared": False, "reason": "retained-until-owner-clear"}
         with self.lock:
             had = len(self.history)
+            self.journal.clear()
+            self.service.store.set("display_current", None)
             self.history.clear()
             self.current = None
             self.cleared_reason = str(reason)[:40]
@@ -475,7 +500,7 @@ class Display:
         return shown
 
     def snapshot(self):
-        """Owner-only history; a temporary gate loss hides rather than erases it."""
+        """Owner-only persistent history; access loss hides rather than deletes it."""
         from .recordings import _allowed
         with self.lock:
             if not _allowed(self.service):
@@ -493,5 +518,8 @@ class Display:
                         copy.pop(field)
                         copy["unavailable"] = "missing"
                 cards.append(copy)
+            if not _allowed(self.service):
+                return {"cards": [], "current": None, "raise_serial": self.raise_serial, "hidden": "private",
+                        "cleared_reason": self.cleared_reason, "counts": dict(self.counts)}
             return {"cards": cards, "current": self.current, "raise_serial": self.raise_serial, "hidden": None,
                     "cleared_reason": self.cleared_reason, "counts": dict(self.counts)}

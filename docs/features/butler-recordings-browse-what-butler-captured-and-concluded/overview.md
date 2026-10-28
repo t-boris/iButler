@@ -46,3 +46,7 @@ The owner needs a local view of the media and speech Butler retained, together w
 ## Scope
 
 Implemented in ambient 0.10.0: owner-only Recordings, expandable day/source sessions, observation facts and transcripts, media viewing/playback, individual file controls, marked-meeting audio/video retention, generated images/current Display history, and local voice time navigation. Existing source/capture/consent controls remain authoritative. Recorded content is not exported to the cloud agent. Full requirement-to-code/test mapping and release evidence are in [implementation verification](implementation/verification.md).
+
+## Owner follow-up — 2026-10-28
+
+DEC-008/Q-007/Q-008 add persistent owner-gated UI history, the Components screenshot repair, truthful Back Burner plan/receipt reporting, future nightly activation and two confirmed daytime catch-up runs. REQ-009–REQ-011 and I-7–I-9 are implemented. Release 0.11.0 uses the full local and CI gates before normal deployment.
