@@ -1399,7 +1399,10 @@ class DisplayCardTest(Base):
         sys.path.insert(0, str(AMBIENT))
         self.addCleanup(sys.path.remove, str(AMBIENT))
         from butler_ambient.display import Display
-        display = Display(types.SimpleNamespace(config={}))
+        from butler_ambient.store import Store
+        display_store=Store(self.env.root / "display-state")
+        self.addCleanup(display_store.close)
+        display = Display(types.SimpleNamespace(config={},store=display_store))
         long_name = "Ж" * 70
         longest = "x" * 200                                                   # discover() takes any folder name the filesystem allows
         cases = [("Дата-центр", {}), ("Sirius Art", {"data": {"improved": [f"п{i} " + "я" * 150 for i in range(9)], "key_fact": "ф" * 400,
