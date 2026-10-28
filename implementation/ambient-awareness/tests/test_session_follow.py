@@ -2,6 +2,7 @@
 import json
 import logging
 import tempfile
+import threading
 import time
 import unittest
 from pathlib import Path
@@ -285,6 +286,22 @@ class PanelFollowUpTests(FollowerCase):
         joined = "\n".join(logs.output)
         self.assertNotIn("секрет", joined)
         self.assertIn("follow-up received (1)", joined)
+
+    def test_answer_is_published_after_its_follow_cursor_is_finalized(self):
+        marked,release=threading.Event(),threading.Event()
+        self.addCleanup(release.set)
+        real_mark=self.follower.mark
+        def held_mark():
+            result=real_mark();marked.set();release.wait(5);return result
+        with patch.object(self.follower,'mark',side_effect=held_mark):
+            chat=self.chat(lambda text,on_text,token:'готово')
+            turn=chat.send('вопрос')['id']
+            self.assertTrue(marked.wait(2))
+            self.assertNotEqual(row(chat,turn+'.r')['state'],'answered')
+            release.set()
+            self.assertTrue(answered(chat,turn))
+            self.gateway.assistant('следующий результат')
+            self.assertTrue(wait_for(lambda:any(k[2]=='следующий результат' for k in self.kinds(chat))))
 
 
 class PanelModelTests(unittest.TestCase):

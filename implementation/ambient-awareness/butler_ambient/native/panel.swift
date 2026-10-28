@@ -4223,7 +4223,7 @@ func runLayoutTests(output: String) -> Int32 {
     panel.testState = ["enabled": false, "recording_allowed": false, "recordings_allowed": false, "voice": ["dialogue_allowed": false],
                        "display": ["cards": [unverifiedDisplayCard], "current": "unverified-display", "raise_serial": 1, "hidden": "private"]]
     panel.refresh(); layout()
-    check("display-visible-without-verification-even-with-legacy-private-flag", panel.displayTable.numberOfRows == 1 && panel.displayRenderedID == "unverified-display" && textFields(panel.displayDetail).contains { $0.stringValue.contains("Synthetic material visible") })
+    check("display-visible-without-verification-even-with-legacy-private-flag", panel.displayTable.numberOfRows == 1 && panel.displayRenderedID == "unverified-display" && textViews(panel.displayDetail).contains { $0.string.contains("Synthetic material visible") })
     panel.testState = nil; panel.refresh(); layout()
     check("display-keeps-material-on-a-failed-state-poll", panel.displayTable.numberOfRows == 1 && panel.displayRenderedID == "unverified-display")
     // Written conversation on the Display page: thread, composer, send and dictation. Synthetic rows; no service.

@@ -4,6 +4,7 @@
 
 - Show the local conversation and persistent Display history without camera/voice verification or observation permission, as explicitly requested in DEC-009. Card selection, local controls and Clear also work without the biometric gate.
 - Keep rendered Display material through failed state polls, and remove the owner-verification blocking placeholder from the panel.
+- Finish gateway history bookkeeping before publishing a completed written turn, so the next asynchronous result cannot be swallowed by that turn's history marker.
 
 ## 0.11.0 — 2026-10-28 (persistent local history and honest settings)
 
