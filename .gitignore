@@ -4,7 +4,8 @@
 .dde/
 /AGENTS.md
 /docs/bugs/
-/docs/features/
+/docs/features/*
+!/docs/features/butler-recordings-browse-what-butler-captured-and-concluded/
 .DS_Store
 .DS_*
 
