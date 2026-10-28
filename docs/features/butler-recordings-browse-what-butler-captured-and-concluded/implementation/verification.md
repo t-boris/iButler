@@ -12,7 +12,7 @@ Read every original file in this feature folder before implementation: Q-001–Q
 | REQ-002: source/time/fact fields/transcript | Recordings detail and separate transcript records | `test_media_file_actions_leave_shared_facts_transcripts_and_other_files`; native transcript/fact/basis checks |
 | REQ-003: images/key frames/audio/video/unavailable | Observation/media/event-frame joins; generated images and Display history; AVKit and disposable FFmpeg MP4 derivatives | Actual JPEG-to-MP4 regression; generated-history test; native image/detail check |
 | REQ-004: selected-file controls and marked meeting audio/video | `Store.preserve/delete`, capture tagging, explicit current-call mark, fixed file expiry | Shared-file isolation; all three sources retained past 24 hours and deleted at 30 days even after preserve; new-call/restart reset tests |
-| REQ-005: local and verified-owner access, pause/consent | Access checks at browse start/end, playback and media/Display actions; UI cache clearing; MCP content withholding | Owner-denial, symlink escape, expiring browse lease, Display recovery/action, MCP secret-canary and native cache/disconnection tests; existing archive/policy/consent tests |
+| REQ-005: local and verified-owner access, pause/consent | Access checks at Recordings browse start/end, playback and media actions; Display is independent under DEC-009; MCP content withholding | Owner-denial, symlink escape, expiring browse lease, Display recovery/action, MCP secret-canary and native cache/disconnection tests; existing archive/policy/consent tests |
 | REQ-006: gap reasons and non-selectability | Existing durable events mapped to specified labels; gaps split sessions and have no media/actions | Gap-label regression and existing historical-pause fixture; native gap non-selectability |
 | REQ-007: 30-day speech transcripts | Owner listening and call-ASR hooks; separate private SQLite table; secure expiry independent of media | Exact expiry boundary; successful ASR retained despite inference failure; local voice capture test |
 | REQ-008: local navigation by time | Listening/private/panel route interception before agent dispatch; local navigation state and panel opening | Actual listening path leaves agent queue empty; time/date parsing and denied navigation tests; native day/time navigation |
@@ -23,7 +23,7 @@ Marking takes effect from the explicit mark; it does not recover previously dele
 
 All transcript expiry and marked-media expiry are measured from capture start; preserve never extends them. Ordinary manually preserved originals and event frames retain their existing independent policy. Deleting the selected media removes its raw/preserved copies and playback derivative while leaving observations, facts, other media and transcripts intact. Generated images already have durable local storage; the existing visual-delete control deletes a generated artifact without deleting an imported owner original.
 
-DEC-008/Q-007 supersedes the earlier in-memory/hard-close deletion behavior: Display and written conversation history persist locally until explicit Clear, across pause and restart. Loss of verification hides it immediately at the next local state response and blocks actions; re-verification can restore the retained history. Recordings clears cached text, paths and playback on denied access or service disconnection. Older MCP observation tools retain coverage/status metadata but withhold observation content.
+DEC-008/Q-007 supersedes the earlier in-memory/hard-close deletion behavior: Display and written conversation history persist locally until explicit Clear, across pause and restart. DEC-009 later removes verification from Display reads, selection and local controls; retained material stays visible through identity/observation gaps. Recordings clears cached text, paths and playback on denied access or service disconnection. Older MCP observation tools retain coverage/status metadata but withhold observation content.
 
 ## Validation status
 
@@ -38,7 +38,7 @@ DEC-008/Q-007 supersedes the earlier in-memory/hard-close deletion behavior: Dis
 
 - Branch: `feat/butler-recordings`, created from fetched `origin/main` at `2d8aea6` after the owner-authorized main migration.
 - Pull requests: https://github.com/t-boris/iButler/pull/1 (feature and existing work), https://github.com/t-boris/iButler/pull/2 (installer repair), https://github.com/t-boris/iButler/pull/3 (media days/index) and https://github.com/t-boris/iButler/pull/4 (containment-root performance). All target main and include test plans.
-- Ambient version: **0.11.0**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
+- Ambient version: **0.11.1**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
 - Local full verification: `implementation/ambient-awareness/evidence/attention-implementation/release-verification.json` and referenced exact-command logs.
 - Existing Back Burner/workspace deliverables included under DEC-007 were hash-compared with installed copies: backburner library/CLI/prompt/docs, knowledge_sources, memory and lessons all match.
 - Native evidence: `implementation/ambient-awareness/evidence/ui-preview/native-panel-layout.json` and `butler-recordings.png` (synthetic only).
@@ -59,3 +59,7 @@ DEC-008 records inclusion of the newer Display/history changes, the Components s
 Follow-up focused results: 272 packaged native checks, 31 management tests, 13 settings tests, 35 core Back Burner tests, 7 persistent-history tests and 16 original Recordings tests pass. Actual catch-up receipts are `applied`, not inferred from scheduling. Final source-fingerprint, CI, deployment and clean-tree outcomes are recorded in `evidence/followup/completion.json` and its referenced release reports.
 
 F-015 updates the cross-package Back Burner card validator to construct persistent Display with a real temporary Store. The focused validator passes; the full installed-environment gate is repeated. The initial 12 sensing skips were also rerun against the existing cached models, all passing, and the cache is present for the final full run.
+
+## Latest owner decision: Display without verification
+
+DEC-009 supersedes the earlier Display gate, including Q-007. Display reads, history selection, local actions and Clear no longer use camera/voice verification or recording permission. Persistent history remains until explicit Clear, and the native panel retains rendered material through failed polls. Recordings keeps its independent checks. Focused regressions cover denied gates, no gate calls during materialization, database reopen and local controls. Final 0.11.1 release evidence is under `evidence/display-open/` and the normal release reports.

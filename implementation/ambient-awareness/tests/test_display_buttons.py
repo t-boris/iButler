@@ -160,29 +160,23 @@ class ButtonSecrecyTests(ButtonCase):
         actions = self.state()["actions"]
         self.assertEqual([set(a) for a in actions], [{"id", "label", "kind", "hint"}, {"id", "label", "kind", "hint"}, {"id", "label", "kind", "used", "chosen"}])
 
-    def test_persistent_display_clear_requires_owner_and_removes_the_database_rows(self):
+    def test_persistent_display_clear_works_without_biometrics_and_removes_database_rows(self):
         self.display.present(self.card([{"label":"Да","kind":"reply"}]))
         self.service.dialogue_gate.invalidate("participant-check-failed")
-        self.assertIn("error",self.run_command("ui-display-clear",{}))
-        self.assertEqual(len(self.store.execute("SELECT * FROM local_ui_history WHERE namespace='display'")),1)
-        self.renew_owner()
+        self.service.gate.invalidate(self.now,"owner-paused")
         self.assertTrue(self.run_command("ui-display-clear",{})["result"]["cleared"])
         self.assertEqual(self.store.execute("SELECT * FROM local_ui_history WHERE namespace='display'"),[])
 
-    def test_the_buttons_stay_after_a_brief_loss_of_the_lease_and_a_real_close_takes_them_away(self):
-        shown = self.display.present(self.card([{"label": "Да", "kind": "reply"}]))
-        self.service.dialogue_gate.invalidate("participant-check-failed")                     # as when a participant check fails
-        with self.service.lock:
-            self.service._invalidate("permission-paused")
+    def test_display_selection_and_explicit_buttons_work_when_both_gates_deny(self):
+        shown=self.display.present(self.card([{"label":"Да","kind":"reply"}]))
+        self.service.dialogue_gate.invalidate("participant-check-failed")
+        self.service.gate.invalidate(self.now,"owner-paused")
         self.assertFalse(self.allowed())
-        self.assertEqual(self.display.snapshot()["cards"], [])
-        with self.assertRaises(CardRefused):self.display.action(shown["id"], "button-1")
-        self.renew_owner()
-        cards = self.display.snapshot()["cards"]
-        self.assertEqual([(c["id"], [a["label"] for a in c["actions"]]) for c in cards], [(shown["id"], ["Да"])])
-        with self.service.lock:
-            self.service._invalidate("owner-paused")
-        self.assertEqual(self.display.snapshot()["cards"], [])
+        self.assertEqual(self.display.select(shown['id'])['id'],shown['id'])
+        self.assertEqual(len(self.display.snapshot()['cards']),1)
+        self.display.action(shown['id'],'b0')
+        self.chat.send.assert_called_once()
+        self.assertEqual(self.chat.send.call_args.args,('Да',))
 
 
 class ButtonActionTests(ButtonCase):
@@ -301,7 +295,7 @@ class ButtonAgentFlowTests(ButtonCase):
         good = self.run_command("display", self.card([{"label": "Да", "kind": "reply"}]))["result"]
         self.assertTrue(good["shown"])
 
-    def test_a_card_is_held_locally_and_hidden_until_the_owner_returns(self):
+    def test_a_card_is_shown_even_when_the_owner_lease_has_expired(self):
         # Owner, 2026-10-27: "убери все приватные фичи, показывай все всегда". The agent's card no longer needs the confirmed session.
         self.assertTrue(self.allowed())
         self.now += 3600                                        # the owner's dialogue session lapsed
@@ -309,7 +303,7 @@ class ButtonAgentFlowTests(ButtonCase):
         answer = self.run_command("display", self.card([{"label": "Да", "kind": "reply"}]))
         self.assertTrue(answer["result"]["shown"])
         cards = snapshot(self.service)["display"]["cards"]
-        self.assertEqual(cards, [])
+        self.assertEqual(len(cards),1)
         self.renew_owner()
         self.assertEqual([[a["label"] for a in c["actions"]] for c in snapshot(self.service)["display"]["cards"]], [["Да"]])
 

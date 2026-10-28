@@ -36,16 +36,15 @@ class RetainedHistoryTests(unittest.TestCase):
         restored=Display(self.service).snapshot()['cards']
         self.assertEqual([r['id'] for r in restored],[a,b]);self.assertEqual(restored[0]['markdown'],'updated')
 
-    def test_persisted_display_stays_hidden_and_cannot_be_selected_without_owner(self):
+    def test_persisted_display_is_visible_and_selectable_when_both_gates_deny(self):
         display=Display(self.service)
-        key=display.present({'kind':'text','markdown':'private retained card'})['id']
+        key=display.present({'kind':'text','markdown':'retained card'})['id']
         self.service.dialogue_gate.permits.return_value=False
+        self.service.gate.permits.return_value=False
         restored=Display(self.service)
-        self.assertEqual(restored.snapshot()['cards'],[])
-        with self.assertRaises(CardRefused):restored.select(key)
-        self.assertEqual(len(self.store.execute("SELECT * FROM local_ui_history WHERE namespace='display'")),1)
-        self.service.dialogue_gate.permits.return_value=True
         self.assertEqual(restored.snapshot()['cards'][0]['id'],key)
+        self.assertEqual(restored.select(key)['id'],key)
+        self.assertEqual(len(self.store.execute("SELECT * FROM local_ui_history WHERE namespace='display'")),1)
 
     def test_email_body_and_draft_are_not_duplicated_in_history_database(self):
         display=Display(self.service)
@@ -54,12 +53,13 @@ class RetainedHistoryTests(unittest.TestCase):
         payload=self.store.execute("SELECT payload FROM local_ui_history WHERE namespace='display'")[0]['payload']
         self.assertNotIn('PRIVATE_BODY',payload);self.assertNotIn('PRIVATE_DRAFT',payload);self.assertIn('mail-key',payload)
 
-    def test_access_expiring_while_materializing_history_withholds_content(self):
+    def test_display_materialization_does_not_consult_biometric_permissions(self):
         display=Display(self.service)
-        display.present({'kind':'text','markdown':'private retained card'})
-        self.service.dialogue_gate.permits.side_effect=[True,False]
+        display.present({'kind':'text','markdown':'retained card'})
+        self.service.dialogue_gate.permits.side_effect=AssertionError('Display must not consult biometrics')
+        self.service.gate.permits.side_effect=AssertionError('Display must not consult observation permission')
         result=display.snapshot()
-        self.assertEqual(result['cards'],[]);self.assertEqual(result['hidden'],'private')
+        self.assertEqual(len(result['cards']),1);self.assertIsNone(result['hidden'])
 
     def test_written_thread_survives_stop_days_and_restart_until_clear(self):
         brain=FakeBrain(lambda text,on_text,token:'answer')

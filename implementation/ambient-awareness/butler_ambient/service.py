@@ -99,7 +99,7 @@ class Service:
         from .calls import Calls
         self.calls = Calls(self, clock=self.clock)
         from .display import Display
-        self.display = Display(self)              # owner-gated local history, retained until explicit Clear (Q-007)
+        self.display = Display(self)              # local Display history until Clear; no biometric gate (DEC-009)
         self.panel = None                         # the owner panel process, when this service launched it
         self.panel_launch = None                  # how to launch it again (set by the CLI)
         from .work_tasks import WorkTasks
@@ -1249,7 +1249,7 @@ class Handler(socketserver.StreamRequestHandler):
                 result = service.panel_chat.clear("owner")
             elif command == "display":
                 # The agent's card (MCP butler_display) or any owner-local caller: validated, shown, window forward.
-                # Recordings DEC-004: valid cards may queue locally; snapshot/actions enforce verified-owner visibility.
+                # DEC-009: local Display is independent of biometric/observation checks.
                 try:
                     result = service.display.present(args, origin="agent")
                 except CardRefused as error:
@@ -1257,8 +1257,6 @@ class Handler(socketserver.StreamRequestHandler):
                     result = {"shown": False, "refused": str(error)[:160]}
             elif command == "ui-display-clear":
                 if args: raise ValueError("invalid display clear request")
-                from .recordings import _allowed
-                if not _allowed(service):raise CardRefused("verified owner required")
                 result = service.display.clear("owner") or {"cleared": True}
             elif command == "ui-display-select":
                 result = service.display.select(args["id"])
