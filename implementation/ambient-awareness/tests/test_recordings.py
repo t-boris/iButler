@@ -116,7 +116,7 @@ class RecordingsTest(unittest.TestCase):
             self.assertTrue(outside.exists())
 
     def test_day_picker_includes_originals_when_no_analysis_or_events_exist_for_that_day(self):
-        yesterday = self.now - 86400
+        yesterday = self.now - 18*3600  # previous evening, still inside the raw 24-hour retention
         mid = self.store.media('microphone', yesterday, yesterday+1, b'pending audio', 'wav')
         result = list_recordings(self.s,{})
         day = dt.datetime.fromtimestamp(yesterday,ZONE).date().isoformat()
