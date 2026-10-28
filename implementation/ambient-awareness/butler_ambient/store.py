@@ -89,6 +89,7 @@ class Store:
             self.db.execute('UPDATE media SET size_bytes=? WHERE id=?', (size,row['id']))
         self.db.execute('CREATE INDEX IF NOT EXISTS media_storage ON media(storage_class,analyzed) WHERE path IS NOT NULL')
         self.db.execute('CREATE INDEX IF NOT EXISTS observation_media_source ON observation_media(media_id)')
+        self.db.execute('CREATE INDEX IF NOT EXISTS observations_media ON observations(media_id)')
         self.db.commit()
         self.cleanup_error = None
         self.event_frame_error = None

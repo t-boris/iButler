@@ -27,7 +27,7 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 
 ## Validation status
 
-- 14 focused Recordings regressions pass, including actual FFmpeg playback conversion.
+- 16 focused Recordings regressions pass, including actual FFmpeg playback conversion.
 - 52 archive/camera/Recordings regressions pass after fixing the unmarked clip regression.
 - 264 native UI checks pass, covering the original flow, first-poll cache revocation and side-effect-free frame persistence; synthetic Recordings render inspected.
 - Core: 402 tests passed; system1, bridge and private workspace suites passed in the first paired run.
@@ -38,8 +38,14 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 
 - Branch: `feat/butler-recordings`, created from fetched `origin/main` at `2d8aea6` after the owner-authorized main migration.
 - Pull request: https://github.com/t-boris/iButler/pull/1
-- Ambient version: **0.10.0**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
+- Ambient version: **0.10.1**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
 - Local full verification: `implementation/ambient-awareness/evidence/attention-implementation/release-verification.json` and referenced exact-command logs.
 - Existing Back Burner/workspace deliverables included under DEC-007 were hash-compared with installed copies: backburner library/CLI/prompt/docs, knowledge_sources, memory and lessons all match.
 - Native evidence: `implementation/ambient-awareness/evidence/ui-preview/native-panel-layout.json` and `butler-recordings.png` (synthetic only).
 - Deployment evidence: existing `release_attention.py` writes `implementation/ambient-awareness/evidence/attention-implementation/deployment.json`, checking installed/running/bundle versions and UI binary hashes against exact verified artifacts. No manual owner checklist is required by this verification record.
+
+## Final delivery repairs
+
+F-009 handles this Mac’s absent optional Homebrew model-service plist. F-010 includes pending-media-only days in the date picker and is covered by a regression that opens the file through the selected day/session. The final patch version is 0.10.1. The exact-source release report and final PR/main CI runs provide the current validation results.
+
+F-011 adds an observation/media index for pending-original browsing. A deterministic full-browser backlog regression exceeded its database-work budget before the index and passes after it. This supplements the smaller synthetic timeline benchmark above.

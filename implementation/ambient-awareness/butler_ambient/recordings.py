@@ -122,6 +122,11 @@ def list_recordings(service, args):
             return {"hidden": True, "items": [], "days": [], "total": 0}
         store, now = service.store, service.clock()
         days = {d["day"]: d for d in _days(store, now)}
+        # A day can have captured originals before any analysis commits. Those
+        # days must remain reachable from the picker, not only by voice/date API.
+        for row in store.execute("SELECT start FROM media WHERE (path IS NOT NULL OR preserved IS NOT NULL) AND (retained_until IS NULL OR retained_until>?)", (now,)):
+            day = local_day(row["start"])
+            days.setdefault(day, {"day": day, "informative": 0, "empty": 0, "gaps": 0})
         transcript_rows = store.execute("SELECT * FROM recording_transcripts WHERE start>?", (now-RETENTION,))
         extra = []
         visual = getattr(service, "visual", None)
