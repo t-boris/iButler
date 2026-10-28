@@ -2,7 +2,7 @@
 type: feature
 id: butler-recordings-browse-what-butler-captured-and-concluded
 title: "Butler Recordings: browse what Butler captured and concluded"
-status: implementing
+status: implemented
 owner: Boris Tsekinovsky
 created: 2026-10-26
 provenance: Created by an AI agent through MarkView from Owner request 2026-10-25 (voice, during a Google Meet); store inventory of ~/.local/share/butler-ambient on 2026-10-25
@@ -17,19 +17,19 @@ understanding:
   Security: known
   Analytics: n/a
   Dependencies: known
-  Acceptance Criteria: partial
+  Acceptance Criteria: known
 understanding_notes:
   Problem: Владельцу нужен доступ к сохранённым материалам и выводам Butler.
   Target Users: Раздел предназначен для подтверждённого владельца.
   Primary Workflow: Выбраны группировка по сессиям, голосовой переход ко времени и ручная отметка текущей встречи.
   Permissions: Действуют существующие правила видимости, записи и согласия.
   Failure Scenarios: Требуется показывать интервалы пропусков с причинами; существующая история уже показывает несколько типов пропусков.
-  Data Model: Транскрипты и аудио отмеченных встреч хранятся 30 дней; детали реализации остаются за разработчиком.
+  Data Model: Транскрипты и аудио/видео отмеченных встреч хранятся 30 дней; медиакнопки действуют на отдельный файл.
   Notifications: Уведомления не входят в описанную область задачи.
   Security: Материалы остаются локальными и доступны только владельцу по существующим правилам.
   Analytics: Аналитика использования не предусмотрена.
   Dependencies: Существуют история наблюдений и локальные операции сохранения и удаления медиа; текущая история показывает только факты.
-  Acceptance Criteria: Критерии для двух уточнённых требований зафиксированы; реализация остальной спецификации ещё не подтверждена.
+  Acceptance Criteria: Все критерии реализованы и связаны с автоматическими проверками; результаты полной проверки релиза и CI перечислены в implementation/verification.md.
 questions_left: 0
 ---
 
@@ -41,4 +41,8 @@ The owner has no place in Butler.app to look back at what Butler captured: audio
 
 ## Problem
 
+The owner needs a local view of the media and speech Butler retained, together with the conclusions it derived and honest explanations for missing intervals or originals.
+
 ## Scope
+
+Implemented in ambient 0.10.0: owner-only Recordings, expandable day/source sessions, observation facts and transcripts, media viewing/playback, individual file controls, marked-meeting audio/video retention, generated images/current Display history, and local voice time navigation. Existing source/capture/consent controls remain authoritative. Recorded content is not exported to the cloud agent. Full requirement-to-code/test mapping and release evidence are in [implementation verification](implementation/verification.md).
