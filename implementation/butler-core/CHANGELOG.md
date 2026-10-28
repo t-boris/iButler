@@ -2,7 +2,13 @@
 
 Semantic versioning per package (DEC-040). Each entry names the migration wave and the decisions it implements.
 
+## 0.17.1 — 2026-10-27 (conversation learning report)
+
+- Count labelled decisions with an unknown acceptance outcome in the report's unknown total and share, and distinguish these from unlabelled decisions (REQ-061).
+
 ## 0.17.0 — 2026-10-27 (Back Burner nightly research)
+
+- Workspace only, no core release: `wait_for_quiet` (the pause before each embedding batch) tolerates up to four late answers in a row from the ambient service before reporting `background-analysis-status-unavailable`; one answer slower than 0.5 s under speech analysis no longer aborts a nightly reindex. `bin/butler-reindex` runs on the miniconda interpreter (the agent shell's `python3` has no numpy; failed run of 2026-10-27 03:30).
 
 - Add the `backburner.cycle` operation: one tracked, detached night cycle (adapter `backburner`) that runs every due research folder through `lib.backburner`, with the identity check, stop-on-cancel and no-restart rules of the dispatcher.
 - Schedule it once per local day between the configured start and last-start times from the new `backburner` configuration section (`time`, `last_start`, `zone`, `max_runs`); the schedule is passed on to the cycle. The scenario switch `backburner` ships OFF.

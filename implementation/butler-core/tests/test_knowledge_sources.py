@@ -1,9 +1,13 @@
 """Source-wide vault coverage and canonical compatibility, using only a temporary vault."""
 import importlib
 import json
+import os
 import shutil
+import socket
 import sys
 import tempfile
+import threading
+import time
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -84,3 +88,62 @@ class SourcesTest(unittest.TestCase):
 
 
 if __name__ == "__main__": unittest.main()
+
+
+class QuietWaitTest(SourcesTest):
+    """wait_for_quiet asks the ambient service before each embedding batch; one slow answer must not kill a rebuild."""
+
+    def serve(self, replies):
+        """A stand-in ambient socket: each entry is a JSON status, or None to hang past the client's timeout."""
+        home = Path(tempfile.mkdtemp(prefix="qw-", dir="/tmp"))               # short: AF_UNIX paths are capped at 104 bytes
+        self.addCleanup(shutil.rmtree, home, True); (home / ".local/share/butler-ambient").mkdir(parents=True)
+        server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        server.bind(str(home / ".local/share/butler-ambient/ambient.sock")); server.listen(8); server.settimeout(10)
+        self.addCleanup(server.close)
+        seen = []
+
+        def run():
+            for reply in replies:
+                try: connection, _ = server.accept()
+                except OSError: return
+                with connection:
+                    seen.append(connection.makefile("rb").readline())
+                    if reply is None: time.sleep(1.2)
+                    else: connection.sendall((json.dumps({"result": reply}) + "\n").encode())
+        threading.Thread(target=run, daemon=True).start()
+        patcher = patch.object(Path, "home", lambda: home); patcher.start(); self.addCleanup(patcher.stop)
+        return seen
+
+    def test_a_single_slow_answer_is_retried_and_the_batch_goes_on(self):
+        seen = self.serve([None, {"enabled": True, "analysis_busy": False}])
+        sources = importlib.import_module("lib.knowledge_sources")
+        started = time.monotonic(); sources.wait_for_quiet()
+        self.assertEqual(len(seen), 2)
+        self.assertLess(time.monotonic() - started, 5)
+
+    def test_a_service_that_keeps_failing_is_reported_after_a_bounded_wait(self):
+        self.serve([None] * 12)
+        sources = importlib.import_module("lib.knowledge_sources")
+        started = time.monotonic()
+        with self.assertRaisesRegex(RuntimeError, "background-analysis-status-unavailable"): sources.wait_for_quiet()
+        self.assertLess(time.monotonic() - started, 12)        # bounded: a few tries, not the 120-step busy loop
+
+    def test_a_paused_service_and_a_busy_one_keep_their_meaning(self):
+        self.serve([{"enabled": False}])
+        sources = importlib.import_module("lib.knowledge_sources")
+        with self.assertRaisesRegex(RuntimeError, "background-analysis-paused"): sources.wait_for_quiet()
+        for key in list(sys.modules):
+            if key.startswith("lib."): sys.modules.pop(key)
+        self.serve([{"enabled": True, "analysis_busy": True}, None, {"enabled": True, "analysis_busy": False}])
+        importlib.import_module("lib.knowledge_sources").wait_for_quiet()   # busy, then a blip, then free
+
+    def test_misses_count_only_in_a_row_so_a_long_busy_stretch_with_blips_still_waits(self):
+        busy = {"enabled": True, "analysis_busy": True}
+        self.serve([None, busy] * 5 + [{"enabled": True, "analysis_busy": False}])   # 5 blips, never 5 in a row
+        importlib.import_module("lib.knowledge_sources").wait_for_quiet()
+
+    def test_no_service_means_no_waiting(self):
+        home = self.root / "nohome"; home.mkdir()
+        with patch.object(Path, "home", lambda: home):
+            importlib.import_module("lib.knowledge_sources").wait_for_quiet()
+
