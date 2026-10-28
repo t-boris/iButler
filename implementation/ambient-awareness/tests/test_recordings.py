@@ -200,6 +200,8 @@ class RecordingsTest(unittest.TestCase):
         self.assertFalse(self.s.analyze_group([mid],self.s.archive.generation,archive=True))
         self.assertEqual(self.store.execute('SELECT text FROM recording_transcripts')[0]['text'],'private call transcript')
         self.assertEqual(self.store.execute('SELECT * FROM observations'),[])
+        detail=next(row for row in self.children() if row['id']=='media:'+mid)
+        self.assertEqual(detail['transcripts'][0]['text'],'private call transcript')
         from butler_ambient import mcp
         self.assertNotIn('recordings',json.dumps(mcp.TOOLS))
 

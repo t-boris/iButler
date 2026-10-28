@@ -184,11 +184,6 @@ def list_recordings(service, args):
                           "end": row["end"], "facts": facts, "transcripts": transcripts, "media": media,
                           "meeting_id": next((m["meeting_id"] for m in media_rows if m.get("meeting_id")), None),
                           "original": any(m["path"] for m in media)})
-        for t in transcript_rows:
-            if t["id"] not in linked and t["start"] < end and t["end"] >= start:
-                items.append({"type": "observation", "id": "transcript:" + t["id"], "source": t["source"],
-                              "start": t["start"], "end": t["end"], "facts": [], "transcripts": [t],
-                              "media": [], "meeting_id": t["meeting_id"], "original": False})
         # Originals awaiting analysis are browseable too, rather than hidden
         # until facts happen to commit.
         pending = store.execute("""SELECT m.* FROM media m WHERE m.start<? AND m.end>=? AND (m.path IS NOT NULL OR m.preserved IS NOT NULL)
@@ -196,9 +191,17 @@ def list_recordings(service, args):
             AND NOT EXISTS(SELECT 1 FROM observations o WHERE o.media_id=m.id)
             AND NOT EXISTS(SELECT 1 FROM event_frames f WHERE f.media_id=m.id)""", (end, start))
         for row in pending:
+            transcripts = [t for t in day_transcripts if t["source"] == row["source"]
+                           and t["start"] < row["end"] and t["end"] > row["start"]]
+            linked.update(t["id"] for t in transcripts)
             items.append({"type": "observation", "id": "media:" + row["id"], "source": row["source"],
-                          "start": row["start"], "end": row["end"], "facts": [], "transcripts": [],
+                          "start": row["start"], "end": row["end"], "facts": [], "transcripts": transcripts,
                           "media": [_media(row, store, now)], "meeting_id": row["meeting_id"], "original": True})
+        for t in transcript_rows:
+            if t["id"] not in linked and t["start"] < end and t["end"] >= start:
+                items.append({"type": "observation", "id": "transcript:" + t["id"], "source": t["source"],
+                              "start": t["start"], "end": t["end"], "facts": [], "transcripts": [t],
+                              "media": [], "meeting_id": t["meeting_id"], "original": False})
         if request["source"]:
             items = [i for i in items if i["source"] == request["source"]]
             gaps = [g for g in gaps if g["source"] in {request["source"], "all", "analysis"}]
