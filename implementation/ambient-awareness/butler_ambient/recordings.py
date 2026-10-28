@@ -22,11 +22,12 @@ def _allowed(service):
     return bool(service.gate.permits(now) and service.dialogue_gate.permits(now))
 
 
-def _path(store, value):
+def _path(store, value, roots=None):
     if not value:
         return None
     path = Path(value).resolve()
-    roots = [(store.root / name).resolve() for name in ("raw", "preserved")]
+    if roots is None:
+        roots = [(store.root / name).resolve() for name in ("raw", "preserved")]
     if not any(path.is_relative_to(root) for root in roots) or not path.is_file():
         return None
     return str(path)
@@ -66,11 +67,11 @@ def mark_meeting(service, args):
                 "meeting": meeting_state(service)}
 
 
-def _media(row, store, now):
+def _media(row, store, now, roots=None):
     expiry = row.get("retained_until")
-    path = None if expiry is not None and expiry <= now else (_path(store, row["preserved"]) or _path(store, row["path"]))
+    path = None if expiry is not None and expiry <= now else (_path(store, row["preserved"], roots) or _path(store, row["path"], roots))
     return {"id": row["id"], "source": row["source"], "path": path,
-            "preserved": bool(path and _path(store, row["preserved"])), "complete": bool(row["complete"]),
+            "preserved": bool(path and _path(store, row["preserved"], roots)), "complete": bool(row["complete"]),
             "start": row["start"], "end": row["end"], "expires": expiry}
 
 
@@ -121,6 +122,10 @@ def list_recordings(service, args):
         if not _allowed(service):
             return {"hidden": True, "items": [], "days": [], "total": 0}
         store, now = service.store, service.clock()
+        # Resolve the containment roots once per request, while still resolving
+        # each file to reject symlink escapes. Repeating root filesystem walks
+        # for every file can outlast the owner lease on a large capture day.
+        roots = [(store.root / name).resolve() for name in ("raw", "preserved")]
         days = {d["day"]: d for d in _days(store, now)}
         # A day can have captured originals before any analysis commits. Those
         # days must remain reachable from the picker, not only by voice/date API.
@@ -184,7 +189,7 @@ def list_recordings(service, args):
             cursors[source], active[source] = cursor, candidates
             transcripts = [t for t in candidates if t["start"] < row["end"]]
             linked.update(t["id"] for t in transcripts)
-            media = [_media(m, store, now) for m in media_rows]
+            media = [_media(m, store, now, roots) for m in media_rows]
             items.append({"type": "observation", "id": row["id"], "source": row["source"], "start": row["start"],
                           "end": row["end"], "facts": facts, "transcripts": transcripts, "media": media,
                           "meeting_id": next((m["meeting_id"] for m in media_rows if m.get("meeting_id")), None),
@@ -201,7 +206,7 @@ def list_recordings(service, args):
             linked.update(t["id"] for t in transcripts)
             items.append({"type": "observation", "id": "media:" + row["id"], "source": row["source"],
                           "start": row["start"], "end": row["end"], "facts": [], "transcripts": transcripts,
-                          "media": [_media(row, store, now)], "meeting_id": row["meeting_id"], "original": True})
+                          "media": [_media(row, store, now, roots)], "meeting_id": row["meeting_id"], "original": True})
         for t in transcript_rows:
             if t["id"] not in linked and t["start"] < end and t["end"] >= start:
                 items.append({"type": "observation", "id": "transcript:" + t["id"], "source": t["source"],

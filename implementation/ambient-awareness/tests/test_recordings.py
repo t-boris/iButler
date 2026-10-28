@@ -131,11 +131,14 @@ class RecordingsTest(unittest.TestCase):
             return int(steps[0]>5000)
         self.store.db.set_progress_handler(bounded,1000)
         try:
-            result=list_recordings(self.s,{})
+            with patch.object(Path,'resolve',autospec=True,side_effect=Path.resolve) as resolved:
+                result=list_recordings(self.s,{})
         finally:
             self.store.db.set_progress_handler(None,0)
         self.assertFalse(result['hidden'])
         self.assertTrue(any(row['type']=='session' for row in result['items']))
+        roots={self.store.root/'raw',self.store.root/'preserved'}
+        self.assertEqual(sum(call.args[0] in roots for call in resolved.call_args_list),2)
 
     def test_day_picker_includes_originals_when_no_analysis_or_events_exist_for_that_day(self):
         yesterday = self.now - 18*3600  # previous evening, still inside the raw 24-hour retention

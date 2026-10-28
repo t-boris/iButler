@@ -31,14 +31,14 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 - 52 archive/camera/Recordings regressions pass after fixing the unmarked clip regression.
 - 264 native UI checks pass, covering the original flow, first-poll cache revocation and side-effect-free frame persistence; synthetic Recordings render inspected.
 - Core: 402 tests passed; system1, bridge and private workspace suites passed in the first paired run.
-- Full ambient run: 867 tests passed. A later association fix ensures retained call ASR is shown with the still-pending original even when fact analysis failed; all 14 focused regressions pass on that revision. The prior exact-source paired release gate **passed**: ambient verification, 402 core tests, system1, bridge, private workspace, and release builds all exit 0; source fingerprints were unchanged. F-006 clears the older observation/gallery caches on the first failed state poll; F-007 fixes older-SDK compilation; F-008 fixes the small-display resize loop found by the CI debugger. The same exact-source gate is required for the final native revision. Exact commands, exits and artifact hashes are in `release-verification.json`. Final GitHub results are attached to PR #1; deployment is allowed only after CI passes as well.
+- Full ambient suite: **872 tests passed** on final 0.10.2 source. The paired exact-source gate runs ambient verification, 402 core tests, system1, bridge, private workspace and release builds. `release-verification.json` records each exact command, exit, artifact hash and whether sources stayed unchanged; these fields must pass before deployment. Native CI also requires all 264 UI checks to pass. F-006 clears older observation/gallery caches on the first failed poll; F-007 supports older SDKs; F-008 fixes the small-display resize loop.
 - Synthetic 14,110-observation benchmark: 0.123 seconds for the session list, 1,263-byte list response and 100-row child page of 32,276 bytes (all children available through paging).
 
 ## Delivery evidence
 
 - Branch: `feat/butler-recordings`, created from fetched `origin/main` at `2d8aea6` after the owner-authorized main migration.
-- Pull request: https://github.com/t-boris/iButler/pull/1
-- Ambient version: **0.10.1**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
+- Pull requests: https://github.com/t-boris/iButler/pull/1 (feature and existing work), https://github.com/t-boris/iButler/pull/2 (installer repair), https://github.com/t-boris/iButler/pull/3 (media days/index) and https://github.com/t-boris/iButler/pull/4 (containment-root performance). All target main and include test plans.
+- Ambient version: **0.10.2**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
 - Local full verification: `implementation/ambient-awareness/evidence/attention-implementation/release-verification.json` and referenced exact-command logs.
 - Existing Back Burner/workspace deliverables included under DEC-007 were hash-compared with installed copies: backburner library/CLI/prompt/docs, knowledge_sources, memory and lessons all match.
 - Native evidence: `implementation/ambient-awareness/evidence/ui-preview/native-panel-layout.json` and `butler-recordings.png` (synthetic only).
@@ -46,6 +46,8 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 
 ## Final delivery repairs
 
-F-009 handles this Mac’s absent optional Homebrew model-service plist. F-010 includes pending-media-only days in the date picker and is covered by a regression that opens the file through the selected day/session. The final patch version is 0.10.1. The exact-source release report and final PR/main CI runs provide the current validation results.
+F-009 handles this Mac’s absent optional Homebrew model-service plist. F-010 includes pending-media-only days in the date picker and is covered by a regression that opens the file through the selected day/session. These repairs shipped in 0.10.1. The exact-source release report and final PR/main CI runs provide the current validation results.
 
 F-011 adds an observation/media index for pending-original browsing. A deterministic full-browser backlog regression exceeded its database-work budget before the index and passes after it. This supplements the smaller synthetic timeline benchmark above.
+
+F-012 resolves containment roots once per request while retaining each file's canonical path validation and both access checks. The 0.10.1 exact-source gate passed all suites (872 ambient tests, 402 core tests, 264 native checks); main CI run 40635608628 passed both jobs. The same 45,000-file synthetic browse fell from 4.07 to 1.996 seconds. Final 0.10.2 uses the same exact-source gate and CI before normal deployment. The final machine-readable delivery receipt, `implementation/ambient-awareness/evidence/recordings/completion.json`, ties the merged PRs and green main CI to the clean main checkout, matching source fingerprints and verified installed/running release. Its referenced release and deployment reports are the authoritative final outcomes.

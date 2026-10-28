@@ -1,5 +1,9 @@
 # Changelog — butler-ambient
 
+## 0.10.2 — 2026-10-28 (large recording days)
+
+- Resolve media containment directories once per browse request, retaining individual file/symlink validation while avoiding repeated filesystem walks on large capture days.
+
 ## 0.10.1 — 2026-10-27 (pending-media days)
 
 - Index direct observation/media links so large pending-original backlogs do not scan all observations for every file.
