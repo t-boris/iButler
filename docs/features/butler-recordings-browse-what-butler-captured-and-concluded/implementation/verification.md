@@ -31,7 +31,7 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 - 52 archive/camera/Recordings regressions pass after fixing the unmarked clip regression.
 - 262 native UI checks pass; synthetic Recordings render inspected.
 - Core: 402 tests passed; system1, bridge and private workspace suites passed in the first paired run.
-- Full ambient run: 867 tests passed. A later association fix ensures retained call ASR is shown with the still-pending original even when fact analysis failed; all 14 focused regressions pass on that revision. The exact-source paired release gate records all commands, exits, artifact hashes and source fingerprints in `release-verification.json`; final GitHub results are attached to PR #1. Deployment is allowed only after these gates pass.
+- Full ambient run: 867 tests passed. A later association fix ensures retained call ASR is shown with the still-pending original even when fact analysis failed; all 14 focused regressions pass on that revision. The exact-source paired release gate **passes**: ambient verification, 402 core tests, system1, bridge, private workspace, and release builds all exit 0; source fingerprints are unchanged. Exact commands, exits and artifact hashes are in `release-verification.json`. Final GitHub results are attached to PR #1; deployment is allowed only after CI passes as well.
 - Synthetic 14,110-observation benchmark: 0.123 seconds for the session list, 1,263-byte list response and 100-row child page of 32,276 bytes (all children available through paging).
 
 ## Delivery evidence
