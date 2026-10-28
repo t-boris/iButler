@@ -15,7 +15,12 @@ PORT = 11435
 def configure_background(home=None):
     home = Path(home or Path.home())
     path = home / "Library/LaunchAgents/sh.brew.ollama.plist"
-    value = plistlib.loads(path.read_bytes())
+    try:
+        value = plistlib.loads(path.read_bytes())
+    except FileNotFoundError:
+        # Shared Ollama can be managed manually instead of by Homebrew. Its
+        # absent optional launch agent must not interrupt a Butler release.
+        return {"changed": False, "available": False, "reason": "background-launch-agent-not-installed"}
     arguments = value.get("ProgramArguments", [])
     if len(arguments) != 2 or Path(arguments[0]).name != "ollama" or arguments[1] != "serve":
         raise RuntimeError("unexpected background Ollama service")
