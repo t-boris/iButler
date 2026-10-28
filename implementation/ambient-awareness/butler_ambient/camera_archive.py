@@ -71,7 +71,8 @@ class CameraClips:
         clip=self.clip
         # A strict permission transition closes the old retention segment;
         # passive archive capture can continue under its existing policy.
-        permission = bool(self.archive.service.gate.permits(now))
+        from .recordings import meeting_state
+        permission = bool(self.archive.service.gate.permits(now) and meeting_state(self.archive.service)["marked"])
         if clip is not None and clip.get('retention_permission', permission) != permission:
             if not self.finish():raise OSError('camera clip could not close')
             clip=None
