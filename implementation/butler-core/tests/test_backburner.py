@@ -313,13 +313,14 @@ class RegistrationTest(unittest.TestCase):
             (ws / "lib").mkdir(parents=True)
             (ws / "lib/dispatch.py").write_text("")
             with mock.patch.object(workspace_adapters, "WORKSPACE", ws), \
-                    mock.patch.object(workspace_adapters, "TETYANA_WORKSPACE", Path(tmp) / "none"):
+                    mock.patch.object(workspace_adapters, "TETYANA_WORKSPACE", Path(tmp) / "none"), \
+                    mock.patch.object(workspace_adapters, "WORKSPACE_PYTHON", Path(sys.executable)):
                 self.assertNotIn("backburner", workspace_adapters.adapters())
                 (ws / "lib/backburner.py").write_text("")
                 found = workspace_adapters.adapters()
             self.assertIsInstance(found["backburner"], BackburnerAdapter)
             self.assertEqual((found["backburner"].workspace, found["backburner"].python),
-                             (ws.resolve(), str(workspace_adapters.WORKSPACE_PYTHON)))
+                             (ws.resolve(), sys.executable))
 
 
 class CycleThroughTheCoreTest(BackburnerCase):
