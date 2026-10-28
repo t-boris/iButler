@@ -2,6 +2,7 @@
 
 ## 0.10.1 — 2026-10-27 (pending-media days)
 
+- Index direct observation/media links so large pending-original backlogs do not scan all observations for every file.
 - Keep days containing only available originals in the Recordings day picker, even before analysis produces observations or transcripts.
 - The release installer tolerates an absent optional Homebrew Ollama launch agent, preserving independently managed background models.
 

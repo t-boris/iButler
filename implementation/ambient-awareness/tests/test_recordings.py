@@ -115,6 +115,28 @@ class RecordingsTest(unittest.TestCase):
             self.assertFalse(control(self.s, {'action':'delete','observation':oid,'media':mid})['ok'])
             self.assertTrue(outside.exists())
 
+    def test_browsing_a_pending_backlog_has_bounded_database_work(self):
+        # VM instructions, rather than a wall-clock deadline, keep this stable
+        # across runners while catching a correlated scan of all observations
+        # for every pending original.
+        path=self.store.root/'raw/backlog.wav';path.write_bytes(b'audio')
+        with self.store.db:
+            self.store.db.executemany('INSERT INTO observations VALUES (?,?,?,?,?,?)',
+                [(f'old-{i}',f'gone-{i}','microphone',self.now-60,self.now-59,'[]') for i in range(2300)])
+            self.store.db.executemany('INSERT INTO media(id,source,start,end,path) VALUES (?,?,?,?,?)',
+                [(f'pending-{i}','microphone',self.now-10,self.now-9,str(path)) for i in range(2000)])
+        steps=[0]
+        def bounded():
+            steps[0]+=1
+            return int(steps[0]>5000)
+        self.store.db.set_progress_handler(bounded,1000)
+        try:
+            result=list_recordings(self.s,{})
+        finally:
+            self.store.db.set_progress_handler(None,0)
+        self.assertFalse(result['hidden'])
+        self.assertTrue(any(row['type']=='session' for row in result['items']))
+
     def test_day_picker_includes_originals_when_no_analysis_or_events_exist_for_that_day(self):
         yesterday = self.now - 18*3600  # previous evening, still inside the raw 24-hour retention
         mid = self.store.media('microphone', yesterday, yesterday+1, b'pending audio', 'wav')

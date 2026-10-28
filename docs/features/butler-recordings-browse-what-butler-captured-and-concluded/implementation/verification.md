@@ -27,7 +27,7 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 
 ## Validation status
 
-- 15 focused Recordings regressions pass, including actual FFmpeg playback conversion.
+- 16 focused Recordings regressions pass, including actual FFmpeg playback conversion.
 - 52 archive/camera/Recordings regressions pass after fixing the unmarked clip regression.
 - 264 native UI checks pass, covering the original flow, first-poll cache revocation and side-effect-free frame persistence; synthetic Recordings render inspected.
 - Core: 402 tests passed; system1, bridge and private workspace suites passed in the first paired run.
@@ -47,3 +47,5 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 ## Final delivery repairs
 
 F-009 handles this Mac’s absent optional Homebrew model-service plist. F-010 includes pending-media-only days in the date picker and is covered by a regression that opens the file through the selected day/session. The final patch version is 0.10.1. The exact-source release report and final PR/main CI runs provide the current validation results.
+
+F-011 adds an observation/media index for pending-original browsing. A deterministic full-browser backlog regression exceeded its database-work budget before the index and passes after it. This supplements the smaller synthetic timeline benchmark above.
