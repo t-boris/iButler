@@ -955,7 +955,6 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     let displayDetail = NSView()
     var displayCards: [[String: Any]] = []
     var displayCurrent: String?
-    var displayHidden: String?
     var lastRaiseSerial = 0
     var displaySignature: [String] = []
     var displaySelecting = false
@@ -1930,7 +1929,6 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     // Poll result → history table and detail area. Rebuilds rows only when ids, titles or statuses changed.
     func updateDisplay(_ display: [String: Any]?) {
         let cards = (display?["cards"] as? [[String: Any]] ?? []).sorted { ($0["at"] as? Double ?? 0) < ($1["at"] as? Double ?? 0) }
-        displayHidden = display?["hidden"] as? String
         displayCurrent = display?["current"] as? String
         let signature = cards.map { "\($0["id"] as? String ?? "")|\($0["title"] as? String ?? "")|\($0["status"] as? String ?? "")|\(Panel.displayRevision($0))" }
         let selected = displayCards.indices.contains(displayTable.selectedRow) ? displayCards[displayTable.selectedRow]["id"] as? String : nil
@@ -1950,8 +1948,8 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
             selectDisplayCard(displayCurrent)
             return
         }
-        if cards.isEmpty || displayHidden == "private" {
-            if displayRenderedKey != "empty:\(displayHidden ?? "")" { renderDisplayCard(nil) }
+        if cards.isEmpty {
+            if displayRenderedKey != "empty" { renderDisplayCard(nil) }
         } else if let id = displayRenderedID, let card = cards.first(where: { $0["id"] as? String == id }) {
             if Panel.displayRevision(card) != displayRenderedRev {
                 renderDisplayCard(card)        // the agent redrew this card in place (a live canvas): follow it, keep the selection
@@ -1996,7 +1994,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
                 }
             }
         } else {
-            content = explanation(displayHidden == "private" ? "Материалы разговора скрыты: владелец не подтверждён." : "Пока ничего не показано. Butler выведет сюда материал, когда он понадобится в разговоре.")
+            content = explanation("Пока ничего не показано. Butler выведет сюда материал, когда он понадобится в разговоре.")
         }
         showDisplayContent(content)
         displayActionButtons = []
@@ -2010,7 +2008,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         displayRenderedID = card?["id"] as? String
         displayRenderedRev = card.map(Panel.displayRevision) ?? 0
         displayRenderedStatus = card?["status"] as? String
-        displayRenderedKey = card.map { "card:\($0["id"] as? String ?? "")" } ?? "empty:\(displayHidden ?? "")"
+        displayRenderedKey = card.map { "card:\($0["id"] as? String ?? "")" } ?? "empty"
         showDisplayStatus(displayRenderedStatus)
     }
     // The detail container holds exactly one child; swapping it stops any playing video.
@@ -2969,7 +2967,6 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
             self.busy = false
             guard let value = result else {
                 self.recordingsPane?.updatePermission(nil)
-                self.updateDisplay(["cards": [], "hidden": "private"])
                 self.artifactImage.image = nil
                 self.artifacts = []; self.gallery.removeAllItems(); self.revealButton.isEnabled = false
                 self.artifactCaption.stringValue = "Изображения скрыты: проверка владельца недоступна."
@@ -4222,9 +4219,13 @@ func runLayoutTests(output: String) -> Int32 {
     check("display-svg-without-a-drawing-explains-itself", panel.displayRenderedID == "card-svg-empty" && textFields(panel.displayDetail).contains { $0.stringValue == "Рисунок недоступен." })
     check("display-svg-row-is-labelled-as-a-drawing", panel.displayRowTitle(drawings[0]).contains("рисунок"))
 
-    panel.testState = ["enabled": true, "display": ["cards": [], "raise_serial": 1, "hidden": "private"]]
+    let unverifiedDisplayCard: [String: Any] = ["id": "unverified-display", "kind": "text", "title": "Материал разговора", "markdown": "Synthetic material visible without owner verification", "at": feedStart]
+    panel.testState = ["enabled": false, "recording_allowed": false, "recordings_allowed": false, "voice": ["dialogue_allowed": false],
+                       "display": ["cards": [unverifiedDisplayCard], "current": "unverified-display", "raise_serial": 1, "hidden": "private"]]
     panel.refresh(); layout()
-    check("display-private-hides-cards", panel.displayTable.numberOfRows == 0 && panel.displayRenderedID == nil && panel.displayDetail.subviews.count == 1)
+    check("display-visible-without-verification-even-with-legacy-private-flag", panel.displayTable.numberOfRows == 1 && panel.displayRenderedID == "unverified-display" && textViews(panel.displayDetail).contains { $0.string.contains("Synthetic material visible") })
+    panel.testState = nil; panel.refresh(); layout()
+    check("display-keeps-material-on-a-failed-state-poll", panel.displayTable.numberOfRows == 1 && panel.displayRenderedID == "unverified-display")
     // Written conversation on the Display page: thread, composer, send and dictation. Synthetic rows; no service.
     let chatStart = feedStart + 100
     func chatRow(_ id: String, _ from: String, _ state: String, _ text: String, error: String? = nil) -> [String: Any] {
@@ -4753,11 +4754,13 @@ func runLayoutTests(output: String) -> Int32 {
     panel.refresh(); layout()
     check("answer-resets-the-streak-and-the-age-marker", panel.failureStreak == 0 && !panel.window.subtitle.contains("данные от") && panel.window.subtitle.hasSuffix("v0.0.0-synthetic"))
     panel.voiceState.stringValue = "synthetic transient text"
+    panel.updateDisplay(["cards": [unverifiedDisplayCard], "current": "unverified-display", "raise_serial": 1])
     panel.testState = nil
     panel.refresh(); panel.refresh(); layout()
     check("two-failures-after-recovery-do-not-clear", panel.heading.stringValue != "Butler недоступен")
     panel.refresh(); layout()
     check("third-failed-poll-shows-disconnect", panel.heading.stringValue == "Butler недоступен" && panel.failureStreak == 3)
+    check("display-keeps-material-through-service-disconnection", panel.displayTable.numberOfRows == 1 && panel.displayRenderedID == "unverified-display")
     check("disconnect-does-not-navigate-or-resize", panel.section == chosen && panel.window.frame == frameBeforeDisconnect)
     check("disconnect-clears-feed", panel.feed.stack.arrangedSubviews.isEmpty && !panel.feed.placeholder.isHidden)
     check("disconnect-clears-transient-voice-text", !panel.voiceState.stringValue.contains("synthetic transient text"))

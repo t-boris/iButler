@@ -268,11 +268,14 @@ class PanelChat:
         except Exception as error:  # the class only: a message may quote the owner's text
             LOG.warning("panel chat turn %s failed: %s", turn, type(error).__name__)
             result = {"state": "failed", "text": "", "error": "внутренняя ошибка панели (" + type(error).__name__ + ")"}
+        # Keep the turn active until its gateway history is accounted for.
+        # Publishing a terminal row first lets a later result race with mark()
+        # and be swallowed as if it belonged to this completed turn.
+        self._after_turn(result["state"])
         if self._set(turn, epoch, **result):      # false when the thread was cleared meanwhile: the answer is dropped
             with self.condition:
                 self.counts[result["state"]] += 1
             LOG.info("panel chat turn %s %s", turn, result["state"])
-        self._after_turn(result["state"])
 
     def _after_turn(self, state):
         """Whatever the gateway recorded during an answered turn is accounted for: the panel showed it as the reply.

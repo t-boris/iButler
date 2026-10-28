@@ -14,8 +14,8 @@ What this module guards:
   and the stored draft are read here from the local mail store (REQ-002: bodies never travel).
 - History is owner-local and persistent until an explicit owner Clear (owner 2026-10-28).
   No age/count pruning; pause, settings changes and restarts do not delete the journal.
-- Visibility: Recordings DEC-004 and Q-007 retain verified-owner visibility and action
-  checks. Loss of access hides history without deleting the persistent journal.
+- Visibility: DEC-009 keeps local Display material visible without camera/voice
+  verification or observation permission; history stays until explicit Clear.
 - The only action with an external effect opens a prefilled reply in Mail.app; it never sends,
   never grants approval, and a failure is reported as a failure (REQ-008, REQ-009).
 - A card may replace an earlier one (``replaces``): the same card, same place in the history, new content and a
@@ -370,8 +370,6 @@ class Display:
     def select(self, card_id):
         """The owner returns to an earlier card: it becomes current again; nothing is generated, opened or sent (REQ-011)."""
         with self.lock:
-            from .recordings import _allowed
-            if not _allowed(self.service):raise CardRefused("verified owner required")
             card = self._card(card_id)
             if card.get("kind") == "email" and "body" not in card.get("email", {}):
                 try: card.update(self.email_card(card["email"]["key"]))
@@ -384,8 +382,6 @@ class Display:
     def action(self, card_id, action_id):
         """An explicit owner action on a card. The panel names the action by id; what it does is decided here."""
         with self.lock:
-            from .recordings import _allowed
-            if not _allowed(self.service):raise CardRefused("verified owner required")
             card = self._card(card_id)
             entry = next((dict(a) for a in card.get("actions", []) if a["id"] == action_id), None)
         if entry is None:
@@ -500,12 +496,8 @@ class Display:
         return shown
 
     def snapshot(self):
-        """Owner-only persistent history; access loss hides rather than deletes it."""
-        from .recordings import _allowed
+        """Persistent local Display, independent of observation/identity checks (DEC-009)."""
         with self.lock:
-            if not _allowed(self.service):
-                return {"cards": [], "current": None, "raise_serial": self.raise_serial, "hidden": "private",
-                        "cleared_reason": self.cleared_reason, "counts": dict(self.counts)}
             cards = []
             for card in self.history:
                 copy = {k: v for k, v in card.items() if k not in {"outgoing_id", "reply_choice"}}
@@ -518,8 +510,5 @@ class Display:
                         copy.pop(field)
                         copy["unavailable"] = "missing"
                 cards.append(copy)
-            if not _allowed(self.service):
-                return {"cards": [], "current": None, "raise_serial": self.raise_serial, "hidden": "private",
-                        "cleared_reason": self.cleared_reason, "counts": dict(self.counts)}
             return {"cards": cards, "current": self.current, "raise_serial": self.raise_serial, "hidden": None,
                     "cleared_reason": self.cleared_reason, "counts": dict(self.counts)}

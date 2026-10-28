@@ -287,7 +287,7 @@ class RecordingsTest(unittest.TestCase):
         self.assertEqual(list_recordings(self.s,{'source':'display'})['items'][0]['card']['title'],'Local image')
         self.s.dialogue_gate.invalidate('company')
         ui=snapshot(self.s)
-        self.assertEqual(ui['display']['cards'],[])
+        self.assertEqual(len(ui['display']['cards']),1)
         self.assertEqual(ui['visual']['artifacts'],[])
         self.assertEqual(list_recordings(self.s,{})['items'],[])
         self.authorize()

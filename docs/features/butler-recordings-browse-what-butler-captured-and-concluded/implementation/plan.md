@@ -30,7 +30,7 @@ issues:
   - id: I-5
     status: implemented
     title: Enforce local and owner-only access
-    summary: Enforce local-only, verified-owner visibility for recordings and associated content under existing observation rules. Apply verified-owner access to generated images and Display history in both Recordings and Display, and ensure existing pause and participant-consent controls govern capture and retention.
+    summary: Enforce local-only, verified-owner visibility for recordings and associated content under existing observation rules. Apply verified-owner access to generated images and Display history inside Recordings; keep local Display independent under DEC-009, and ensure existing pause and participant-consent controls govern capture and retention.
     requirements: [REQ-005]
     decisions: [DEC-001, DEC-004]
   - id: I-6
@@ -51,7 +51,7 @@ issues:
     decisions: [DEC-008]
   - id: I-9
     status: implemented
-    title: Persist UI history with owner access checks
+    title: Persist local UI history until Clear
     requirements: [REQ-011]
     decisions: [DEC-008]
 updated: 2026-10-28
@@ -89,7 +89,7 @@ Decisions: DEC-003, DEC-005, DEC-006
 
 ## I-5: Enforce local and owner-only access
 
-Enforce local-only, verified-owner visibility for recordings and associated content under existing observation rules. Apply verified-owner access to generated images and Display history in both Recordings and Display, and ensure existing pause and participant-consent controls govern capture and retention.
+Enforce local-only, verified-owner visibility for recordings and associated content under existing observation rules. Apply verified-owner access to generated images and Display history inside Recordings; keep local Display independent under DEC-009, and ensure existing pause and participant-consent controls govern capture and retention.
 
 Requirements: REQ-005
 Decisions: DEC-001, DEC-004
@@ -112,3 +112,7 @@ All six tasks are implemented; all eight requirements have automated coverage. D
 ## Owner follow-up — 2026-10-28
 
 I-7–I-9 are implemented under DEC-008 and undergoing the complete release gate. Q-007 retains the owner gate with persistent history. Q-008 authorizes both daytime catch-up runs. The original 0.10.2 delivery receipt remains in `evidence/recordings/completion.json`; follow-up evidence is under `evidence/followup/`.
+
+## Display access repair — 2026-10-28
+
+DEC-009 overrides the earlier Display identity gate. Implement the no-gate Display path and verify denied-permission, persisted-history, card-control and failed-poll cases. The patch release is 0.11.1; the normal test/build, PR/CI and deployment workflow applies.

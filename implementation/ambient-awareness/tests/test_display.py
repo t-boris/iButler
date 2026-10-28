@@ -113,11 +113,11 @@ class DisplayTests(unittest.TestCase):
                 self.display.present(bad)
         shown = self.display.snapshot()["cards"]
         self.assertEqual([c.get("image") or c.get("video") for c in shown], [str(picture), str(video)])
-        # Recordings DEC-004 supersedes the older always-visible Display policy.
+        # DEC-009: Display does not inherit observation permission or identity checks.
         self.service.gate.invalidate(self.now, "permission-paused")
         self.assertFalse(self.service.gate.allowed)
         again = snapshot(self.service)["display"]["cards"]
-        self.assertEqual(again, [])
+        self.assertEqual(again, shown)
         self.renew_owner()
         video.unlink()
         self.assertEqual(self.display.snapshot()["cards"][1]["unavailable"], "missing")
@@ -183,16 +183,16 @@ class DisplayTests(unittest.TestCase):
         with self.service.lock:
             self.service._invalidate("owner-paused")                                           # a hard close of the owner session
         state = self.display.snapshot()
-        self.assertEqual((state["cards"], state["current"], state["cleared_reason"]), ([], None, None))
-        fresh = Display(self.service)                                                          # persisted, but still owner-gated
-        self.assertEqual(fresh.snapshot()["cards"], [])
+        self.assertEqual((len(state["cards"]), state["current"], state["cleared_reason"]), (2, second["id"], None))
+        fresh = Display(self.service)                                                          # persisted and visible without biometric checks
+        self.assertEqual(len(fresh.snapshot()["cards"]), 2)
         self.renew_owner()
         self.assertEqual(len(fresh.snapshot()["cards"]), 2)
         for index in range(module.HISTORY + 5):
             self.display.present({"kind": "text", "markdown": str(index)})
         self.assertEqual(len(self.display.snapshot()["cards"]), module.HISTORY + 7)
 
-    def test_access_loss_hides_persistent_history_until_owner_returns(self):
+    def test_access_loss_does_not_hide_persistent_display_history(self):
         # Owner, 2026-10-26 (DEC-047): the display is not cleared "for nothing"; it ends with the conversation, not with a blink.
         for reason in ("permission-paused", "stale-participant-check", "participant-check-gap", "participant-check-unavailable", "source-unavailable"):
             with self.subTest(soft=reason):
@@ -204,7 +204,7 @@ class DisplayTests(unittest.TestCase):
                 self.lose_the_lease(reason)
                 self.assertFalse(self.service.dialogue_gate.allowed)                              # the session really closed
                 after = self.display.snapshot()
-                self.assertEqual((after["cards"], after["current"], after["hidden"]), ([], None, "private"))
+                self.assertEqual((after["cards"], after["current"], after["hidden"]), (before["cards"], before["current"], None))
                 self.renew_owner()
                 self.assertEqual([c["id"] for c in self.display.snapshot()["cards"]], [c["id"] for c in before["cards"]])
         for reason in ("owner-paused", "consent-revoked", "settings-change", "service-stopped", "owner-voice-enrollment", "owner-reference-updated"):
@@ -214,7 +214,7 @@ class DisplayTests(unittest.TestCase):
                 self.display.present({"kind": "text", "title": "Схема", "markdown": "x"})
                 self.lose_the_lease(reason)
                 after = self.display.snapshot()
-                self.assertEqual((after["cards"], after["current"], after["cleared_reason"]), ([], None, None))
+                self.assertEqual((len(after["cards"]), after["cleared_reason"]), (1, None))
                 self.renew_owner()
                 self.assertEqual(len(self.display.snapshot()["cards"]), 1)
 
@@ -222,14 +222,14 @@ class DisplayTests(unittest.TestCase):
         first = self.display.present({"kind": "text", "title": "Выбор", "markdown": "x", "buttons": [{"label": "Да", "kind": "reply"}, {"label": "Нет", "kind": "reply"}]})
         self.display.present({"kind": "text", "title": "Выбор", "markdown": "z", "replaces": first["id"]})
         self.lose_the_lease("permission-paused")
-        self.assertEqual(self.display.snapshot()["cards"], [])
+        self.assertEqual(len(self.display.snapshot()["cards"]), 1)
         self.renew_owner()
         card = self.display.snapshot()["cards"][0]
         self.assertEqual((card["id"], card["rev"], card["markdown"]), (first["id"], 1, "z"))
 
     # -- visibility (REQ-010) and the panel ---------------------------------------------------
 
-    def test_cards_are_hidden_when_owner_lease_drops_and_ui_state_carries_version(self):
+    def test_cards_stay_visible_when_owner_lease_drops_and_ui_state_carries_version(self):
         shown = self.display.present({"kind": "text", "title": "Личное", "markdown": "x"})
         self.lose_the_lease("permission-paused")                                               # the participant is not recognised for a moment
         self.assertFalse(self.allowed())                                                       # the lease really is down
@@ -237,7 +237,7 @@ class DisplayTests(unittest.TestCase):
         self.assertFalse(state["voice"]["dialogue_allowed"])
         self.assertEqual(state["version"], __import__("butler_ambient").__version__)
         self.assertEqual(([c["id"] for c in state["display"]["cards"]], state["display"]["current"], state["display"]["hidden"]),
-                         ([], None, "private"))
+                         ([shown["id"]], shown["id"], None))
         rows = feed(Mock(notices=None), {"voice": {"dialogue_allowed": True, "debug": {"events": [
             {"at": 5.0, "event": "display", "detail": "Личное · текст", "who": "Система"}]}}, "visual": {}})
         self.assertEqual((rows[0]["kind"], rows[0]["label"]), ("display", "ПОКАЗ"))

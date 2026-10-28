@@ -50,3 +50,7 @@ Implemented in ambient 0.10.0: owner-only Recordings, expandable day/source sess
 ## Owner follow-up — 2026-10-28
 
 DEC-008/Q-007/Q-008 add persistent owner-gated UI history, the Components screenshot repair, truthful Back Burner plan/receipt reporting, future nightly activation and two confirmed daytime catch-up runs. REQ-009–REQ-011 and I-7–I-9 are implemented. Release 0.11.0 uses the full local and CI gates before normal deployment.
+
+## Latest Display decision — 2026-10-28
+
+The owner explicitly rejected the recurring identity-blocked Display. DEC-009 removes biometric/observation checks for local Display visibility, selection, controls and Clear. Persistent history remains. Recordings keeps its independent policy. This supersedes the earlier Display-gate choice in Q-007 and DEC-008. Release 0.11.1 verifies visibility under denied gates and failed UI polls.
