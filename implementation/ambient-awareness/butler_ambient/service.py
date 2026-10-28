@@ -371,7 +371,10 @@ class Service:
             frames=self.recording_frames(batch.frames)
             from .store import AnalysisBufferFull
             for source,data,suffix in (("camera",b"".join(frames),"mjpeg"),("microphone",batch.wav(),"wav")):
-                try:self.store.media(source,batch.start,batch.end,data,suffix,temporary=True)
+                try:
+                    mid=self.store.media(source,batch.start,batch.end,data,suffix,temporary=True)
+                    from .recordings import tag_capture
+                    tag_capture(self,mid)
                 except AnalysisBufferFull:
                     self.store.event(source,'analysis-buffer-full',batch.start,batch.end)
                     self._set_sources({source:'unavailable'},batch.start)
@@ -583,6 +586,15 @@ class Service:
             phase="transcription" if row["source"] in {"microphone","system-audio"} else "inference"
             if row["source"] in {"microphone","system-audio"}:
                 transcript = self.analyzer.transcribe(data, token=token)
+                # Persist successful call ASR before inference: a failed fact
+                # model must not discard an otherwise valid transcript.
+                with self.lock:
+                    if not token.is_set() and policy.permits(self.clock()) and generation == policy.generation:
+                        calls = {r.get("meeting_id") for r in rows if r.get("meeting_id")}
+                        if calls:
+                            self.store.retain_transcript("analysis:" + rows[0]["id"], source,
+                                min(r["start"] for r in rows), max(r["end"] for r in rows), transcript,
+                                media_id=rows[0]["id"], meeting_id=next(iter(calls)), now=self.clock())
                 phase="inference"
                 facts = self.analyzer.analyze(row["source"], transcript=transcript, context=context, token=token)
             else:
@@ -750,11 +762,12 @@ class Service:
             last_end = None
             group_start = None
             last_class = None
+            last_meeting = None
             group_images=0
             for row in pending:
                 if row["source"] != source:
                     continue
-                if (source == "screen" or last_end is None or row['storage_class'] != last_class
+                if (source == "screen" or last_end is None or row['storage_class'] != last_class or row.get('meeting_id') != last_meeting
                         or source == 'camera' and group_images+sample_count(row)>self.camera_batch_size
                         or row["start"] - last_end > .2 or row['start'] < last_end-.25
                         or row["end"]-(group_start if group_start is not None else row["start"]) > 60):
@@ -766,6 +779,7 @@ class Service:
                 if source=='camera':group_images+=sample_count(row)
                 last_end = max(last_end or row["end"], row["end"])
                 last_class = row['storage_class']
+                last_meeting = row.get('meeting_id')
             source_groups.append(groups)
         # Permission gaps can create many camera groups. Give each source a
         # turn before processing the next group so camera work cannot starve
@@ -1197,6 +1211,8 @@ class Handler(socketserver.StreamRequestHandler):
             elif command == "ui-material-remove":
                 result = service.visual.remove_root(args["path"])
             elif command == "ui-visual-delete":
+                from .recordings import _allowed
+                if not _allowed(service):raise ValueError("verified owner required")
                 result = service.visual.delete(args["id"])
             elif command == "ui-visual-cancel":
                 service.visual.cancel()
@@ -1211,7 +1227,20 @@ class Handler(socketserver.StreamRequestHandler):
                     result = {"queued": False, "message": str(error)[:300]}
             elif command == "ui-observations":
                 from .observation_browser import browse
-                result = browse(service, args)
+                from .recordings import _allowed
+                result = browse(service, args) if _allowed(service) else {"hidden": True, "items": [], "days": [], "total": 0}
+            elif command == "ui-recordings":
+                from .recordings import list_recordings
+                result = list_recordings(service, args)
+            elif command == "ui-recording-play":
+                from .recordings import playback
+                result = playback(service, args)
+            elif command == "ui-recording-meeting":
+                from .recordings import mark_meeting
+                result = mark_meeting(service, args)
+            elif command == "ui-recording-control":
+                from .recordings import control
+                result = control(service, args)
             elif command == "ui-dictate":
                 if set(args) != {"action"} or args["action"] not in {"start", "stop"}: raise ValueError("invalid dictation request")
                 result = service.dictation.start() if args["action"] == "start" else service.dictation.stop()
@@ -1220,7 +1249,7 @@ class Handler(socketserver.StreamRequestHandler):
                 result = service.panel_chat.clear("owner")
             elif command == "display":
                 # The agent's card (MCP butler_display) or any owner-local caller: validated, shown, window forward.
-                # No privacy gate (owner, 2026-10-27, DEC-048): a valid card is shown whatever the state of the private session.
+                # Recordings DEC-004: valid cards may queue locally; snapshot/actions enforce verified-owner visibility.
                 try:
                     result = service.display.present(args, origin="agent")
                 except CardRefused as error:

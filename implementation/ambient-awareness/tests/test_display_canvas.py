@@ -26,7 +26,7 @@ class CanvasTests(ButtonCase):
         first = self.display.present(self.diagram("graph TD; A-->B"))
         other = self.display.present({"kind": "text", "markdown": "рядом"})
         before = self.snapshot()
-        self.now += 60                                                                          # the redraw happens a minute later
+        self.now += 60; self.renew_owner()                                                                          # the redraw happens a minute later
         again = self.display.present(self.diagram("graph TD; A-->B-->C", title="Архитектура v2", replaces=first["id"]))
         self.assertEqual((again["id"], again["replaced"]), (first["id"], True))
         state = self.snapshot()

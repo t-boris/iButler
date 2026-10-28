@@ -75,7 +75,10 @@ class PassiveArchive:
             out=io.BytesIO()
             with wave.open(out,'wb') as audio:
                 audio.setnchannels(1);audio.setsampwidth(2);audio.setframerate(16000);audio.writeframes(pcm)
-            try:s.store.media('system-audio',now-len(pcm)/32000,now,out.getvalue(),'wav',temporary=True)
+            try:
+                mid=s.store.media('system-audio',now-len(pcm)/32000,now,out.getvalue(),'wav',temporary=True)
+                from .recordings import tag_capture
+                tag_capture(s,mid)
             except (OSError,sqlite3.Error) as error:
                 self.write_result('system-audio',now-len(pcm)/32000,now,error)
                 self.sources['system-audio']='unavailable';return
@@ -154,7 +157,9 @@ class PassiveArchive:
             self.sources['camera']='unavailable'
         if batch.pcm and 'microphone' not in batch.gaps:
             try:
-                s.store.media('microphone',batch.start,batch.end,batch.wav(),'wav',temporary=True)
+                mid=s.store.media('microphone',batch.start,batch.end,batch.wav(),'wav',temporary=True)
+                from .recordings import tag_capture
+                tag_capture(s,mid)
                 self.sources['microphone']='active';self.last['microphone']=now;saved=True
                 self.write_result('microphone',batch.start,batch.end)
             except (OSError,sqlite3.Error) as error:

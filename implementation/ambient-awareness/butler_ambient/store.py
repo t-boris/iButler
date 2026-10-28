@@ -40,6 +40,7 @@ class Store:
         self.db.row_factory = sqlite3.Row
         self.db.executescript("""
           PRAGMA journal_mode=WAL;
+          PRAGMA secure_delete=ON;
           CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
           CREATE TABLE IF NOT EXISTS agreements(id TEXT PRIMARY KEY, name TEXT NOT NULL,
             active INTEGER NOT NULL, reference TEXT NOT NULL);
@@ -61,6 +62,11 @@ class Store:
           CREATE TABLE IF NOT EXISTS event_frames(media_id TEXT NOT NULL, observation_id TEXT NOT NULL,
             kind TEXT NOT NULL, key TEXT NOT NULL, captured_at REAL NOT NULL, day TEXT NOT NULL,
             PRIMARY KEY(media_id,key));
+          CREATE TABLE IF NOT EXISTS recording_transcripts(id TEXT PRIMARY KEY, source TEXT NOT NULL,
+            start REAL NOT NULL, end REAL NOT NULL, text TEXT NOT NULL, media_id TEXT, meeting_id TEXT);
+          CREATE INDEX IF NOT EXISTS recording_transcripts_time ON recording_transcripts(start,end);
+          CREATE TABLE IF NOT EXISTS recording_meetings(id TEXT PRIMARY KEY, start REAL NOT NULL,
+            end REAL, marked_at REAL);
           CREATE INDEX IF NOT EXISTS event_frames_key ON event_frames(key,captured_at);
           CREATE INDEX IF NOT EXISTS event_frames_day ON event_frames(day);
         """)
@@ -75,6 +81,8 @@ class Store:
         if 'complete' not in columns:
             self.db.execute('ALTER TABLE media ADD COLUMN complete INTEGER NOT NULL DEFAULT 1')
         if 'samples' not in columns:self.db.execute('ALTER TABLE media ADD COLUMN samples TEXT')
+        for name, kind in (("meeting_id", "TEXT"), ("retained_until", "REAL")):
+            if name not in columns:self.db.execute(f'ALTER TABLE media ADD COLUMN {name} {kind}')
         for row in self.db.execute('SELECT id,COALESCE(path,preserved) AS path FROM media WHERE (path IS NOT NULL OR preserved IS NOT NULL) AND size_bytes=0').fetchall():
             try: size = Path(row['path']).stat().st_size
             except FileNotFoundError: size = 0
@@ -206,7 +214,7 @@ class Store:
         removed = 0
         with self.lock:
             query = """SELECT id,path FROM media WHERE analyzed=1 AND complete=1 AND path IS NOT NULL
-                AND storage_class IN ('spool','legacy') AND EXISTS (
+                AND retained_until IS NULL AND storage_class IN ('spool','legacy') AND EXISTS (
                     SELECT 1 FROM observation_media r JOIN observations o ON o.id=r.observation_id
                     WHERE r.media_id=media.id)"""
             params = ()
@@ -252,13 +260,30 @@ class Store:
         with self.lock:
             count += self.cleanup_analyzed()
             # Start time is intentional: no byte survives 24h because a segment ended later.
-            for row in self.execute("SELECT * FROM media WHERE path IS NOT NULL AND start<=?", (now - 86400,)):
+            for row in self.execute("SELECT * FROM media WHERE path IS NOT NULL AND retained_until IS NULL AND start<=?", (now - 86400,)):
                 Path(row["path"]).unlink(missing_ok=True)
                 self.execute("UPDATE media SET path=NULL WHERE id=?", (row["id"],))
                 if row['analyzed'] != 1:
                     try:self.merge_gap(row['source'],'analysis-expired',row['start'],row['end'])
                     except sqlite3.Error:self.cleanup_error='retention-gap-log-unavailable'
                 count += 1
+            for row in self.execute("SELECT id FROM media WHERE retained_until<=?", (now,)):
+                self.delete(row["id"])
+                self.execute("UPDATE media SET retained_until=NULL WHERE id=?", (row["id"],))
+                count += 1
+            expired = self.execute("SELECT COUNT(*) AS n FROM recording_transcripts WHERE start<=?", (now - 30*86400,))[0]["n"]
+            if expired:
+                self.execute("DELETE FROM recording_transcripts WHERE start<=?", (now - 30*86400,))
+                # secure_delete clears freed database pages; truncate old WAL frames too.
+                self.db.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+            playback = self.root / "playback"
+            if playback.exists():
+                for file in playback.iterdir():
+                    if len(file.stem) != 32:
+                        if file.stat().st_mtime <= now - 86400:file.unlink(missing_ok=True)
+                        continue
+                    if not self.execute("SELECT 1 FROM media WHERE id=? AND (path IS NOT NULL OR preserved IS NOT NULL)", (file.stem,)):
+                        file.unlink(missing_ok=True)
             # Recover orphaned files after a process crash between file creation and INSERT.
             if self.last_orphan_scan is None or now-self.last_orphan_scan >= 60:
                 tracked = {Path(r["path"]).name for r in self.execute("SELECT path FROM media WHERE path IS NOT NULL")}
@@ -383,9 +408,32 @@ class Store:
                     if row[key]:
                         Path(row[key]).unlink(missing_ok=True)
             self.execute("UPDATE media SET path=NULL,preserved=NULL WHERE id=?", (mid,))
+            (self.root / "playback" / (mid + ".mp4")).unlink(missing_ok=True)
             if results:
                 self.execute("DELETE FROM observations WHERE media_id=? OR id IN (SELECT observation_id FROM observation_media WHERE media_id=?)", (mid, mid))
                 self.execute("DELETE FROM observation_media WHERE observation_id NOT IN (SELECT id FROM observations)")
+
+    def retain_transcript(self, key, source, start, end, text, *, media_id=None, meeting_id=None, now=None):
+        """Separate local speech record; neither facts export nor MCP reads this table."""
+        now = time.time() if now is None else now
+        if source not in {"microphone", "system-audio"} or end < start:
+            raise ValueError("invalid transcript interval/source")
+        if not isinstance(text, str) or not text.strip() or start <= now - 30*86400:
+            return
+        self.execute("INSERT OR REPLACE INTO recording_transcripts VALUES (?,?,?,?,?,?,?)",
+                     (key, source, start, end, text.strip(), media_id, meeting_id))
+
+    def tag_meeting_media(self, mid, meeting_id, *, retain=False):
+        with self.lock:
+            meeting = self.execute("SELECT * FROM recording_meetings WHERE id=?", (meeting_id,))
+            if not meeting:return
+            row = self.execute("SELECT start FROM media WHERE id=?", (mid,))[0]
+            marked = meeting[0]["marked_at"]
+            expiry = row["start"] + 30*86400 if retain and marked is not None and row["start"] >= marked else None
+            # Move retained originals outside the bounded analysis spool. Keep
+            # the original bytes/path; expiry never depends on analysis success.
+            self.execute("UPDATE media SET meeting_id=?,retained_until=?,storage_class=CASE WHEN ? IS NOT NULL THEN 'meeting' ELSE storage_class END WHERE id=?",
+                         (meeting_id, expiry, expiry, mid))
 
     def save_observation(self, mid, facts, covered_ids=None):
         with self.lock:

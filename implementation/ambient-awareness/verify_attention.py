@@ -1,4 +1,4 @@
-"""Reproducible release verification for the merged conversation feature."""
+"""Reproducible paired release verification for Butler, including local Recordings."""
 from __future__ import annotations
 import datetime as dt
 import hashlib
@@ -39,7 +39,7 @@ def main():
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     baseline = sources()
-    report = {"started": dt.datetime.now(dt.timezone.utc).isoformat(), "git": "waived by owner in DEC-074",
+    report = {"started": dt.datetime.now(dt.timezone.utc).isoformat(), "git": subprocess.run(["git", "rev-parse", "HEAD"], cwd=PROJECT, capture_output=True, text=True, check=True).stdout.strip(),
               "versions": {"ambient": version(AMBIENT, "butler_ambient"), "core": version(CORE, "butler_core")},
               "source_sha256": baseline, "jobs": [], "passed": False}
     node = Path.home() / ".nvm/versions/node/v22.22.3/bin/node"

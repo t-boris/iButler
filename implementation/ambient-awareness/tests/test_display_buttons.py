@@ -24,6 +24,7 @@ class ButtonCase(unittest.TestCase):
     tearDown = test_display.DisplayTests.tearDown
     fake_run = test_display.DisplayTests.fake_run
     allowed = test_display.DisplayTests.allowed
+    renew_owner = test_display.DisplayTests.renew_owner
 
     def setUp(self):
         self.setUp_display()
@@ -165,6 +166,9 @@ class ButtonSecrecyTests(ButtonCase):
         with self.service.lock:
             self.service._invalidate("permission-paused")
         self.assertFalse(self.allowed())
+        self.assertEqual(self.display.snapshot()["cards"], [])
+        with self.assertRaises(CardRefused):self.display.action(shown["id"], "button-1")
+        self.renew_owner()
         cards = self.display.snapshot()["cards"]
         self.assertEqual([(c["id"], [a["label"] for a in c["actions"]]) for c in cards], [(shown["id"], ["Да"])])
         with self.service.lock:
@@ -288,7 +292,7 @@ class ButtonAgentFlowTests(ButtonCase):
         good = self.run_command("display", self.card([{"label": "Да", "kind": "reply"}]))["result"]
         self.assertTrue(good["shown"])
 
-    def test_a_card_is_shown_whatever_the_state_of_the_private_session(self):
+    def test_a_card_is_held_locally_and_hidden_until_the_owner_returns(self):
         # Owner, 2026-10-27: "убери все приватные фичи, показывай все всегда". The agent's card no longer needs the confirmed session.
         self.assertTrue(self.allowed())
         self.now += 3600                                        # the owner's dialogue session lapsed
@@ -296,7 +300,9 @@ class ButtonAgentFlowTests(ButtonCase):
         answer = self.run_command("display", self.card([{"label": "Да", "kind": "reply"}]))
         self.assertTrue(answer["result"]["shown"])
         cards = snapshot(self.service)["display"]["cards"]
-        self.assertEqual([[a["label"] for a in c["actions"]] for c in cards], [["Да"]])
+        self.assertEqual(cards, [])
+        self.renew_owner()
+        self.assertEqual([[a["label"] for a in c["actions"]] for c in snapshot(self.service)["display"]["cards"]], [["Да"]])
 
     def test_a_malformed_card_is_still_refused_with_its_rule_when_the_session_is_closed(self):
         self.now += 3600

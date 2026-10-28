@@ -328,10 +328,10 @@ class IntegrationTests(unittest.TestCase):
         request = next(iter(self.voice.dialogue.requests.values())); request.queued_at -= 2
         with patch.object(Conversation, 'ready', new_callable=PropertyMock, return_value=True):
             self.voice._deliver_dialogue(); self.voice._deliver_dialogue()
-        self.assertEqual(self.voice.speak.call_count, 1)
-        self.assertIn('устройство диска', self.voice.speak.call_args.args[0])
+        self.assertEqual(self.voice.speak.call_count, 0)  # DEC-090: ordinary waiting is silent
         release.set(); self.finish()
-        self.assertEqual(self.voice.speak.call_count, 2)
+        self.assertEqual(self.voice.speak.call_count, 1)
+        self.assertEqual(self.voice.speak.call_args.args[0], 'Содержательный ответ.')
         self.voice.model.generate_json.assert_not_called()
 
     def test_status_question_reports_only_real_coordinator_state(self):
@@ -339,7 +339,7 @@ class IntegrationTests(unittest.TestCase):
         self.voice.model.transcribe.return_value = 'Что ты делаешь сейчас?'
         self.service.brain.ask = Mock()
         self.voice._turn(b'\0'*32000, self.voice.token, self.service.voice_gate.generation, True)
-        self.assertIn('Сейчас слушаю', self.voice.speak.call_args.args[0])
+        self.assertIn('незавершённой работы нет', self.voice.speak.call_args.args[0])
         self.service.brain.ask.assert_not_called()
 
     def test_a_desktop_busy_cause_appearing_during_the_look_does_not_veto_the_turn(self):

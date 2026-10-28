@@ -1,5 +1,23 @@
 # Changelog — butler-ambient
 
+## 0.10.0 — 2026-10-27 (local Recordings)
+
+- Add «Записи»: day/source browsing, expandable activity/call sessions, stored facts, retained transcripts, key frames, generated images and current Display history. Play individual audio/video files in the panel; prepare disposable MP4 playback copies of camera MJPEG originals.
+- Retain owner speech and detected-call transcripts locally for 30 days. Explicitly mark the current detected meeting to retain subsequent permitted microphone/system audio and camera video for 30 days; new calls and service restarts do not inherit the mark. Fixed expiry also removes manually preserved copies.
+- Preserve/delete only the selected media file; shared observations, facts and transcripts keep their independent lifetime. Show pause, buffer-full, restart and analysis gaps.
+- Enforce verified-owner visibility for Recordings, the gallery, Display history and Display actions (Recordings DEC-004 supersedes older Display DEC-047/048). Clear cached private panel media on access loss or disconnection. Older MCP observation tools return metadata without observation content.
+- Intercept time-based recordings navigation locally before voice or panel requests reach the cloud agent.
+- Align existing waiting-reaction regressions with accepted attention DEC-090; preserve the existing speech behavior.
+
+## 0.9.5 — 2026-10-27 (weekly dialogue report)
+
+- Show the weekly report's total sample size and unknown-outcome share, and disclose that false-interruption accounting is not yet connected (REQ-061).
+
+## 0.9.4 — 2026-10-27 (manual Busy stays authoritative)
+
+- Preserve a manually selected Busy state when the owner repeats a spoken busy cue (DEC-095).
+- Apply spoken availability cues only to a verified owner utterance, and describe a persistent manual Busy state accurately in the panel.
+
 ## 0.9.3 — 2026-10-27 (Back Burner in the schedule list)
 
 - The «Расписание» list shows one row per Back Burner research folder (status, next night, last run, model, runs), read from `bin/butler-backburner list --json`. Pause, resume and stop call the same CLI. «Запустить» submits one `backburner.cycle` operation for that folder to butler-core (principal `voice:owner`, a fresh key per press) and says in a line whether the core took it; when the core is missing, down or refuses, the message says why and shows the terminal command. The operation's target is a short hash of the folder name (butler-core takes ids only: a name with a space or Cyrillic letters was refused before anything started) and a refusal from the core is shown with its own reason. A folder that is paused, done or without a status is refused with «сначала нажмите «Продолжить»» (a manual run ignores the pause, so the button asks for the explicit step first; the terminal `run` is unchanged). A failure of the Back Burner CLI is reported in the list's error line and never hides the cron rows.

@@ -85,3 +85,7 @@ Add a local voice command that opens Recordings at a requested time. Ensure the 
 
 Requirements: REQ-008, REQ-005
 Decisions: DEC-001
+
+## Progress — 2026-10-27
+
+I-1–I-6 are implemented and undergoing full release verification. Focused regressions cover session/source/day grouping, child pagination, independent media actions, fixed 30-day expiry including preserved meeting copies, restart/new-call mark reset, owner denial, generated images/Display history, MCP content stripping, local voice routing and a real FFmpeg playback derivative. The native panel compiles with warnings as errors, and the 0.10.0 app/wheel build passes. Initial core suite: 402 tests passed; targeted ambient regressions: 223 tests passed. No request for the owner to repeat answered product questions was needed.

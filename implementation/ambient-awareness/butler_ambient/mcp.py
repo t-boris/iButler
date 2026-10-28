@@ -84,6 +84,14 @@ def serve(root, reader=None, writer=None, call=None):
                                    "butler_activity_summary": "summary", "butler_visual_request": "visual-request",
                                    "butler_display": "display"}[name]
                         output = call(command, args)
+                        # Recordings REQ-005: local facts and speech must not
+                        # escape through the older observation tools either.
+                        if command == "observe":
+                            output = {k: output[k] for k in ("status", "source", "reason") if k in output}
+                            output["content_visibility"] = "owner-local"
+                        elif command == "summary":
+                            output = {k: output[k] for k in ("start", "end", "covered_seconds", "coverage_fraction", "gaps", "source_events") if k in output}
+                            output["content_visibility"] = "owner-local"
                         if command == "display":
                             if output.get("refused"):                      # a malformed card: say which field, never echo content
                                 raise CardError(str(output["refused"]))

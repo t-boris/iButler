@@ -1,0 +1,54 @@
+name: Tests and macOS build
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, 'feat/**']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+      PYTHONPATH: ${{ github.workspace }}/implementation/ambient-awareness:${{ github.workspace }}/implementation/butler-core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test and build dependencies
+        run: python -m pip install --upgrade pip setuptools wheel numpy pillow opencv-python-headless markdown-it-py
+      - name: Core tests
+        run: python -m unittest discover -s implementation/butler-core/tests -v
+      - name: Ambient tests
+        run: python -m unittest discover -s implementation/ambient-awareness/tests -v
+      - name: Bridge tests
+        working-directory: implementation/butler-core/bridge
+        run: node --test test/*.test.js
+      - name: Other implementation suites
+        run: |
+          python -m unittest discover -s implementation/news-video/tests -v
+          python -m unittest discover -s implementation/bamberg-news/tests -v
+          python -m unittest discover -s implementation/whatsapp-ingest/tests -v
+          node --test implementation/whatsapp-ingest/tests/ingest-only.test.mjs
+      - name: Build core release
+        working-directory: implementation/butler-core
+        run: make build PYTHON=python
+      - name: Build ambient release
+        working-directory: implementation/ambient-awareness
+        run: make build PYTHON=python
+      - name: Native panel regression checks
+        run: implementation/ambient-awareness/build/Butler.app/Contents/MacOS/Butler --test-layout /tmp/butler-ui-verification
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: macos-release-verification
+          path: |
+            /tmp/butler-ui-verification
+            implementation/ambient-awareness/build/wheels
+            implementation/butler-core/build/wheels
