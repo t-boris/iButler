@@ -1088,7 +1088,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         let stored = defaults.string(forKey: "section").flatMap(Section.init(rawValue:)) ?? .display
         select(stored)                                  // a stored «dialogue» from an older version opens the Display
         if let frame = defaults.string(forKey: "windowFrame"), NSRectFromString(frame).width >= window.minSize.width,
-           let clamped = Panel.clampedToScreen(NSRectFromString(frame)) {
+           let clamped = testing ? NSRectFromString(frame) : Panel.clampedToScreen(NSRectFromString(frame)) {
             window.setFrame(clamped, display: false)
         } else { window.center() }
         restoringFrame = false
@@ -2475,9 +2475,18 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         return result
     }
     func saveFrame() {
-        guard !restoringFrame, let clamped = Panel.clampedToScreen(window.frame) else { return }
-        if clamped != window.frame { window.setFrame(clamped, display: true) }   // never wider than the screen it is on
-        defaults.set(NSStringFromRect(clamped), forKey: "windowFrame")
+        guard !restoringFrame else { return }
+        // AppKit may be resizing to satisfy content constraints. Resizing it
+        // again from didResize creates a layout loop on small displays.
+        defaults.set(NSStringFromRect(window.frame), forKey: "windowFrame")
+    }
+    static func boundedUserSize(_ proposed: NSSize, visible: NSSize, minimum: NSSize) -> NSSize {
+        NSSize(width: max(minimum.width, min(proposed.width, visible.width)),
+               height: max(minimum.height, min(proposed.height, visible.height)))
+    }
+    func windowWillResize(_ sender: NSWindow, to frameSize: NSSize) -> NSSize {
+        guard !testing, let area = (sender.screen ?? NSScreen.main)?.visibleFrame else { return frameSize }
+        return Panel.boundedUserSize(frameSize, visible: area.size, minimum: sender.minSize)
     }
     func windowDidResize(_ notification: Notification) { saveFrame() }
     func windowDidMove(_ notification: Notification) { saveFrame() }
@@ -4675,7 +4684,9 @@ func runLayoutTests(output: String) -> Int32 {
     panel.testState = ["enabled": true, "recording_allowed": true, "version": "0.0.0-synthetic"]
 
     panel.select(.models)
+    let savingFrame = panel.window.frame
     panel.saveFrame()
+    check("saving-frame-does-not-resize-and-small-displays-respect-minimum-without-layout-feedback", panel.window.frame == savingFrame && Panel.boundedUserSize(NSSize(width: 1280, height: 820), visible: NSSize(width: 1024, height: 681), minimum: NSSize(width: 1120, height: 730)) == NSSize(width: 1120, height: 730))
     let restored = Panel(cli: "/usr/bin/false", testing: true, defaults: prefs)
     check("window-and-section-restored", restored.section == .models && restored.window.frame == panel.window.frame)
     restored.window.close()
