@@ -115,6 +115,18 @@ class RecordingsTest(unittest.TestCase):
             self.assertFalse(control(self.s, {'action':'delete','observation':oid,'media':mid})['ok'])
             self.assertTrue(outside.exists())
 
+    def test_day_picker_includes_originals_when_no_analysis_or_events_exist_for_that_day(self):
+        yesterday = self.now - 86400
+        mid = self.store.media('microphone', yesterday, yesterday+1, b'pending audio', 'wav')
+        result = list_recordings(self.s,{})
+        day = dt.datetime.fromtimestamp(yesterday,ZONE).date().isoformat()
+        self.assertIn(day, [row['day'] for row in result['days']])
+        selected = list_recordings(self.s,{'day':day})
+        session = next(row for row in selected['items'] if row['type']=='session')
+        detail = list_recordings(self.s,{'day':day,'session':session['id']})['items'][0]
+        self.assertEqual(detail['media'][0]['id'],mid)
+        self.assertTrue(Path(detail['media'][0]['path']).is_file())
+
     def test_sessions_split_on_activity_source_gap_and_day_with_child_paging(self):
         for offset in range(105):self.observe(self.now+offset*60)
         self.observe(self.now+105*60, activity='read')

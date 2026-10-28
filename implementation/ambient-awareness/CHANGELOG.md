@@ -1,5 +1,10 @@
 # Changelog — butler-ambient
 
+## 0.10.1 — 2026-10-27 (pending-media days)
+
+- Keep days containing only available originals in the Recordings day picker, even before analysis produces observations or transcripts.
+- The release installer tolerates an absent optional Homebrew Ollama launch agent, preserving independently managed background models.
+
 ## 0.10.0 — 2026-10-27 (local Recordings)
 
 - Add «Записи»: day/source browsing, expandable activity/call sessions, stored facts, retained transcripts, key frames, generated images and current Display history. Play individual audio/video files in the panel; prepare disposable MP4 playback copies of camera MJPEG originals.
