@@ -2935,6 +2935,11 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
                 self.recordingsPane?.updatePermission(nil)
                 self.updateDisplay(["cards": [], "hidden": "private"])
                 self.artifactImage.image = nil
+                self.artifacts = []; self.gallery.removeAllItems(); self.revealButton.isEnabled = false
+                self.artifactCaption.stringValue = "Изображения скрыты: проверка владельца недоступна."
+                self.observationItems = []; self.observationTable.reloadData(); self.showObservationDetail(-1)
+                self.history.stringValue = "Наблюдения скрыты: проверка владельца недоступна."
+                self.state["recordings_allowed"] = false
                 self.failureStreak += 1
                 if let heard = self.lastGoodState, self.failureStreak < self.disconnectAfterFailures {
                     // A slow or dropped poll: keep everything on screen and say how old it is.
@@ -4681,8 +4686,11 @@ func runLayoutTests(output: String) -> Int32 {
     panel.refresh(); layout()
     panel.voiceState.stringValue = "synthetic transient text"
     check("failure-streak-starts-at-zero", panel.failureStreak == 0 && panel.lastGoodState != nil)
+    panel.observationItems = [obsItems[0]]; panel.obsDetailBody.stringValue = "Synthetic stored fact"
+    panel.artifacts = artifactList
     panel.testState = nil
     panel.refresh(); layout()
+    check("first-failed-poll-clears-every-stored-observation-and-gallery-cache", panel.observationItems.isEmpty && panel.artifacts.isEmpty && !panel.obsDetailBody.stringValue.contains("Synthetic stored fact") && panel.state["recordings_allowed"] as? Bool == false)
     check("first-failed-poll-keeps-last-state", panel.heading.stringValue != "Butler недоступен" && panel.window.subtitle.contains("данные от")
           && panel.voiceState.stringValue.contains("synthetic transient text") && panel.failureStreak == 1)
     panel.refresh(); layout()
