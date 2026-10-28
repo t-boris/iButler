@@ -50,4 +50,4 @@ F-009 handles this Mac’s absent optional Homebrew model-service plist. F-010 i
 
 F-011 adds an observation/media index for pending-original browsing. A deterministic full-browser backlog regression exceeded its database-work budget before the index and passes after it. This supplements the smaller synthetic timeline benchmark above.
 
-F-012 resolves containment roots once per request while retaining each file's canonical path validation and both access checks. The 0.10.1 exact-source gate passed all suites (872 ambient tests, 402 core tests, 264 native checks); main CI run 40635608628 passed both jobs. Repeat that gate and CI for final 0.10.2 before normal deployment.
+F-012 resolves containment roots once per request while retaining each file's canonical path validation and both access checks. The 0.10.1 exact-source gate passed all suites (872 ambient tests, 402 core tests, 264 native checks); main CI run 40635608628 passed both jobs. The same 45,000-file synthetic browse fell from 4.07 to 1.996 seconds. Final 0.10.2 is undergoing the same exact-source gate and CI before normal deployment.
