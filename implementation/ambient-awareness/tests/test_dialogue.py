@@ -107,19 +107,15 @@ class DialogueTests(unittest.TestCase):
         self.assertEqual(self.d.claim_output()[0].id, next_request.id)
         self.assertEqual(calls, ['run'])
 
-    def test_reaction_occurs_once_and_names_only_the_actual_request(self):
-        clock = [0.0]; self.d.monotonic = lambda: clock[0]
+    def test_ordinary_wait_has_no_spoken_placeholder_reaction(self):
         entered = threading.Event()
         def run(emit, cancelled):
             entered.set(); cancelled.wait(1); return 'Ответ.'
         request = self.d.submit('Почему это происходит?', run)
         self.assertTrue(entered.wait(1))
-        self.assertIsNone(self.d.reaction())
-        clock[0] = 1.3
-        reaction = self.d.reaction()[1]
-        self.assertIn(request.text, reaction)
-        self.assertNotIn('готово', reaction.lower())
-        self.assertIsNone(self.d.reaction())
+        request.queued_at -= 30
+        self.assertIsNone(self.d.claim_output())
+        self.assertIsNone(self.d.work_notice())
 
     def test_busy_withholds_proactive_notice_but_not_requested_result(self):
         self.d.notice('Итоги созвона готовы.')

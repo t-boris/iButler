@@ -4,6 +4,7 @@ A temporary git repository stands in for the checkout, a recording script for
 ``gh``; nothing reaches GitHub. The switched path submits ``github.pr`` to a
 real core, which runs the same wrapper with ``--core-operation``.
 """
+from support import require_files
 import json
 import os
 import shutil
@@ -78,6 +79,7 @@ def fake_checkout(root):
 
 class TetyanaPRTest(CoreCase):
     def make_core(self, **kwargs):
+        require_files(INSTALLED)
         self.ws = self.tmp / "tetyana"
         (self.ws / "bin").mkdir(parents=True)
         shutil.copy(INSTALLED, self.ws / "bin/tetyana-pr")

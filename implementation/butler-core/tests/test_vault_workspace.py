@@ -3,6 +3,7 @@
 The libraries are copied with their workspace and vault pointed at temporary
 folders; a stand-in core client records what they submit and answers as told.
 """
+from support import require_files
 import importlib
 import json
 import shutil
@@ -43,6 +44,7 @@ class Client:
 
 
 def workspace(root, switches="vault knowledge"):
+    require_files(INSTALLED / "lib/vault.py", INSTALLED / "policies/write.yaml")
     ws = (root / "ws").resolve()
     vault_root = (root / "vault").resolve()
     (ws / "lib").mkdir(parents=True)

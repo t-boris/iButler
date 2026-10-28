@@ -270,8 +270,11 @@ class Attention:
             return "free"
         if BUSY_CUE.search(text):
             with self.lock:
-                self.manual_mode, self.manual_reason = None, "owner-spoken-busy"
-                self._save_manual()
+                # Repeating a busy cue must not turn an explicit manual Busy
+                # into the temporary spoken cue (DEC-095).
+                if self.manual_mode != "busy":
+                    self.manual_mode, self.manual_reason = None, "owner-spoken-busy"
+                    self._save_manual()
                 self.counts["owner-said"] = self.counts.get("owner-said", 0) + 1
                 self.busy_until, self.busy_cause = now + MANUAL_BUSY, "owner-said"
                 self._note(now, "owner-said")

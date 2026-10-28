@@ -126,6 +126,11 @@ class PanelChat:
         text = self.validate(text)
         if context is not None and (not isinstance(context, str) or not context.strip() or len(context) > MAX_CONTEXT):
             raise ValueError("invalid context")
+        from .recordings import navigate_voice, voice_target
+        if voice_target(text, self.clock()) is not None:
+            with self.service.lock:
+                navigate_voice(self.service, text, authorized=True)
+            return {"queued": True, "id": "local-recordings", "local": True}
         with self.condition:
             if self.ended.is_set():
                 raise ValueError("панель закрывается")

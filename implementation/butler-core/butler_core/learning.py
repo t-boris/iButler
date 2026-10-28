@@ -284,13 +284,17 @@ class LearningStore:
         labelled = [r for r in rows if r["label"] is not None]
         addressed = [r for r in labelled if r["label"]]
         other = [r for r in labelled if not r["label"]]
+        unlabelled = len(rows) - len(labelled)
+        unknown_decisions = sum(type(r.get("accepted")) is not bool for r in labelled)
+        unknown_outcomes = unlabelled + unknown_decisions
         latencies = sorted(r["first_word_ms"] for r in rows if type(r.get("first_word_ms")) in (int, float))
         import statistics
         scenes = {}
         for row in rows: scenes[row["scene"]] = scenes.get(row["scene"], 0) + 1
         return {"sample_size": len(rows), "sample_unit": "decision revision", "episodes": len({r.get("episode") for r in rows}),
-                "labelled": len(labelled), "unknown_outcomes": len(rows) - len(labelled),
-                "unknown_share": (len(rows) - len(labelled)) / len(rows) if rows else None, "scenes": scenes,
+                "labelled": len(labelled), "unknown_outcomes": unknown_outcomes,
+                "unlabelled": unlabelled, "labelled_without_decision": unknown_decisions,
+                "unknown_share": unknown_outcomes / len(rows) if rows else None, "scenes": scenes,
                 "false_interventions": rate(other, lambda r: r["accepted"]),
                 "missed_addresses": rate(addressed, lambda r: not r["accepted"]),
                 "named_misses": rate([r for r in addressed if r["named"]], lambda r: not r["accepted"]),

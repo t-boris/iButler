@@ -13,6 +13,7 @@ from .mail import MailAdapter
 from .todoist import TodoistAdapter
 from .vault import KnowledgeAdapter, VaultAdapter
 from .youtube import YouTubeAdapter
+from .backburner import BackburnerAdapter
 from .dispatcher import DispatchAdapter, VoiceTaskAdapter
 
 HOME = Path.home()
@@ -42,6 +43,8 @@ def adapters():
         found["github"] = GitHubAdapter(TETYANA_WORKSPACE, PATH, WORKER_ENV)
     if (WORKSPACE / "lib/dispatch.py").is_file() and WORKSPACE_PYTHON.exists():
         found["dispatcher"] = DispatchAdapter(WORKSPACE, WORKSPACE_PYTHON, PATH, WORKER_ENV)
+        if (WORKSPACE / "lib/backburner.py").is_file():
+            found["backburner"] = BackburnerAdapter(WORKSPACE, WORKSPACE_PYTHON, PATH, WORKER_ENV)
         if AMBIENT_PYTHON.exists():
             found["voice-tasks"] = VoiceTaskAdapter(WORKSPACE, WORKSPACE_PYTHON, PATH, AMBIENT_PYTHON,
                                                     extra_env=WORKER_ENV)

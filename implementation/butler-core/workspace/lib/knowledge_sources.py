@@ -27,6 +27,7 @@ def wait_for_quiet():
     import time
     endpoint = Path.home() / ".local/share/butler-ambient/ambient.sock"
     if not endpoint.exists(): return
+    misses = 0  # a busy service can answer late (>0.5 s under speech analysis); a few misses are not an outage
     for _ in range(120):
         try:
             with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
@@ -36,8 +37,10 @@ def wait_for_quiet():
             result = result.get("result", result)
             if result.get("enabled") is False: raise RuntimeError("background-analysis-paused")
             if result.get("analysis_busy") is not True: return
+            misses = 0
         except (OSError, ValueError):
-            raise RuntimeError("background-analysis-status-unavailable") from None
+            misses += 1
+            if misses >= 5: raise RuntimeError("background-analysis-status-unavailable") from None
         time.sleep(.5)
     raise RuntimeError("background-analysis-deferred-for-speech")
 

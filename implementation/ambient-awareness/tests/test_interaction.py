@@ -35,7 +35,7 @@ class InteractionTests(unittest.TestCase):
         value = snapshot(self.service)
         self.assertFalse(value["recording_allowed"])
         self.assertEqual(value["last_capture"], {"camera": 11})
-        self.assertEqual(value["recent"][0]["at"], 11)
+        self.assertEqual(value["recent"], [])
         self.assertNotIn("agreements", value)
         self.service.inputs.start.assert_not_called()
         self.service.analyzer.analyze.assert_not_called()

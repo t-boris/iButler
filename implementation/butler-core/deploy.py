@@ -231,9 +231,27 @@ def wave_system3(content):
     content["system3"] = {"questions_per_week": 2, "analysis_interval": 21600}
 
 
+def wave_backburner(content):
+    """Back Burner nightly research (feature butler-back-burner-researcher): one tracked cycle per night.
+
+    The cycle sends the owner's research notes and public search queries to the cloud worker, so those exports are
+    named on the operation. The switch stays OFF until the owner turns the night job on; the notes it sends are
+    held outside quiet hours like the other initiative messages."""
+    content["operations"]["backburner.cycle"] = {
+        "adapter": "backburner", "approval": "none", "reconcile": "auto", "max_attempts": 1, "timeout": 6 * 3600,
+        "export": [{"category": "task-prompt", "recipient": "anthropic"},
+                   {"category": "project-context", "recipient": "anthropic"},
+                   {"category": "search-query", "recipient": "web-search"}]}
+    content["personas"]["butler"]["actions"].append("backburner.cycle")
+    content["scenarios"]["backburner"] = {"enabled": False}
+    content["backburner"] = {"time": "00:30", "last_start": "06:00", "zone": "America/Chicago", "max_runs": 5}
+    content["delivery"]["initiative"]["research"] = {"per_day": 5, "interval": 0}
+    content["limits"]["workers"]["backburner"] = 1
+
+
 # Applied in order on top of ConfigVersion v1; each wave adds only what its decisions approve.
 WAVES = (wave_dispatch, bamberg_exports, wave_delivery, wave_todoist, wave_media, wave_mail, wave_knowledge, wave_ingest,
-         wave_ambient, wave_tetyana, wave_system3)
+         wave_ambient, wave_tetyana, wave_system3, wave_backburner)
 
 FAILED_QUEUE = Path.home() / ".openclaw/delivery-queue/failed"
 # Errors the gateway or Telegram raised before anything was transmitted; everything else is uncertain.

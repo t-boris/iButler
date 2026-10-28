@@ -17,10 +17,14 @@ def snapshot(service, *, want_preview=False):
             "SELECT source,MAX(end) AS at FROM media GROUP BY source")}
         result["last_analysis"] = {r["source"]: r["at"] for r in service.store.execute(
             "SELECT source,MAX(end) AS at FROM observations GROUP BY source")}
+        from .recordings import _allowed
+        owner_visible = _allowed(service)
+        result["recordings_allowed"] = owner_visible
+        result["recordings_navigation"] = getattr(service, "recordings_navigation", None) if owner_visible else None
         result["recent"] = []
         # Only observations that concluded something: more than half of the stored rows carry no fact at all.
         for row in service.store.execute("SELECT source,start,end,facts FROM observations WHERE facts!='[]' ORDER BY end DESC LIMIT 8"):
-            result["recent"].append({"source": row["source"], "at": row["end"], "details": [
+            if owner_visible:result["recent"].append({"source": row["source"], "at": row["end"], "details": [
                 fact.get("detail", "") for fact in json.loads(row["facts"]) if fact.get("detail")]})
         from .observation_browser import analysis_state
         result["analysis"] = analysis_state(service.store, service.clock(), pending=result["storage"]["pending"])
@@ -116,11 +120,9 @@ def snapshot(service, *, want_preview=False):
         result["voice"]["owner_setup"] = service.owner_setup.snapshot()
         result["preview"] = None
         result["visual"] = service.visual.snapshot() if service.visual is not None else None
-        if not result["recording_allowed"] and result["visual"] is not None:
+        if not owner_visible and result["visual"] is not None:
             # Gallery metadata may remain; image paths, and the folder an imported image sits in, are hidden on a pause.
-            for artifact in result["visual"].get("artifacts", []):
-                artifact.pop("path", None)
-                artifact.pop("place", None)
+            result["visual"] = {"artifacts": [], "roots": [], "status": "hidden"}
         display = getattr(service, "display", None)
         result["display"] = display.snapshot() if display is not None else None
         result["feed"] = feed(service, result)

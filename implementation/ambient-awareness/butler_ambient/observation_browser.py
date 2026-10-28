@@ -26,7 +26,6 @@ GLOBAL_GAP_SOURCES = {"all", "analysis"}       # gaps that concern every source
 MAX_LIMIT = 200
 DEFAULT_LIMIT = 100
 MAX_OFFSET = 100_000
-MAX_DAYS = 60
 MERGE_GAP = {"capture-gap": 5.0}               # seconds between two events of one run; others use DEFAULT_MERGE_GAP
 DEFAULT_MERGE_GAP = 120.0
 STALLED_AFTER = 600.0                          # no new conclusion for this long while originals wait
@@ -74,7 +73,7 @@ def _days(store, now):
         entry["gaps"] += 1
     days.setdefault(local_day(now), {"day": None, "informative": 0, "empty": 0, "gaps": 0})   # today is always listed
     result = []
-    for day in sorted(days, reverse=True)[:MAX_DAYS]:
+    for day in sorted(days, reverse=True):
         days[day]["day"] = day
         result.append(days[day])
     return result

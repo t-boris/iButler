@@ -1348,6 +1348,10 @@ class Conversation:
             self._mark("transcription_empty")
             self._audit(turn_token, outcome="empty")
             return
+        from .recordings import navigate_voice
+        if navigate_voice(self.service, transcript, authorized=bool(actor_owner)):
+            self.state, self.phase = "ready", "idle"
+            return
         feedback = getattr(self.service, "feedback", None)
         if feedback is not None: feedback.ensure(turn_token, transcript, "private", source=source)
         evidence = getattr(self.service, "latest_evidence", None)

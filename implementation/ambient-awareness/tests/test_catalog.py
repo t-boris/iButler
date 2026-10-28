@@ -149,6 +149,26 @@ COST_GUARD_UNCHANGED=True
             with self.assertRaises(ValueError):components.update(Mock(),{'id':'route:code','model':'codex:invented'},self.root)
         data=json.loads((self.root/'config/ai-settings.json').read_text())
         self.assertEqual(data['routes'],{'code':{'backend':'codex','model':'future-model'}})
+    def test_confined_route_accepts_only_claude_models_and_a_refusal_writes_nothing(self):
+        (self.root/'lib').mkdir()
+        confined="ROUTES={'backburner':{'backend':'claude','model':'claude-opus-5-5','timeout':2700,'silent':True,'tools':['Read','Edit']},'code':"
+        source=self.dispatch_source().replace("ROUTES={'code':",confined)
+        (self.root/'lib/dispatch.py').write_text(integrations.adapted(source,'dispatch'))
+        row={'id':'route:backburner','model':'claude:claude-opus-5-5','executable':'claude','choices':['codex:future-model','claude:claude-future']}
+        with patch.object(components,'snapshot',return_value={'components':[row]}),patch.object(components.local_settings,'executable',return_value='/synthetic/claude'):
+            with self.assertRaisesRegex(ValueError,'только на claude'):components.update(Mock(),{'id':'route:backburner','model':'codex:future-model'},self.root)
+            self.assertFalse((self.root/'config/ai-settings.json').exists())
+            components.update(Mock(),{'id':'route:backburner','model':'claude:claude-future'},self.root)
+        data=json.loads((self.root/'config/ai-settings.json').read_text())
+        self.assertEqual(data['routes'],{'backburner':{'backend':'claude','model':'claude-future'}})
+    def test_unconfined_route_may_still_use_codex(self):
+        (self.root/'lib').mkdir()
+        confined="ROUTES={'backburner':{'backend':'claude','model':'claude-opus-5-5','timeout':2700,'tools':['Read']},'code':"
+        (self.root/'lib/dispatch.py').write_text(integrations.adapted(self.dispatch_source().replace("ROUTES={'code':",confined),'dispatch'))
+        row={'id':'route:code','model':'claude:x','executable':'claude','choices':['codex:future-model']}
+        with patch.object(components,'snapshot',return_value={'components':[row]}),patch.object(components.local_settings,'executable',return_value='/synthetic/codex'):
+            components.update(Mock(),{'id':'route:code','model':'codex:future-model'},self.root)
+        self.assertEqual(json.loads((self.root/'config/ai-settings.json').read_text())['routes'],{'code':{'backend':'codex','model':'future-model'}})
     def test_new_agent_model_changes_only_butler_primary(self):
         self.cache()
         service=Mock();service.catalog=object()

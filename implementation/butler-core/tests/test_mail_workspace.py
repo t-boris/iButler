@@ -4,6 +4,7 @@ The installed module is copied with its workspace path pointed at a temporary
 directory, so the private store is created there; Mail.app and the local model
 are replaced by functions. No AppleScript runs and nothing is sent.
 """
+from support import require_files
 import importlib.util
 import shutil
 import sys
@@ -18,6 +19,7 @@ INSTALLED = Path.home() / ".openclaw/workspace-butler"
 
 
 def load_module(root):
+    require_files(INSTALLED / "lib/mail.py")
     source = substitute((INSTALLED / "lib/mail.py").read_text(), 'WORKSPACE = Path("/Users/boris/.openclaw/workspace-butler")',
                         f'WORKSPACE = Path("{root}")')
     path = root / "mail_under_test.py"

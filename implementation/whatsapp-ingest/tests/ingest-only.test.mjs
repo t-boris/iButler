@@ -1,10 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { mkdtemp, mkdir, copyFile, readFile, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { tmpdir, homedir } from "node:os";
+import { existsSync } from "node:fs";
 import { join } from "node:path";
 import vm from "node:vm";
 import { createInboxFeeder, guardIngestOnlySocket, toInboxRecord } from "../lib/ingest-only.mjs";
+
+const INSTALLED_INBOX = join(homedir(), ".openclaw/workspace-butler/lib/inbox.py");
+const INSTALLED_DIST = join(homedir(), ".openclaw/extensions/whatsapp/dist");
+const TEST_PYTHON = process.env.BUTLER_TEST_PYTHON || (existsSync("/opt/miniconda3/bin/python3") ? "/opt/miniconda3/bin/python3" : "python3");
 
 const message = (extra = {}) => ({ accessControlPassed: true, from: "+15550000001",
   id: "fixture-id", body: "Входящее сообщение", timestamp: Date.now(), chatType: "direct", ...extra });
@@ -44,12 +49,13 @@ test("socket blocks text, media, reactions, online, typing, and read receipts", 
   assert.deepEqual(calls, [["presence", "unavailable", undefined]]);
 });
 
-test("real inbox persists, deduplicates bursts, preserves literal shell syntax and local timestamps", async () => {
+test("real inbox persists, deduplicates bursts, preserves literal shell syntax and local timestamps",
+  { skip: !existsSync(INSTALLED_INBOX) && "private inbox library is not installed" }, async () => {
   const workspace = await mkdtemp(join(tmpdir(), "wa-inbox-test-"));
   try {
     await mkdir(join(workspace, "lib"));
-    await copyFile("/Users/boris/.openclaw/workspace-butler/lib/inbox.py", join(workspace, "lib/inbox.py"));
-    const feed = createInboxFeeder({ workspace });
+    await copyFile(INSTALLED_INBOX, join(workspace, "lib/inbox.py"));
+    const feed = createInboxFeeder({ workspace, python: TEST_PYTHON });
     const text = 'Привет "Борис"\n$(touch SHOULD_NOT_EXIST) `echo unsafe` & <tag>';
     const input = message({ body: text });
     const receipts = await Promise.all(Array.from({ length: 5 }, () => feed(input)));
@@ -73,12 +79,13 @@ test("worker failures and timeouts reject locally without exposing message conte
     const { writeFile } = await import("node:fs/promises");
     const writer = join(workspace, "slow.py");
     await writeFile(writer, "import time\ntime.sleep(10)\n");
-    await assert.rejects(createInboxFeeder({ workspace, writer, timeoutMs: 100 })(message()), /timed out/);
+    await assert.rejects(createInboxFeeder({ workspace, writer, python: TEST_PYTHON, timeoutMs: 100 })(message()), /timed out/);
   } finally { await rm(workspace, { recursive: true, force: true }); }
 });
 
-test("installed inbound handler returns before route, reactions, typing, commands, or model dispatch", async () => {
-  const dist = "/Users/boris/.openclaw/extensions/whatsapp/dist";
+test("installed inbound handler returns before route, reactions, typing, commands, or model dispatch",
+  { skip: !existsSync(INSTALLED_DIST) && "private WhatsApp extension is not installed" }, async () => {
+  const dist = INSTALLED_DIST;
   const { readdir } = await import("node:fs/promises");
   const files = (await readdir(dist)).filter((f) => /^monitor-.*\.js$/.test(f));
   let handler;

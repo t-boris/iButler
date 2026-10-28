@@ -56,7 +56,7 @@ class VisualTests(unittest.TestCase):
         with self.assertRaises(Canceled): self.visual._work(task)
         with self.assertRaises(Canceled): self.visual.submit("generate-image", "cat")
         result = snapshot(self.service)
-        self.assertNotIn("path", result["visual"]["artifacts"][0])
+        self.assertEqual(result["visual"]["artifacts"], [])
         self.visual.model.generate_json.assert_not_called()
 
     def test_capture_requires_new_frame_and_expiry_does_not_resurrect_source(self):
@@ -234,10 +234,9 @@ class VisualTests(unittest.TestCase):
         key, task = self.request("find-image", "фото")
         self.visual._work(task)
         self.service.control("enabled", {"value": False})
-        item = snapshot(self.service)["visual"]["artifacts"][0]
-        self.assertNotIn(str(folder), json.dumps(item))
-        self.assertNotIn("path", item)
-        self.assertEqual(item["origin_kind"], "my-file")
+        gallery = snapshot(self.service)["visual"]
+        self.assertEqual(gallery["artifacts"], [])
+        self.assertNotIn(str(folder), json.dumps(gallery))
 
     def test_mcp_result_carries_no_place_or_provenance(self):
         folder = self.root / "selected"; folder.mkdir()

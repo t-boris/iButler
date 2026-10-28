@@ -6,6 +6,7 @@ retry pacing and the workspace path elsewhere; the vault mirror is a stub. The
 core's adapter and the library talk to one fake Todoist over local HTTP, so a
 duplicate task would be visible.
 """
+from support import require_files
 import json
 import os
 import shutil
@@ -28,6 +29,7 @@ CLIENT = Path(__file__).resolve().parents[1] / "butler_core/client.py"
 
 
 def fake_workspace(root, api_base):
+    require_files(INSTALLED / "lib/todoist.py", INSTALLED / "lib/tasksync.py")
     ws = (root / "ws").resolve()
     (ws / "lib").mkdir(parents=True)
     (ws / "state").mkdir()

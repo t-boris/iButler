@@ -225,6 +225,8 @@ def update(service,values,workspace=WORKSPACE):
             raise ValueError("Butler routing Settings adapter is not installed")
         if model not in row.get("choices",[]): raise ValueError("choose an existing approved CLI/backend model")
         backend,name = model.split(":",1)
+        if backend!="claude" and constants(workspace/"lib/dispatch.py").get("ROUTES",{}).get(row["id"].split(":",1)[1],{}).get("tools"):
+            raise ValueError("Этот маршрут ограничен (без shell, только папка задачи) и работает только на claude; выберите модель claude.")
         family = "claude" if backend=="claude" else "codex"
         if cli == row["executable"] and model.split(":",1)[0] != row["model"].split(":",1)[0]:
             defaults=constants(workspace/"lib/dispatch.py")

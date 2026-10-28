@@ -1,5 +1,6 @@
 """Content-free local call awareness; quiet is independent of recording permission."""
 from __future__ import annotations
+import uuid
 
 
 class Meeting:
@@ -9,6 +10,9 @@ class Meeting:
 
     def __init__(self, service):
         self.service = service
+        self.recording_id = None
+        self.detected = False
+        service.store.execute("UPDATE recording_meetings SET end=? WHERE end IS NULL", (service.clock(),))
         self.last_active = float('-inf')
         self.active_apps = []
         self.quiet = bool(service.config.get('audio_helper'))
@@ -46,6 +50,13 @@ class Meeting:
         # A muted input can stop while the same call continues to play audio.
         held_output = self.fresh and bool(set(self.active_apps) & set(outputs))
         recent = 0 <= now-self.last_active < self.RELEASE_DELAY
+        self.detected = bool((self.fresh and inputs and self.input_streak >= self.REQUIRED_CHECKS) or held_output or recent)
+        if self.detected and self.recording_id is None:
+            self.recording_id = uuid.uuid4().hex
+            self.service.store.execute("INSERT INTO recording_meetings(id,start) VALUES (?,?)", (self.recording_id, now))
+        elif not self.detected and self.recording_id is not None:
+            self.service.store.execute("UPDATE recording_meetings SET end=? WHERE id=?", (now, self.recording_id))
+            self.recording_id = None
         if mode == 'quiet':
             quiet, state = True, 'manual-meeting'
         elif mode == 'available':
@@ -84,7 +95,7 @@ class Meeting:
         return changed_to_quiet
 
     def snapshot(self):
-        return {'quiet':self.quiet, 'state':self.state, 'fresh':self.fresh,
+        return {'detected':self.detected, 'recording_id':self.recording_id, 'quiet':self.quiet, 'state':self.state, 'fresh':self.fresh,
                 'mode':self.service.store.get('meeting_mode', 'auto'),
                 'apps':list(self.active_apps), 'revision':self.revision,
                 'source':'CoreAudio process activity; no audio or browser content',

@@ -1,8 +1,10 @@
 """Owner Settings, scoped schedule controls and reversible integration adapters."""
 import datetime as dt
 import json
+import re
 import tempfile
 import threading
+import types
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -27,6 +29,10 @@ class ManagementTests(unittest.TestCase):
         self.service = Service(self.store,Mock(),Mock(),Mock(),clock=lambda:self.now,transport=Mock())
         self.manager = Schedules(self.service,self.workspace)
         self.service.schedules = self.manager
+        self.real_backburner = Schedules.backburner
+        patcher = patch.object(Schedules,"backburner",return_value=[])     # cron tests stay about cron; Back Burner has its own below
+        self.burner = patcher.start()
+        self.addCleanup(patcher.stop)
         self.job = {"id":"ours","agentId":"butler","enabled":True,"sessionTarget":"isolated",
                     "name":"Daily","schedule":{"kind":"cron","expr":"0 9 * * *","tz":"America/Chicago"},
                     "state":{},"payload":{"message":"private prompt must not be exported","model":"approved"}}
@@ -56,6 +62,177 @@ class ManagementTests(unittest.TestCase):
         self.assertEqual(result['jobs'][0]['model'],'approved')
         self.assertIn('--agent',cli.call_args.args)
         self.assertIn('butler',cli.call_args.args)
+
+    def folder(self,**values):
+        row={"name":"Sirius Art","slug":"sirius-art-c09dd7","status":"active","priority":3,"runs_total":0,"last_run_at":None,"last_status":"",
+             "failures":0,"last_reason":"","waiting":"","next_run_at":"2026-10-23T00:30:00-05:00","window":"00:30-06:00","zone":"America/Chicago",
+             "model":"claude-opus-5-5"}
+        row.update(values)
+        return row
+
+    def burner_row(self,**values):
+        self.burner.return_value=[self.folder(**values)]
+        return next(r for r in self.manager.snapshot()["jobs"] if r["kind"]=="backburner")
+
+    def test_back_burner_folders_are_listed_with_next_run_model_and_schedule(self):
+        with patch("butler_ambient.schedules.command",return_value=self.cron_response()):
+            row=self.burner_row(runs_total=4,last_run_at="2026-10-22T00:40:00-05:00",last_status="applied")
+        self.assertEqual((row["id"],row["name"],row["enabled"],row["running"],row["status"]),
+                         ("backburner:sirius-art-c09dd7","Back Burner · Sirius Art",True,False,"ok"))
+        self.assertEqual(row["schedule"],"каждую ночь 00:30–06:00 · America/Chicago · приоритет 3")
+        self.assertEqual(row["model"],"claude-opus-5-5 · прогонов: 4")
+        self.assertEqual(row["next_run"],dt.datetime(2026,10,23,0,30,tzinfo=ZONE).timestamp())
+        self.assertEqual(row["last_run"],dt.datetime(2026,10,22,0,40,tzinfo=ZONE).timestamp())
+        self.assertEqual(row["error"],"")
+
+    def test_back_burner_status_tells_paused_done_waiting_failed_and_new_apart(self):
+        cases=[({"status":"paused","waiting":"status is paused","next_run_at":None},"paused",False,""),
+               ({"status":"done","waiting":"status is done","next_run_at":None},"paused",False,"Исследование отмечено завершённым."),
+               ({"status":"","waiting":"status is missing in the brief","next_run_at":None},"paused",False,"В брифе не указан status: папка не запускается."),
+               ({"waiting":"3 runs without progress; waiting for your edits","next_run_at":None,"runs_total":3},"scheduled",True,
+                "Папка ждёт ваших правок: несколько прогонов подряд без прогресса."),
+               ({"last_status":"failed","failures":2,"runs_total":1,"last_reason":"worker timed out"},"error",True,"Последний запуск: worker timed out"),
+               ({"runs_total":0},"ready",True,"")]
+        with patch("butler_ambient.schedules.command",return_value=self.cron_response()):
+            for values,status,enabled,error in cases:
+                row=self.burner_row(**values)
+                self.assertEqual((row["status"],row["enabled"],row["error"]),(status,enabled,error),values)
+                self.assertEqual(row["next_run"] is None,values.get("next_run_at",1) is None,values)
+
+    def test_a_skipped_last_run_shows_its_reason_and_a_long_one_is_cut(self):
+        with patch("butler_ambient.schedules.command",return_value=self.cron_response()):
+            row=self.burner_row(runs_total=2,last_status="applied",last_reason="x"*900)
+        self.assertEqual(row["status"],"ok")
+        self.assertEqual(row["error"],"Последний запуск: "+"x"*300)
+
+    def test_back_burner_failure_does_not_hide_cron_jobs_and_cron_failure_does_not_hide_folders(self):
+        with patch("butler_ambient.schedules.command",return_value=self.cron_response()):
+            self.burner.side_effect=ValueError("Butler CLI request failed")
+            result=self.manager.snapshot()
+        self.assertEqual([r["id"] for r in result["jobs"] if r["kind"]=="cron"],["ours"])
+        self.assertEqual(result["error"],"Не удалось получить папки Back Burner.")
+        self.burner.side_effect=None;self.burner.return_value=[self.folder()]
+        with patch("butler_ambient.schedules.command",side_effect=ValueError("down")):
+            result=self.manager.snapshot()
+        self.assertEqual([r["kind"] for r in result["jobs"] if r["kind"] in {"cron","backburner"}],["backburner"])
+        self.assertEqual(result["error"],"Не удалось получить задания OpenClaw. Локальные задания показаны отдельно.")
+
+    def test_the_folder_list_comes_from_the_workspace_cli_as_json(self):
+        rows=[self.folder(),self.folder(name="MyDataCenter",slug="mydatacenter-1332ab")]
+        with patch("butler_ambient.schedules.command",return_value=json.dumps(rows)) as cli:
+            self.assertEqual(self.real_backburner(self.manager),rows)
+        self.assertEqual(cli.call_args.args,(str(self.workspace/"bin/butler-backburner"),"list","--json"))
+
+    def test_back_burner_pause_and_resume_go_through_the_harness_cli_by_name(self):
+        self.burner.return_value=[self.folder()]
+        said={"pause":"Папка на паузе: ночной цикл её пропустит.","resume":"Папка включена: ночной цикл возьмёт её.",
+              "stop":"Папка на паузе. Уже идущий прогон дойдёт до конца: он оформляет результат целиком."}
+        for action,verb in (("pause","pause"),("resume","resume"),("stop","pause")):
+            with patch("butler_ambient.schedules.command",return_value="") as cli:
+                result=self.manager.control({"id":"backburner:sirius-art-c09dd7","action":action})
+            self.assertEqual(result,{"ok":True,"message":said[action]})
+            self.assertEqual(cli.call_args.args,(str(self.workspace/"bin/butler-backburner"),verb,"Sirius Art"))
+            self.assertEqual(cli.call_count,1)
+
+    def core(self,answer=None,fail=None,reason="no"):
+        """A stand-in for the workspace's butler_core_client module: `fail` is "unavailable" or "refused"."""
+        class Unavailable(ConnectionError):pass
+        class Refused(RuntimeError):pass
+        client=Mock()
+        if fail:client.execute=Mock(side_effect={"unavailable":Unavailable("down"),"refused":Refused(reason)}[fail])
+        else:client.execute=Mock(return_value=answer or {"state":"running"})
+        return types.SimpleNamespace(Client=lambda:client,CoreUnavailable=Unavailable,CoreError=Refused),client
+
+    def test_back_burner_run_starts_one_folder_as_a_tracked_core_operation(self):
+        self.burner.return_value=[self.folder()]
+        core,client=self.core()
+        with patch("butler_ambient.schedules.core_client",return_value=core),patch("butler_ambient.schedules.command") as cli:
+            result=self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"run"})
+        self.assertEqual(result["ok"],True)
+        self.assertIn("«Sirius Art» запущен в ядре",result["message"])
+        args,kwargs=client.execute.call_args
+        self.assertEqual(args[:2],("backburner.cycle","butler"))
+        self.assertRegex(args[2],r"^backburner:[0-9a-f]{12}$")          # a hash of the name: the core takes ids only
+        cycle=args[3]["cycle_id"]
+        self.assertRegex(cycle,r"^bb-\d{8}-\d{6}-[a-f0-9]{6}$")
+        self.assertEqual(args[3],{"cycle_id":cycle,"only":"Sirius Art"})
+        self.assertEqual((args[4],kwargs["principal"]),("backburner:manual:"+cycle,"voice:owner"))
+        cli.assert_not_called()
+
+    def test_the_operation_target_is_valid_for_the_core_whatever_the_folder_is_called(self):
+        """butler-core accepts a target only as an id (contracts/__init__.py: ID); a name with a space or Cyrillic is refused."""
+        core_id=re.compile(r"[A-Za-z0-9][A-Za-z0-9:._@/+=-]{0,199}")
+        targets={}
+        for name in ("Sirius Art","Дата-центр","Дом <b>;rm","x"*80):
+            self.burner.return_value=[self.folder(name=name,slug="slug-"+name)]
+            core,client=self.core()
+            with patch("butler_ambient.schedules.core_client",return_value=core):
+                result=self.manager.control({"id":"backburner:slug-"+name,"action":"run"})
+            self.assertEqual(result["ok"],True,msg=name)
+            args=client.execute.call_args.args
+            self.assertIsNotNone(core_id.fullmatch(args[2]),msg=("target",name,args[2]))
+            self.assertIsNotNone(core_id.fullmatch(args[4]),msg=("key",name,args[4]))
+            self.assertEqual(args[3]["only"],name)                      # the folder itself travels in the parameters
+            targets[name]=args[2]
+        self.assertEqual(len(set(targets.values())),4)                  # still one target per folder
+
+    def test_every_press_is_its_own_operation_so_a_second_run_is_not_swallowed_as_a_duplicate(self):
+        self.burner.return_value=[self.folder()]
+        core,client=self.core()
+        with patch("butler_ambient.schedules.core_client",return_value=core):
+            for _ in range(2):self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"run"})
+        keys=[call.args[4] for call in client.execute.call_args_list]
+        self.assertEqual(len(set(keys)),2)
+
+    def test_back_burner_run_says_why_it_did_not_start(self):
+        self.burner.return_value=[self.folder()]
+        terminal='./bin/butler-backburner run "Sirius Art"'
+        with patch("butler_ambient.schedules.core_client",return_value=None):
+            result=self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"run"})
+        self.assertEqual(result["ok"],False);self.assertIn("не установлено",result["message"]);self.assertIn(terminal,result["message"])
+        for fail,text in (("unavailable","недоступно"),("refused","не приняло запуск: no")):
+            core,client=self.core(fail=fail)
+            with patch("butler_ambient.schedules.core_client",return_value=core):
+                result=self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"run"})
+            self.assertEqual(result["ok"],False);self.assertIn(text,result["message"]);self.assertIn(terminal,result["message"])
+        core,client=self.core(answer={"state":"denied","reason":"category and recipient are not approved "+"x"*300})
+        with patch("butler_ambient.schedules.core_client",return_value=core):
+            result=self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"run"})
+        self.assertEqual(result["ok"],False);self.assertIn("не запустило прогон: category and recipient",result["message"]);self.assertLess(len(result["message"]),200)
+
+    def test_back_burner_run_is_refused_for_a_folder_that_is_not_active_and_the_core_is_not_asked(self):
+        for status,said in (("paused","Папка на паузе"),("done","отмечена завершённой"),("","без статуса в брифе")):
+            self.burner.return_value=[self.folder(status=status)]
+            core,client=self.core()
+            with patch("butler_ambient.schedules.core_client",return_value=core):
+                result=self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"run"})
+            self.assertEqual(result["ok"],False,msg=status)
+            self.assertIn(said,result["message"],msg=status)
+            self.assertIn("«Продолжить»",result["message"],msg=status)
+            client.execute.assert_not_called()
+
+    def test_a_refusal_from_the_core_is_shown_with_its_reason_but_cut_short(self):
+        self.burner.return_value=[self.folder()]
+        core,client=self.core(fail="refused",reason="OperationError: invalid operation: target "+"x"*400)
+        with patch("butler_ambient.schedules.core_client",return_value=core):
+            result=self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"run"})
+        self.assertEqual(result["ok"],False)
+        self.assertIn("не приняло запуск: OperationError: invalid operation: target",result["message"])
+        self.assertLess(len(result["message"]),260)
+        self.assertIn('./bin/butler-backburner run "Sirius Art"',result["message"])
+
+    def test_back_burner_update_is_not_offered(self):
+        self.burner.return_value=[self.folder()]
+        with patch("butler_ambient.schedules.command") as cli:
+            with self.assertRaises(ValueError):self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"update","cron":"0 1 * * *"})
+        cli.assert_not_called()
+
+    def test_only_listed_back_burner_folders_can_be_controlled(self):
+        self.burner.return_value=[self.folder()]
+        with patch("butler_ambient.schedules.command") as cli:
+            for key in ("backburner:nope","backburner:","backburner:../x"):
+                with self.assertRaises(ValueError,msg=key):self.manager.control({"id":key,"action":"pause"})
+        cli.assert_not_called()
 
     def test_pause_schedule_does_not_abort_current_run_or_other_agents(self):
         self.job['state']['runningAtMs']=1000

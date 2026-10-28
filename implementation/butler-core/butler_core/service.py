@@ -7,6 +7,7 @@ explicit continuation, approval and resolution notices, recovery and doctor.
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import os
 from zoneinfo import ZoneInfo
 import platform
@@ -29,6 +30,7 @@ from .store import StorageExhausted, Store, dumps, loads, new_id
 from .tasks import TaskError, Tasks
 from .workers import Scheduler
 
+BACKBURNER_CYCLE = "backburner.cycle"
 CHAT_TURN_LIMIT = 2 * 3600
 TURN_MERGE_GRACE = 30
 REJECTED_TEXT = "⚠️ Не могу принять сообщение: хранилище Butler заполнено. Оно не сохранено — повторите позже."
@@ -78,6 +80,7 @@ class Core:
         self.scheduler.every(60, "chat-watchdog", self.interrupt_stale_turns)
         self.scheduler.every(10, "merge-pending", self.merge_pending)
         self.scheduler.every(60, "mail", self.schedule_mail_readings)
+        self.scheduler.every(60, "backburner", self.schedule_backburner)
         self.scheduler.every(600, "system3", self.lessons.maybe_run)
         if workers:
             self.scheduler.start()
@@ -131,6 +134,8 @@ class Core:
             self.notify_interrupted(row)
         if row["kind"] == "mail.scan":
             self._mail_reading_changed(row, state)
+        elif row["kind"] == BACKBURNER_CYCLE:
+            self._backburner_cycle_changed(row, state)
         self.wake()
 
     # -- mail readings (feature butler-email-digest-and-approved-replies) ----------------
@@ -170,6 +175,43 @@ class Core:
                             task=op["task"], operation=op["id"], correlation=op["correlation"])
         elif state == "failed":
             self.diagnostics.raise_alarm("mail:reading", f"mail reading failed: {op['reason']}")
+
+    # -- Back Burner nightly research (feature butler-back-burner-researcher) ----------------
+
+    def schedule_backburner(self):
+        """Submit the night's research cycle once per local day, from the start time until the last start time.
+
+        The cycle itself decides which folders are due and stops starting runs at the end of the window; the schedule
+        set here is passed on to it, so the owner's configuration is the only place that holds it."""
+        if not self.scenario_enabled("backburner"):
+            return
+        _, content = self.config.active()
+        rule = (content or {}).get("backburner", {})
+        start, end = rule.get("time") or "00:30", rule.get("last_start") or "06:00"
+        local = dt.datetime.fromtimestamp(self.clock(), ZoneInfo(rule.get("zone") or "America/Chicago"))
+        now = f"{local:%H:%M}"
+        if not start <= now < end:
+            return                                # not yet tonight, or the window is over: tomorrow
+        key = f"backburner:cycle:{local.date().isoformat()}"
+        if self.operations.by_key(key) is not None:
+            return
+        cycle_id = f"bb-{local:%Y%m%d-%H%M%S}-{hashlib.sha256(key.encode()).hexdigest()[:6]}"
+        self.submit({"kind": BACKBURNER_CYCLE, "persona": "butler", "principal": "system:schedule",
+                     "target": "backburner:all", "idempotency_key": key,
+                     "params": {"cycle_id": cycle_id, "window_start": start, "window_end": end,
+                                "max_runs": rule.get("max_runs", 5)}}, "core")
+
+    def _backburner_cycle_changed(self, op, state):
+        if state == "failed":
+            self.diagnostics.raise_alarm("backburner:cycle", f"back burner cycle failed: {op['reason']}")
+        elif state == "succeeded":
+            self.diagnostics.clear_alarm("backburner:cycle")
+            failing = loads(op["result"], {}).get("failed_folders") or []
+            if failing:
+                self.diagnostics.raise_alarm("backburner:folders", "back burner folders failing 3 nights in a row: "
+                                             + ", ".join(failing))
+            else:
+                self.diagnostics.clear_alarm("backburner:folders")
 
     def notify_interrupted(self, op):
         """Long-running work that vanished without a result is reported, never restarted automatically."""

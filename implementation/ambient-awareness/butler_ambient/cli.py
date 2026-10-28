@@ -75,7 +75,7 @@ def parser():
     correct.add_argument("name")
     preferences = sub.add_parser("preferences")
     preferences.add_argument("json", help='e.g. {"muted":true,"disabled_topics":["reading"],"daily_time":"20:00"}')
-    for command in ("ui-settings-update", "ui-components-update", "ui-schedule-control", "ui-display-select", "ui-display-action", "ui-feedback-correct", "ui-rule", "ui-attention", "ui-send-text", "ui-dictate", "ui-observations"):
+    for command in ("ui-settings-update", "ui-components-update", "ui-schedule-control", "ui-display-select", "ui-display-action", "ui-feedback-correct", "ui-rule", "ui-attention", "ui-send-text", "ui-dictate", "ui-observations", "ui-recordings", "ui-recording-control", "ui-recording-meeting", "ui-recording-play"):
         sub.add_parser(command).add_argument("json")
     return p
 
@@ -210,7 +210,7 @@ def main(argv=None):
             values = vars(args)
             if command in {"pause", "resume"}:
                 command, values = "enabled", {"value": command == "resume"}
-            elif command in {"preferences", "ui-settings-update", "ui-components-update", "ui-schedule-control", "ui-display-select", "ui-display-action", "ui-feedback-correct", "ui-rule", "ui-attention", "ui-send-text", "ui-dictate", "ui-observations"}:
+            elif command in {"preferences", "ui-settings-update", "ui-components-update", "ui-schedule-control", "ui-display-select", "ui-display-action", "ui-feedback-correct", "ui-rule", "ui-attention", "ui-send-text", "ui-dictate", "ui-observations", "ui-recordings", "ui-recording-control", "ui-recording-meeting", "ui-recording-play"}:
                 values = json.loads(args.json)
             elif command == "observe":
                 values = {"source": args.source}

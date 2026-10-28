@@ -2,13 +2,15 @@
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import json
 import re
 import threading
+import uuid
 from pathlib import Path
 
 from .components import command, running_dispatches, WORKSPACE
-from .delivery import ZONE
+from .delivery import ZONE, core_client
 
 
 class Schedules:
@@ -23,6 +25,20 @@ class Schedules:
     def cron_jobs(self):
         data = json.loads(command(self.cli,"cron","list","--agent","butler","--all","--json","--timeout","8000"))
         return [j for j in data.get("jobs",[]) if j.get("agentId")=="butler"]
+
+    def backburner(self):
+        return json.loads(command(str(self.workspace/"bin/butler-backburner"),"list","--json"))
+
+    def _backburner_row(self,value):
+        active=value["status"]=="active";stamp=lambda text:dt.datetime.fromisoformat(text).timestamp() if text else None
+        note={"paused":"","done":"Исследование отмечено завершённым."}.get(value["status"],"В брифе не указан status: папка не запускается.")
+        error=note if not active else "Папка ждёт ваших правок: несколько прогонов подряд без прогресса." if value["waiting"] else ""
+        if not error and value["last_reason"]:error="Последний запуск: "+value["last_reason"][:300]
+        return {"id":"backburner:"+value["slug"],"kind":"backburner","name":"Back Burner · "+value["name"],"enabled":active,"running":False,
+            "status":"paused" if not active else "scheduled" if value["waiting"] else "error" if value["last_status"]=="failed" else "ok" if value["runs_total"] else "ready",
+            "schedule":"каждую ночь "+value["window"].replace("-","–")+" · "+value["zone"]+" · приоритет "+str(value["priority"]),
+            "next_run":stamp(value["next_run_at"]),"last_run":stamp(value["last_run_at"]),
+            "model":(value["model"] or "—")+" · прогонов: "+str(value["runs_total"]),"error":error}
 
     def snapshot(self):
         rows=[];error=None
@@ -41,6 +57,8 @@ class Schedules:
                     "error":state.get("lastError",state.get("lastDiagnosticSummary",""))[:1500]})
         except Exception:
             error="Не удалось получить задания OpenClaw. Локальные задания показаны отдельно."
+        try:rows+=[self._backburner_row(value) for value in self.backburner()]
+        except Exception:error=(error+" " if error else "")+"Не удалось получить папки Back Burner."
         s=self.service;now=s.clock();local=dt.datetime.fromtimestamp(now,ZONE)
         daily=s.store.get("daily_time","20:00")
         due=dt.datetime.combine(local.date(),dt.time.fromisoformat(daily),ZONE)
@@ -74,6 +92,7 @@ class Schedules:
         if not isinstance(key,str) or action not in {"run","pause","resume","stop","update"}:
             raise ValueError("invalid scheduled-run action")
         if key.startswith("builtin:"):return self._builtin(key.split(":",1)[1],action,args)
+        if key.startswith("backburner:"):return self._backburner_control(key.split(":",1)[1],action)
         if key.startswith("voice:"):
             if action!="stop":raise ValueError("Для текущей голосовой задачи доступна остановка.")
             return self.service.work.cancel(key.split(":",1)[1])
@@ -127,6 +146,40 @@ class Schedules:
             if not parameters:raise ValueError("no supported schedule setting supplied")
             command(self.cli,"cron","edit",key,*parameters,"--timeout","8000")
         return {"ok":True,"message":{"run":"Запуск поставлен в очередь.","pause":"Будущие запуски на паузе.","resume":"Расписание включено.","stop":"Остановка текущего запуска запрошена; расписание выключено.","update":"Настройки задания сохранены."}[action]}
+
+    def _backburner_control(self,slug,action):
+        row=next((v for v in self.backburner() if v["slug"]==slug),None)
+        if row is None:raise ValueError("Only an existing Back Burner folder can be controlled")
+        name=row["name"]
+        cli=str(self.workspace/"bin/butler-backburner")
+        if action=="update":raise ValueError("Расписание Back Burner здесь не редактируется: приоритет и статус задаются в _brief.md папки.")
+        if action=="run":return self._backburner_run(name,row["status"])
+        command(cli,"resume" if action=="resume" else "pause",name)
+        return {"ok":True,"message":{"resume":"Папка включена: ночной цикл возьмёт её.","pause":"Папка на паузе: ночной цикл её пропустит.",
+            "stop":"Папка на паузе. Уже идущий прогон дойдёт до конца: он оформляет результат целиком."}[action]}
+
+    def _backburner_run(self,name,status):
+        """One folder now, as a tracked butler-core operation: the core starts the cycle and follows it to its result.
+
+        A manual run ignores the folder's pause, so the button asks for an explicit «Продолжить» first (owner's choice)."""
+        if status!="active":
+            state={"paused":"на паузе","done":"отмечена завершённой"}.get(status,"без статуса в брифе")
+            return {"ok":False,"message":"Папка "+state+": сначала нажмите «Продолжить» (папка снова станет активной). Тогда запуск и ночной цикл её возьмут."}
+        terminal="Из терминала: ./bin/butler-backburner run \""+name+"\" (идёт до 45 минут)."
+        core=core_client(self.workspace)
+        if core is None:return {"ok":False,"message":"Ядро Butler не установлено. "+terminal}
+        cycle=dt.datetime.now(ZONE).strftime("bb-%Y%m%d-%H%M%S-")+uuid.uuid4().hex[:6]
+        try:
+            # The core takes a target only as an id (letters, digits, :._@/+=-): a name with a space or Cyrillic is refused,
+            # so the folder travels in the parameters and the target is a short hash of its name.
+            target="backburner:"+hashlib.sha256(name.encode()).hexdigest()[:12]
+            op=core.Client().execute("backburner.cycle","butler",target,{"cycle_id":cycle,"only":name},
+                                     "backburner:manual:"+cycle,principal="voice:owner",timeout=60)
+        except core.CoreUnavailable:return {"ok":False,"message":"Ядро Butler недоступно: запуск не принят. Повторите через минуту. "+terminal}
+        except core.CoreError as error:return {"ok":False,"message":"Ядро Butler не приняло запуск: "+str(error)[:120]+". "+terminal}
+        if op.get("state") in ("running","requested","dispatching"):
+            return {"ok":True,"message":"Прогон «"+name+"» запущен в ядре. Он идёт до 45 минут; короткая заметка придёт по итогу."}
+        return {"ok":False,"message":"Ядро Butler не запустило прогон: "+str(op.get("reason") or op.get("state"))[:120]}
 
     def _builtin(self,key,action,args):
         if key not in {"daily","advice","analysis"}:raise ValueError("unknown built-in job")

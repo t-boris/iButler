@@ -4,6 +4,7 @@ The vault harness copies the installed ``lib/vault.py`` and its write policy int
 a temporary workspace with a temporary vault root, so the core's adapter runs
 the real apply and check commands against real files, never the owner's vault.
 """
+from support import require_files
 import json
 import os
 import re
@@ -36,6 +37,7 @@ def knowledge_config():
 
 
 def fake_workspace(root):
+    require_files(INSTALLED / "lib/vault.py", INSTALLED / "policies/write.yaml")
     ws = (root / "ws").resolve()
     vault_root = (root / "vault").resolve()
     (ws / "lib").mkdir(parents=True)

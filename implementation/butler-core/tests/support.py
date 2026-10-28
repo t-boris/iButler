@@ -11,6 +11,16 @@ from butler_core.adapters.base import DONE, NOT_DONE, Adapter, Ambiguous, NotDis
 from butler_core.adapters.testing import ScriptedAdapter
 from butler_core.service import Core
 
+def require_files(*paths):
+    """Private-workspace integration tests are optional on a clean checkout.
+
+    Local release verification still runs them when the actual source tools
+    are installed; CI must not pretend those private dependencies are present.
+    """
+    missing = [str(path) for path in paths if not Path(path).is_file()]
+    if missing:raise unittest.SkipTest("private workspace dependency not installed: " + ", ".join(missing))
+
+
 OWNER = "telegram:1000001"
 TANYA = "telegram:2000002"
 
@@ -124,6 +134,7 @@ class FileAdapter(Adapter):
 class CoreCase(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp(prefix="butler-core-test-"))
+        self.addCleanup(shutil.rmtree, self.tmp, ignore_errors=True)
         self.clock = Clock()
         self.adapter = ScriptedAdapter("test")
         self.transport = FakeTransport()

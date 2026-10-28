@@ -69,6 +69,13 @@ class CameraClips:
             batch.start+(index+1)*(batch.end-batch.start)/len(frames) for index in range(len(frames))]
         start=min(batch.start,*times);end=max(batch.end,*times)
         clip=self.clip
+        # A strict permission transition closes the old retention segment;
+        # passive archive capture can continue under its existing policy.
+        from .recordings import meeting_state
+        permission = bool(self.archive.service.gate.permits(now) and meeting_state(self.archive.service)["marked"])
+        if clip is not None and clip.get('retention_permission', permission) != permission:
+            if not self.finish():raise OSError('camera clip could not close')
+            clip=None
         if clip is not None and (clip['closing'] or abs(batch.start-clip['audio_end'])>.25
                 or end-clip['start']>self.MAX_SECONDS or batch.end<=clip['audio_end']):
             if not self.finish():raise OSError('camera clip could not close')
@@ -93,12 +100,15 @@ class CameraClips:
         data=b''.join(frames)
         try:
             if clip:store.append_camera(clip['id'],data,end,samples)
-            else:candidate['id']=store.media('camera',start,end,data,'mjpeg',temporary=True,complete=False,samples=samples)
+            else:
+                candidate['id']=store.media('camera',start,end,data,'mjpeg',temporary=True,complete=False,samples=samples)
+                from .recordings import tag_capture
+                tag_capture(self.archive.service,candidate['id'])
         except (OSError,sqlite3.Error):
             # Allow analysis to drain a valid prefix when its next append no
             # longer fits. The rejected interval is logged by the caller.
             if clip:self.finish()
             raise
-        candidate.update(size=offset,choices=choices,end=end,audio_end=batch.end,arrival=now)
+        candidate.update(size=offset,choices=choices,end=end,audio_end=batch.end,arrival=now,retention_permission=permission)
         self.clip=candidate
         if end-candidate['start']>=self.MAX_SECONDS:self.finish()

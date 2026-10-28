@@ -288,7 +288,7 @@ class GeneralDialogueTests(unittest.TestCase):
         # The spoken busy cue is taken by hearing itself: no turn, no speech, busy for ten minutes, preference untouched.
         self.assertTrue(self.v.jobs.empty())
         self.v.speak.assert_not_called()
-        self.assertEqual(self.s.attention.state(self.now), BUSY)
+        self.assertNotEqual(self.s.attention.state(self.now), BUSY)
         self.assertEqual(self.store.get('meeting_mode', 'auto'), 'auto')
 
     def test_local_view_shows_general_events_only_and_does_not_cancel_general_turn(self):

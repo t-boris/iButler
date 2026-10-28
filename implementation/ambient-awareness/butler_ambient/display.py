@@ -15,8 +15,8 @@ What this module guards:
 - History is this conversation's only: in memory, at most HISTORY cards, cleared when the owner
   session really closes (pause, consent revoked, settings change, enrollment, stop) or the service
   restarts; never persisted (REQ-011). A brief loss of the lease does not clear it (DEC-047).
-- Visibility (REQ-010, lifted by DEC-047 and DEC-048): there is no privacy gate on the display. A valid card is
-  shown, and stays visible, whatever the state of the private dialogue session or the recording gate.
+- Visibility: Recordings DEC-004 supersedes DEC-047/048. Display cards and history are
+  returned only while the verified owner and observation gates both permit access.
 - The only action with an external effect opens a prefilled reply in Mail.app; it never sends,
   never grants approval, and a failure is reported as a failure (REQ-008, REQ-009).
 - A card may replace an earlier one (``replaces``): the same card, same place in the history, new content and a
@@ -355,6 +355,8 @@ class Display:
     def select(self, card_id):
         """The owner returns to an earlier card: it becomes current again; nothing is generated, opened or sent (REQ-011)."""
         with self.lock:
+            from .recordings import _allowed
+            if not _allowed(self.service):raise CardRefused("verified owner required")
             card = self._card(card_id)
             self.current = card["id"]
             self.counts["reopened"] = self.counts.get("reopened", 0) + 1
@@ -363,6 +365,8 @@ class Display:
     def action(self, card_id, action_id):
         """An explicit owner action on a card. The panel names the action by id; what it does is decided here."""
         with self.lock:
+            from .recordings import _allowed
+            if not _allowed(self.service):raise CardRefused("verified owner required")
             card = self._card(card_id)
             entry = next((dict(a) for a in card.get("actions", []) if a["id"] == action_id), None)
         if entry is None:
@@ -471,9 +475,12 @@ class Display:
         return shown
 
     def snapshot(self):
-        """What the panel gets: every card, always. The owner asked that the display is never cleared, hidden or withheld for
-        privacy reasons (DEC-047, DEC-048); the history ends only with a real close (``clear``)."""
+        """Owner-only history; a temporary gate loss hides rather than erases it."""
+        from .recordings import _allowed
         with self.lock:
+            if not _allowed(self.service):
+                return {"cards": [], "current": None, "raise_serial": self.raise_serial, "hidden": "private",
+                        "cleared_reason": self.cleared_reason, "counts": dict(self.counts)}
             cards = []
             for card in self.history:
                 copy = {k: v for k, v in card.items() if k not in {"outgoing_id", "reply_choice"}}

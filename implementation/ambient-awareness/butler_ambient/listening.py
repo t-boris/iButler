@@ -498,7 +498,9 @@ class Listening:
                     self.mark('asr-empty', f'Речь слышна ({seconds:.0f} с, {level}), но не распознана: тихо или неразборчиво.' + numbers)
                 return
             if not self.transcripts.claim(identifier): return
-            feedback = getattr(s, 'feedback', None)
+            from .recordings import voice_target
+            local_navigation = voice_target(text, s.clock()) is not None
+            feedback = None if local_navigation else getattr(s, 'feedback', None)
             if feedback is not None:
                 text, joined = feedback.join(text)
                 self.current_episode = joined or feedback.capture(text, at=at,
@@ -559,6 +561,17 @@ class Listening:
                 self._report_expired(token)
                 return
             self.timings['participant_wait_ms'] = round((time.monotonic()-waiting)*1000,1)
+            if actor_owner and not company and s.gate.permits(s.clock()):
+                born = self.transcripts.rows.get(identifier, {}).get('born', at-len(pcm)/32000)
+                s.store.retain_transcript("owner:" + identifier, "microphone", born, at, text,
+                    meeting_id=getattr(s.meeting, "recording_id", None), now=s.clock())
+            # Intercept before corrections, dialogue classification, feedback
+            # joining or any cloud dispatch. A recordings request is local.
+            from .recordings import navigate_voice
+            if navigate_voice(s, text, authorized=bool(actor_owner and not company)):
+                self.phase = 'heard'
+                self.mark('recordings-navigation', 'Записи открыты локально.')
+                return
             if feedback is not None and actor_owner and s.voice_gate.permits(s.clock()):
                 correction = feedback.voice_correction(text, current=self.current_episode, allow_remember=bool(verified_owner))
                 if correction is not None:
@@ -566,11 +579,22 @@ class Listening:
                     return
             attention = getattr(s, 'attention', None)
             if attention is not None:
-                cue = attention.spoken_cue(text, s.clock())
+                from .attention import BUSY_CUE, FREE_CUE
+                if (not verified_owner or company) and (BUSY_CUE.search(text) or FREE_CUE.search(text)):
+                    self.phase = 'blocked'
+                    self.mark('attention-cue-denied', 'Изменение занятости требует подтверждения владельца.')
+                    return
+                # Only the owner may change an owner-selected availability
+                # override; another speaker's words are ordinary local speech.
+                cue = attention.spoken_cue(text, s.clock()) if verified_owner and not company else None
                 if cue is not None:
                     self.phase = 'blocked'
                     # Acknowledged in the feed only: a spoken «понял» would be exactly the interruption asked against.
-                    self.mark('attention-cue', 'Понял: занят, молчу до «я свободен» или 10 минут.' if cue == 'busy' else 'Понял: свободен.')
+                    message = ('Занятость задана вручную и сохранится до вашего переключения.'
+                               if cue == 'busy' and attention.manual_mode == 'busy'
+                               else 'Понял: занят, молчу до «я свободен» или 10 минут.' if cue == 'busy'
+                               else 'Понял: свободен.')
+                    self.mark('attention-cue', message)
                     return
                 if explicit_address(text, aliases):
                     attention.named(s.clock())

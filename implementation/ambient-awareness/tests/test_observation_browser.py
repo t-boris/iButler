@@ -14,6 +14,17 @@ from butler_ambient.local_ui import snapshot
 from butler_ambient.observation_browser import MAX_LIMIT, STALLED_AFTER, analysis_state, browse, day_bounds
 from butler_ambient.service import Handler, Service
 from butler_ambient.store import Store
+from butler_ambient.policy import Evidence
+
+def authorize(service):
+    now = service.clock()
+    service.store.execute("INSERT OR REPLACE INTO agreements VALUES ('owner','Owner',1,'{}')")
+    service.gate.enable(True, now-.3)
+    for offset in (.2,.1,0):
+        evidence = Evidence(now-offset,True,True,frozenset({'owner'}),True,voice_ids=frozenset({'owner'}),voice_certain=True,speech_detected=True)
+        service.gate.check(evidence,now-offset)
+        service.dialogue_gate.check(evidence,now-offset,True)
+
 
 CHICAGO = ZoneInfo("America/Chicago")
 
@@ -80,6 +91,15 @@ class BrowserTests(unittest.TestCase):
     def test_nothing_stored_at_all_opens_today(self):
         view = browse(self.service, {})
         self.assertEqual((view["day"], view["items"], view["total"]), ("2026-10-26", [], 0))
+
+    def test_day_picker_includes_observations_older_than_sixty_days(self):
+        for days_ago in range(75):
+            start = NOW - days_ago * 86400
+            self.store.execute("INSERT INTO observations VALUES (?,?,?,?,?,?)",
+                               (f"obs-{days_ago}", f"media-{days_ago}", "camera", start, start + 1, "[]"))
+        days = browse(self.service, {})["days"]
+        self.assertEqual(len(days), 75)
+        self.assertEqual(days[-1]["day"], "2026-08-13")
 
     def test_a_dst_day_is_not_24_hours(self):
         start, end = day_bounds("2026-11-01")                            # clocks go back at 02:00
@@ -226,6 +246,7 @@ class BrowserTests(unittest.TestCase):
         self.observe("camera", NOW - 100, [self.fact("есть вывод")])
         for n in range(6):
             self.observe("microphone", NOW - 50 + n, [])
+        authorize(self.service)
         value = snapshot(self.service)
         self.assertEqual([r["details"] for r in value["recent"]], [["есть вывод"]])
         self.assertEqual(set(value["analysis"]), {"last_at", "pending", "stalled"})
@@ -248,6 +269,7 @@ class SurfaceTests(unittest.TestCase):
             self.addCleanup(store.close)
             service = Service(store, Mock(), Mock(), Mock(), clock=lambda: NOW, transport=Mock())
             self.addCleanup(service.stop)
+            authorize(service)
             instance.server = SimpleNamespace(service=service)
             instance.handle()
             return json.loads(instance.wfile.getvalue())
