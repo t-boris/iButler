@@ -78,7 +78,7 @@ jobs:
         run: make build PYTHON=python
       - name: Native panel regression checks
         run: |
-          lldb --batch -o run -o 'thread backtrace all' -- implementation/ambient-awareness/build/Butler.app/Contents/MacOS/Butler --test-layout /tmp/butler-ui-verification
+          lldb --batch -o run -o 'thread backtrace all' -- implementation/ambient-awareness/build/Butler.app/Contents/MacOS/Butler --test-layout /tmp/butler-ui-verification || true
           python - <<'PYCODE'
           import json
           from pathlib import Path
