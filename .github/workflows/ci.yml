@@ -34,10 +34,14 @@ jobs:
       - name: Bridge tests
         working-directory: implementation/butler-core/bridge
         run: node --test test/*.test.js
-      - name: Other implementation suites
+      - name: News video tests
+        working-directory: implementation/news-video
+        run: python -m unittest discover -s tests -v
+      - name: Bamberg tests
+        working-directory: implementation/bamberg-news
+        run: python -m unittest discover -s tests -v
+      - name: WhatsApp tests
         run: |
-          python -m unittest discover -s implementation/news-video/tests -v
-          python -m unittest discover -s implementation/bamberg-news/tests -v
           python -m unittest discover -s implementation/whatsapp-ingest/tests -v
           node --test implementation/whatsapp-ingest/tests/ingest-only.test.mjs
       - name: Build core release
