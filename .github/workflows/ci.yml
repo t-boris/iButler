@@ -53,12 +53,29 @@ jobs:
         working-directory: implementation/ambient-awareness
         run: make build PYTHON=python
       - name: Native panel regression checks
-        run: implementation/ambient-awareness/build/Butler.app/Contents/MacOS/Butler --test-layout /tmp/butler-ui-verification
+        run: |
+          open -W -n implementation/ambient-awareness/build/Butler.app --args --test-layout /tmp/butler-ui-verification
+          python - <<'PYCODE'
+          import json
+          import time
+          from pathlib import Path
+          report = Path('/tmp/butler-ui-verification/native-panel-layout.json')
+          if not report.exists():
+              time.sleep(3)
+              for crash in (Path.home() / 'Library/Logs/DiagnosticReports').glob('Butler*'):
+                  print(crash.read_text(errors='replace')[-60000:])
+              raise SystemExit('Native UI exited without its verification report')
+          result = json.loads(report.read_text())
+          print('Native UI checks:', len(result['checks']), 'passed:', result['passed'])
+          print('Failed checks:', [row['name'] for row in result['checks'] if not row['passed']])
+          assert result['passed'] is True
+          PYCODE
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: macos-release-verification
           path: |
             /tmp/butler-ui-verification
+            ~/Library/Logs/DiagnosticReports/Butler*
             implementation/ambient-awareness/build/wheels
             implementation/butler-core/build/wheels
