@@ -38,7 +38,7 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 
 - Branch: `feat/butler-recordings`, created from fetched `origin/main` at `2d8aea6` after the owner-authorized main migration.
 - Pull request: https://github.com/t-boris/iButler/pull/1
-- Ambient version: **0.10.1**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
+- Ambient version: **0.10.2**; core version: **0.17.1**. Wheel/app versions derive from package `__version__`.
 - Local full verification: `implementation/ambient-awareness/evidence/attention-implementation/release-verification.json` and referenced exact-command logs.
 - Existing Back Burner/workspace deliverables included under DEC-007 were hash-compared with installed copies: backburner library/CLI/prompt/docs, knowledge_sources, memory and lessons all match.
 - Native evidence: `implementation/ambient-awareness/evidence/ui-preview/native-panel-layout.json` and `butler-recordings.png` (synthetic only).
@@ -46,6 +46,8 @@ Display history remains in memory and keeps the existing hard-close clearing beh
 
 ## Final delivery repairs
 
-F-009 handles this Mac’s absent optional Homebrew model-service plist. F-010 includes pending-media-only days in the date picker and is covered by a regression that opens the file through the selected day/session. The final patch version is 0.10.1. The exact-source release report and final PR/main CI runs provide the current validation results.
+F-009 handles this Mac’s absent optional Homebrew model-service plist. F-010 includes pending-media-only days in the date picker and is covered by a regression that opens the file through the selected day/session. These repairs shipped in 0.10.1. The exact-source release report and final PR/main CI runs provide the current validation results.
 
 F-011 adds an observation/media index for pending-original browsing. A deterministic full-browser backlog regression exceeded its database-work budget before the index and passes after it. This supplements the smaller synthetic timeline benchmark above.
+
+F-012 resolves containment roots once per request while retaining each file's canonical path validation and both access checks. The 0.10.1 exact-source gate passed all suites (872 ambient tests, 402 core tests, 264 native checks); main CI run 40635608628 passed both jobs. Repeat that gate and CI for final 0.10.2 before normal deployment.
