@@ -971,6 +971,9 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     var diagramReady = false
     var pendingDiagram: String?
     var videoView: AVPlayerView?
+    var videoStatus: NSTextField?
+    var videoCardID: String?
+    var videoPath: String?
 
     static func preferenceStore() -> UserDefaults {
         // A bundled application's own preferences are the standard domain.
@@ -1976,8 +1979,14 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         renderDisplayCard(displayCards[index])
     }
     func renderDisplayCard(_ card: [String: Any]?) {
-        // Retire the OLD player before constructing the replacement video view.
-        videoView?.player?.pause(); videoView = nil
+        // A redraw of the same video must not restart playback. A different card,
+        // path or availability state still retires the old player immediately.
+        let keepVideo = card?["kind"] as? String == "video" && card?["unavailable"] == nil
+            && card?["id"] as? String == videoCardID && card?["video"] as? String == videoPath && videoView != nil
+            && videoPath.map { FileManager.default.fileExists(atPath: $0) } == true
+        if !keepVideo {
+            videoView?.player?.pause(); videoView = nil; videoStatus = nil; videoCardID = nil; videoPath = nil
+        }
         let content: NSStackView
         if let card {
             if let unavailable = card["unavailable"] as? String {
@@ -2330,18 +2339,28 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         guard !path.isEmpty, FileManager.default.fileExists(atPath: path) else { return explanation(unavailable) }
         let stack = detailStack()
         fill(stack, truncating(title(card["title"] as? String ?? "Видео")))
+        if let player = videoView {
+            player.removeFromSuperview()
+            stretch(stack, player)
+            if let status = videoStatus { status.removeFromSuperview(); fill(stack, status) }
+            return stack
+        }
         let player = AVPlayerView()
         player.controlsStyle = .floating
         let status = label("Проверяю видео…")
         stretch(stack, player)
         fill(stack, status)
         videoView = player
+        videoStatus = status
+        videoCardID = card["id"] as? String
+        videoPath = path
         let asset = AVURLAsset(url: URL(fileURLWithPath: path))
         Task { @MainActor [weak self, weak player] in
             let playable = (try? await asset.load(.isPlayable)) ?? false
             guard let self, let player, self.videoView === player else { return }
             if playable {
                 let playback = AVPlayer(url: asset.url)
+                if self.testing { playback.isMuted = true }
                 player.player = playback
                 status.isHidden = true
                 playback.play()
@@ -4831,6 +4850,39 @@ let app = NSApplication.shared
 if let icon = applicationIcon() {
     app.applicationIconImage = icon
     app.dockTile.display()
+}
+if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--test-video-refresh" {
+    app.setActivationPolicy(.accessory)
+    let domain = "com.boris.butler-ui.video-refresh-test.\(UUID().uuidString)"
+    let prefs = UserDefaults(suiteName: domain)!
+    let panel = Panel(cli: "/usr/bin/false", testing: true, defaults: prefs)
+    var card: [String: Any] = ["kind": "video", "id": "video-test", "video": CommandLine.arguments[2], "at": 1.0, "rev": 0]
+    panel.updateDisplay(["cards": [card], "current": "video-test", "raise_serial": 1])
+    let start = Date()
+    var original: AVPlayer?, valid = true, lastSecond = -1
+    while Date().timeIntervalSince(start) < 125 {
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        let elapsed = Int(Date().timeIntervalSince(start))
+        if original == nil { original = panel.videoView?.player }
+        if elapsed != lastSecond {
+            lastSecond = elapsed
+            if elapsed > 0 && elapsed % 10 == 0 { card["rev"] = elapsed / 10 }
+            panel.updateDisplay(["cards": [card], "current": "video-test", "raise_serial": elapsed / 15 + 1])
+            if let original { valid = valid && panel.videoView?.player === original }
+            if elapsed == 60 || elapsed == 120 {
+                let seconds = original?.currentTime().seconds ?? 0
+                let ok = original?.currentItem?.status == .readyToPlay && seconds > Double(elapsed - 5) && original?.rate == 1
+                valid = valid && ok
+                print("video-refresh-\(elapsed): \(ok ? "PASS" : "FAIL") time=\(seconds) rate=\(original?.rate ?? 0)")
+                fflush(stdout)
+            }
+        }
+    }
+    panel.renderDisplayCard(["kind": "text", "id": "stop-test", "markdown": "Done"])
+    valid = valid && original != nil && panel.videoView == nil && original?.rate == 0
+    print("video-refresh-identity-and-retire: \(valid ? "PASS" : "FAIL")")
+    prefs.removePersistentDomain(forName: domain)
+    exit(valid ? 0 : 1)
 }
 if CommandLine.arguments.count == 3 && CommandLine.arguments[1] == "--test-video-playback" {
     app.setActivationPolicy(.accessory)

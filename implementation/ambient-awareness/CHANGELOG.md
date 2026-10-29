@@ -1,5 +1,9 @@
 # Changelog — butler-ambient
 
+## 0.11.2 — 2026-10-28 (Display video refresh)
+
+- Preserve the current video player across Display refreshes, while stopping it when the card or media changes.
+
 ## 0.11.1 — 2026-10-28 (Display without owner checks)
 
 - Show the local conversation and persistent Display history without camera/voice verification or observation permission, as explicitly requested in DEC-009. Card selection, local controls and Clear also work without the biometric gate.
