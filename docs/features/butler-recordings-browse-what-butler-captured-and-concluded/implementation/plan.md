@@ -55,8 +55,8 @@ issues:
     requirements: [REQ-011]
     decisions: [DEC-008]
   - id: I-10
-    status: in progress
-    title: Preserve Display video playback across refreshes and verify the release
+    status: implemented
+    title: Preserve Display video playback across refreshes
     requirements: [REQ-012]
     decisions: [DEC-010]
 updated: 2026-10-28
@@ -124,4 +124,4 @@ DEC-009 overrides the earlier Display identity gate. Implement the no-gate Displ
 
 ## Current verification and video follow-up
 
-DEC-010 includes the existing Display video refresh fix. Verify playback continuity and retirement, rerun the Recordings regressions and the full release gate, then deliver patch 0.11.2 through CI and normal deployment. I-10 remains in progress until delivery is verified.
+DEC-010 includes the existing Display video refresh fix. I-10 is implemented and its playback continuity and retirement tests pass. The Recordings regressions also pass. The paired release gate and delivery of patch 0.11.2 remain in progress.

@@ -2,7 +2,7 @@
 type: feature
 id: butler-recordings-browse-what-butler-captured-and-concluded
 title: "Butler Recordings: browse what Butler captured and concluded"
-status: implementing
+status: implemented
 owner: Boris Tsekinovsky
 created: 2026-10-26
 provenance: Created by an AI agent through MarkView from Owner request 2026-10-25 (voice, during a Google Meet); store inventory of ~/.local/share/butler-ambient on 2026-10-25
@@ -57,4 +57,4 @@ The owner explicitly rejected the recurring identity-blocked Display. DEC-009 re
 
 ## Verification and video follow-up
 
-DEC-010 includes the existing Display video refresh fix in the current release. Previously implemented requirements remain in place; the feature is implementing while the new patch and release gates are verified. See I-10 in the implementation plan.
+DEC-010 includes the existing Display video refresh fix in the current release. The implementation and REQ-012 are verified; the paired release gate and delivery are tracked separately in the implementation verification.
