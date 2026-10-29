@@ -42,7 +42,9 @@ class CapturePipelineTests(unittest.TestCase):
         self.hearing = threading.Event()
         def verify(batch, references):
             self.verifying.set()
-            self.release.wait(4)
+            # Keep the verifier blocked until the test releases it; a wall-clock
+            # timeout can expire under full-suite load before the assertion.
+            self.release.wait()
             return Evidence(batch.end, False, True, voice_certain=False, speech_detected=True)
         def transcribe(*args, **kwargs):
             self.hearing.set()
