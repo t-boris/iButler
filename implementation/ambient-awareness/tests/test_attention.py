@@ -182,6 +182,18 @@ class IntegrationTests(unittest.TestCase):
         with patch.object(Conversation, 'ready', new_callable=PropertyMock, return_value=True):
             for _ in range(64): self.voice._deliver_dialogue()
 
+    def test_agent_output_waits_while_dictating_then_resumes(self):
+        self.voice.state = 'ready'
+        self.service.dictation = Mock()
+        self.service.dictation.listening.return_value = True
+        self.voice.dialogue.notice('Готово.')
+        with patch.object(Conversation, 'ready', new_callable=PropertyMock, return_value=True):
+            self.voice._deliver_dialogue()
+            self.voice.speak.assert_not_called()
+            self.service.dictation.listening.return_value = False
+            self.voice._deliver_dialogue()
+        self.voice.speak.assert_called_once()
+
     def test_busy_owner_is_not_answered_unnamed_but_the_name_always_works(self):
         self.service.attention.observe(Evidence(self.now, True, True, voice_ids=frozenset({"guest"}), voice_certain=True), self.now)
         self.voice.model.generate_json.return_value = {"addressed": True, "confidence": .99, "intent": "chat", "criteria": "", "telegram": False, "reply": "Ответ."}

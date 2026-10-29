@@ -1230,14 +1230,20 @@ class Conversation:
         return SILENT_TURN
 
     def _deliver_dialogue(self):
-        listening = getattr(self.service, 'listening', None)
-        if (not self.ready or self.busy or not self.jobs.empty() or not self.service.voice_gate.permits(self.service.clock())
-                or listening is not None and listening.phase in {'listening', 'transcription', 'participant-check'}):
-            return
-        attention = getattr(self.service, 'attention', None)
-        output = self.dialogue.claim_output(include_notices=attention is None or attention.state(self.service.clock()) != BUSY)
-        status = None if output else self.dialogue.work_notice()
-        if output is None and status is None: return
+        # Serialize the decision to start speaking with dictation.start().
+        # A pending agent result waits until dictation has stopped.
+        with self.service.lock:
+            listening = getattr(self.service, 'listening', None)
+            dictation = getattr(self.service, 'dictation', None)
+            if (dictation is not None and dictation.listening()
+                    or not self.ready or self.busy or not self.jobs.empty() or not self.service.voice_gate.permits(self.service.clock())
+                    or listening is not None and listening.phase in {'listening', 'transcription', 'participant-check'}):
+                return
+            attention = getattr(self.service, 'attention', None)
+            output = self.dialogue.claim_output(include_notices=attention is None or attention.state(self.service.clock()) != BUSY)
+            status = None if output else self.dialogue.work_notice()
+            if output is None and status is None: return
+            self.state, self.phase = 'thinking', 'reply'
         request, text = (output[0], output[1]) if output else status
         sequence = output[2] if output else None
         token = threading.Event()
@@ -1250,7 +1256,6 @@ class Conversation:
         self.timings = {'source': 'agent-result' if output else 'work-status'}
         self.turn_active = True
         try:
-            self.state, self.phase = 'thinking', 'reply'
             self.last_reply = request.result or clean_for_speech(request.raw) or text
             self._debug('reply' if output else 'work-status', self.last_reply, turn=request.id)
             self.speak(text, token, generation)
