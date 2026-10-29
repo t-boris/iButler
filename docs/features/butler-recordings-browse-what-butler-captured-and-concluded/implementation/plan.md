@@ -54,6 +54,11 @@ issues:
     title: Persist local UI history until Clear
     requirements: [REQ-011]
     decisions: [DEC-008]
+  - id: I-10
+    status: implemented
+    title: Preserve Display video playback across refreshes
+    requirements: [REQ-012]
+    decisions: [DEC-010]
 updated: 2026-10-28
 ---
 
@@ -116,3 +121,7 @@ I-7–I-9 are implemented under DEC-008 and undergoing the complete release gate
 ## Display access repair — 2026-10-28
 
 DEC-009 overrides the earlier Display identity gate. Implement the no-gate Display path and verify denied-permission, persisted-history, card-control and failed-poll cases. The patch release is 0.11.1; the normal test/build, PR/CI and deployment workflow applies.
+
+## Current verification and video follow-up
+
+DEC-010 includes the existing Display video refresh fix. I-10 is implemented and its playback continuity and retirement tests pass. The Recordings regressions also pass. The paired release gate and delivery of patch 0.11.2 remain in progress.

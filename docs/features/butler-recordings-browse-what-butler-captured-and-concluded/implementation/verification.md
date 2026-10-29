@@ -63,3 +63,9 @@ F-015 updates the cross-package Back Burner card validator to construct persiste
 ## Latest owner decision: Display without verification
 
 DEC-009 supersedes the earlier Display gate, including Q-007. Display reads, history selection, local actions and Clear no longer use camera/voice verification or recording permission. Persistent history remains until explicit Clear, and the native panel retains rendered material through failed polls. Recordings keeps its independent checks. Focused regressions cover denied gates, no gate calls during materialization, database reopen and local controls. Final 0.11.1 release evidence is under `evidence/display-open/` and the normal release reports.
+
+## Current 0.11.2 verification
+
+Q-001–Q-008, DEC-001–DEC-010, F-001–F-017, discussion and all requirements were checked. DEC-010 records the owner's authorization to include the previously uncommitted Display video fix. REQ-012 covers it. The 16 focused Recordings regressions passed. The native synthetic-video test passed at 60 and 120 seconds and confirmed player identity and retirement. The full ambient verification passed all 21 jobs, including 884 ambient tests, native builds, UI checks, other project suites and the wheel build. The paired release verification, CI, merge and deployment remain in progress.
+
+The first paired run exposed a stale core mail test that contradicted the installed workspace's recorded October 28 owner instruction to include all new messages in the digest. F-018 records the assertion repair; the full exact-source gate must be repeated.

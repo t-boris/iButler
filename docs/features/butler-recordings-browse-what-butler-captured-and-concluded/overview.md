@@ -54,3 +54,7 @@ DEC-008/Q-007/Q-008 add persistent owner-gated UI history, the Components screen
 ## Latest Display decision — 2026-10-28
 
 The owner explicitly rejected the recurring identity-blocked Display. DEC-009 removes biometric/observation checks for local Display visibility, selection, controls and Clear. Persistent history remains. Recordings keeps its independent policy. This supersedes the earlier Display-gate choice in Q-007 and DEC-008. Release 0.11.1 verifies visibility under denied gates and failed UI polls.
+
+## Verification and video follow-up
+
+DEC-010 includes the existing Display video refresh fix in the current release. The implementation and REQ-012 are verified; the paired release gate and delivery are tracked separately in the implementation verification.

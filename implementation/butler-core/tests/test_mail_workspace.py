@@ -107,7 +107,9 @@ class MailLibraryTest(unittest.TestCase):
         self.assertIn("Anna <anna@example.com> — Встреча во вторник", digest)
         self.assertIn("ждут ответа", digest)
         self.assertNotIn("давай перенесём", digest)                         # body text never enters the digest
-        self.assertNotIn("Weekly deals", digest)
+        # The owner requested that every new message appear, including bulk;
+        # bulk classification still avoids fetching its body or marking it important.
+        self.assertIn("Shop <noreply@shop.example> — Weekly deals", digest)
         ordinals = [o["ordinal"] for o in result["offers"]]
         self.assertEqual(sorted(ordinals), sorted(ordinals))
         again = self.scan()
