@@ -30,7 +30,7 @@ class FakeService:
         self.gate = SimpleNamespace(enabled=True)
         self.stop_event = threading.Event()
         self.owner_setup = SimpleNamespace(capturing=False)
-        self.voice = SimpleNamespace(reply_in_progress=False)
+        self.voice = SimpleNamespace(reply_in_progress=False, state="ready", phase="idle")
         self.listening = SimpleNamespace(enabled=True, phase="waiting", processing=False, jobs=queue.Queue(), audio=bytearray())
         self.inputs = SimpleNamespace(audio_status={"input_muted": False, "input_volume": 0.6},
                                       input_signal={"at": self.now, "rms_dbfs": -30.0})
@@ -62,7 +62,7 @@ class StateMachineTests(unittest.TestCase):
             "stopping": (lambda s: s.stop_event.set(), "останавливается"),
             "voice setup": (lambda s: setattr(s.owner_setup, "capturing", True), "эталона"),
             "hearing off": (lambda s: setattr(s.listening, "enabled", False), "не слушает"),
-            "butler speaking": (lambda s: setattr(s.voice, "reply_in_progress", True), "говорит"),
+            "butler speaking": (lambda s: setattr(s.voice, "state", "speaking"), "говорит"),
             "muted": (lambda s: s.inputs.audio_status.update(input_muted=True), "выключен"),
             "zero gain": (lambda s: s.inputs.audio_status.update(input_volume=0), "ноль"),
             "no signal": (lambda s: setattr(s.inputs, "input_signal", None), "свежего звука"),
@@ -78,6 +78,10 @@ class StateMachineTests(unittest.TestCase):
                 self.assertIn(word, view["reason"])
                 self.assertFalse(dictation.listening())
                 self.assertFalse(dictation.hear("слова"))
+
+    def test_pending_agent_request_does_not_block_dictation(self):
+        self.service.voice.reply_in_progress = True
+        self.assertEqual(self.dictation.start()["state"], "listening")
 
     # -- hearing ----------------------------------------------------------------------------
 

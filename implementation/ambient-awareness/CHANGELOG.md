@@ -1,5 +1,9 @@
 # Changelog — butler-ambient
 
+## 0.11.3 — 2026-10-28 (Dictation while an agent is working)
+
+- Let panel dictation start while an agent request is pending without audible speech. Defer its spoken output until dictation ends.
+
 ## 0.11.2 — 2026-10-28 (Display video refresh)
 
 - Preserve the current video player across Display refreshes, while stopping it when the card or media changes.

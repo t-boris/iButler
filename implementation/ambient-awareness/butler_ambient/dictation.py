@@ -125,7 +125,12 @@ class Dictation:
             return ("Микрофон Butler сейчас не слушает: включите «Постоянный анализ» "
                     "или дождитесь подтверждения владельца перед камерой.")
         voice = getattr(service, "voice", None)
-        if voice is not None and getattr(voice, "reply_in_progress", False):
+        # An agent request can be active for minutes without producing sound.
+        # Block only a reply that is actually being prepared for speech, not
+        # the independent background request tracked by reply_in_progress.
+        state = getattr(voice, "state", None)
+        phase = getattr(voice, "phase", None)
+        if state in {"speaking", "synthesizing"} or (state == "thinking" and phase == "reply"):
             return "Butler сейчас говорит: дождитесь окончания, иначе его голос попадёт в текст."
         inputs = getattr(service, "inputs", None)
         status = getattr(inputs, "audio_status", None)
