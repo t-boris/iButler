@@ -131,3 +131,9 @@ Compatibility harnesses run the **installed** workspace libraries (`lib/dispatch
 ## What is excluded from this goal
 
 GitHub issues, commits, PRs, CI and merges (DEC-039), the MarkView browser check and the manual test checklist.
+
+## Semantic reindex transaction — prepared, not installed (2026-10-30)
+
+The current installed full reindexer commits its deletion before rebuilding. Read-only index metadata after a failed October 30 run showed two indexed files and 48 chunks. A synthetic regression failed on the previous source and passes after wrapping the rebuild in one SQLite transaction; tests also cover a skipped file and a reader seeing the old generation until commit. The workspace knowledge-source suite passed 19/19. A long rebuild holds the SQLite writer reservation; the exact cause of the owner's cron error remains unverified. The existing index was not modified or rebuilt, and this source change was not installed.
+
+The tested workspace indexer was installed on 2026-10-30 and its source and installed hashes match; the earlier index was left untouched and the cause of the failed cron run remains unverified. The 19/19 synthetic knowledge-source checks passed. Rollback copy: `~/.local/share/butler-ambient/release-backups/display-schedules-20261030T113112Z/embeddings.py`.

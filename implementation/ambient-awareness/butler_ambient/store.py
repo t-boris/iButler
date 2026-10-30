@@ -458,8 +458,8 @@ class Store:
             self.cleanup_analyzed(mids=ids,limit=len(ids))
             return oid
 
-    def history(self, start, end):
-        self.expire()
+    def history(self, start, end, *, expire=True):
+        if expire: self.expire()
         corrections = {r["subject"]: r["name"] for r in self.execute("SELECT * FROM corrections")}
         rows = self.execute("""SELECT o.*, (m.path IS NOT NULL OR m.preserved IS NOT NULL) AS original_available
             FROM observations o LEFT JOIN media m ON m.id=o.media_id

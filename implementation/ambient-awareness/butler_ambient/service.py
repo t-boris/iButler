@@ -22,7 +22,7 @@ from pathlib import Path
 
 from .display import CardRefused
 from .analysis import export_observations, analysis_inference_status
-from .delivery import Delivery, Telegram, ZONE, advice_candidate, quiet
+from .delivery import Delivery, DisplayTransport, Telegram, ZONE, advice_candidate, quiet
 from .policy import Gate, DialogueGate
 from .summaries import summarize, summary_text
 from .camera_archive import read_samples, sample_count
@@ -42,6 +42,7 @@ class Service:
         self.store, self.inputs, self.verifier, self.analyzer = store, inputs, verifier, analyzer
         self.config, self.clock = config or {}, clock
         self.lock = threading.RLock()
+        self.local_history_epoch = 0
         self.gate = Gate(store)
         self.dialogue_gate = DialogueGate()
         self.gate.enable(bool(store.get("enabled", False)), self.clock())
@@ -100,6 +101,7 @@ class Service:
         self.calls = Calls(self, clock=self.clock)
         from .display import Display
         self.display = Display(self)              # local Display history until Clear; no biometric gate (DEC-009)
+        self.display_transport = DisplayTransport(self)
         self.panel = None                         # the owner panel process, when this service launched it
         self.panel_launch = None                  # how to launch it again (set by the CLI)
         from .work_tasks import WorkTasks
@@ -120,6 +122,8 @@ class Service:
         self.dictation = Dictation(self)          # panel dictation: speech to text for the message field; memory only
         from .feedback import DialogueFeedback
         self.feedback = DialogueFeedback(self)
+        from .history_summary import LocalHistorySummaries
+        self.history_summaries = LocalHistorySummaries(self)
 
     def _set_sources(self, states, at):
         for source, state in states.items():
@@ -141,9 +145,32 @@ class Service:
         analyzer = getattr(self, "analyzer", None)
         if analyzer is not None: analyzer.cancel()
 
+    def _end_local_history_scope(self):
+        """Invalidate queued local replies and stop only a currently playing local reply."""
+        with self.lock:
+            self.local_history_epoch += 1
+            voice = getattr(self, 'voice', None)
+            token = getattr(voice, 'local_history_token', None) if voice is not None else None
+            if isinstance(token, threading.Event) and getattr(voice, 'token', None) is token:
+                token.set()
+                if not getattr(getattr(self, 'disclosures', None), 'active_playback', None):
+                    voice.inputs.cancel_playback()
+
+    def _pause_feedback(self, *, preserve_display=False):
+        if not hasattr(self, 'feedback'): return
+        from .recordings import history_visible
+        keep = (preserve_display and self.store.get('single_user_local', False) is True
+                and history_visible(self))
+        if keep: self.feedback.pause(preserve_local=True)
+        else: self.feedback.pause()
+
     def _invalidate(self, reason="permission-paused", *, preserve_dialogue=False):
         self.analysis_token.set()
         clear_hearing = reason in {"settings-change","service-stopped","owner-paused","consent-revoked", "owner-voice-enrollment", "owner-reference-updated"}
+        if clear_hearing and getattr(self, 'history_summaries', None) is not None:
+            self.history_summaries.cancel()
+        if clear_hearing or reason in {'source-unavailable', 'participant-check-gap', 'participant-check-unavailable', 'stale-participant-check'}:
+            self._end_local_history_scope()
         if clear_hearing:self.preview_frame=None
         if clear_hearing or reason in {"source-unavailable","participant-check-gap","participant-check-unavailable"}:
             self.capture_epoch += 1
@@ -162,7 +189,7 @@ class Service:
         close_session = clear_hearing or (not self.dialogue_gate.allowed and not preserve_dialogue)
         if close_session and hasattr(self, "commands"): self.commands.clear()
         if close_session:
-            if hasattr(self, "feedback"): self.feedback.pause()
+            self._pause_feedback(preserve_display=not clear_hearing)
             self.dialogue_gate.invalidate(reason)
             if clear_hearing and getattr(self, "display", None) is not None:
                 # REQ-011: the display history ends with the conversation, i.e. a real close. A lease lost for a moment
@@ -333,8 +360,11 @@ class Service:
         trusted = self.trusted_ids() if trusted is None else trusted
         self.latest_evidence = evidence
         fresh_audience = type(evidence.captured_at) in (int, float) and 0 <= self.clock() - evidence.captured_at <= Gate.MAX_AGE
+        if (not fresh_audience or not evidence.camera_ok or not evidence.microphone_ok
+                or DialogueGate.company(evidence, trusted)):
+            self._end_local_history_scope()
         if fresh_audience and DialogueGate.company(evidence, trusted) and self.voice is not None and self.voice.private_busy():
-            self.feedback.pause()
+            self._pause_feedback(preserve_display=True)
             self.voice.cancel(reason="audience-changed", private_only=True)
         dialogue = self.dialogue_gate.check(evidence, self.clock(),
             self.gate.enabled and "owner" in references and self.store.get("face_wake_dialogue", False), trusted=trusted)
@@ -345,7 +375,7 @@ class Service:
                               if dialogue else "Личная сессия закрыта: " + CLOSE_TEXT.get(reason, str(reason)) + ".")
         if dialogue_before and not dialogue and self.voice is not None:
             if self.dialogue_gate.closed_reason == "company":
-                self.feedback.pause()
+                self._pause_feedback(preserve_display=True)
                 self.voice.cancel(reason="audience-changed", private_only=True)
             elif self.voice.turn_committed:
                 # The utterance was admitted under a valid lease; a cough or a turned head must not drop
@@ -793,6 +823,7 @@ class Service:
                 if not group or index in failed_sources:
                     continue
                 if archive:
+                    yield_for_fresh = False
                     with self.lock:
                         # Process the current minute before either kind of
                         # backlog. Old spool is old work too. Give catch-up a
@@ -805,7 +836,11 @@ class Service:
                                 and self.clock()-snapshot_started>=60):
                             try:self.pending.put_nowait(('archive',policy.generation))
                             except queue.Full:pass
-                            return
+                            yield_for_fresh = True
+                    if yield_for_fresh:
+                        if run_token is None or not run_token.is_set():
+                            self._offer_advice(policy, generation, archive, run_token)
+                        return
                 # Capture and participant checks continue. Yield expensive
                 # model work while an owner turn is listening/generating/playing.
                 while self.voice is not None and (self.voice.busy or self.voice.turn_committed or (
@@ -824,6 +859,9 @@ class Service:
             with self.lock:
                 if policy.permits(self.clock()) and generation==policy.generation:
                     self.analysis_error,self.analysis_diagnostic=failure
+            # A failed source must not suppress fresh evidence from the others.
+            if run_token is None or not run_token.is_set():
+                self._offer_advice(policy, generation, archive, run_token)
             return
         if archive and not failed_sources and self.archive.permits(self.clock()) and not self.store.get("analysis_paused",False):
             # Catch up retained backlog in bounded minute groups, without turning
@@ -831,22 +869,26 @@ class Service:
             if self.store.execute("SELECT id FROM media WHERE analyzed=0 AND complete=1 AND path IS NOT NULL AND end<? LIMIT 1", (self.clock()-60,)):
                 try:self.pending.put_nowait(("archive",self.archive.generation))
                 except queue.Full:pass
+        if run_token is None or not run_token.is_set():
+            self._offer_advice(policy, generation, archive, run_token)
+
+    def _offer_advice(self, policy, generation, archive, run_token=None):
         with self.lock:
             if policy.permits(self.clock()) and generation == policy.generation:
                 now = self.clock()
-                candidate = advice_candidate(self.store.history(now - 7200, now), now)
+                self.store.expire(now)
+                candidate = advice_candidate(self.store.history(now - 7200, now, expire=False), now)
                 token = self.archive.token if archive else self.analysis_token
             else:
                 candidate = None
         if candidate and not token.is_set() and not self.meeting.snapshot()["quiet"]:
             from .conversation import Tokens
-            token=Tokens(token,self.schedules.tokens["advice"])
+            token=Tokens(token,self.schedules.tokens["advice"],run_token) if run_token is not None else Tokens(token,self.schedules.tokens["advice"])
             self.schedules.manual["advice"]="running"
             try:
                 self.delivery.send(candidate["key"], "advice", candidate["text"], now,
                                    topic=candidate["topic"], created_at=candidate["created_at"], token=token,
-                                   transport=self.voice if (self.voice is not None and self.voice.ready and not self.voice.busy
-                                                            and self.voice.token_mode != "general") else None)
+                                   transport=self.display_transport)
             finally:self.schedules.manual["advice"]="done"
 
     def maintenance(self):
@@ -854,6 +896,10 @@ class Service:
         self.store.expire(now)
         with self.lock:
             self.meeting.update()
+            voice = self.voice
+            if voice is not None and getattr(voice, 'local_history_token', None) is not None:
+                from .recordings import local_voice_history_allowed
+                if not local_voice_history_allowed(self): self._end_local_history_scope()
             if self.voice is not None and self.voice.thread is not None:
                 self.voice.ensure_running()
             if getattr(self, "calls", None) is not None: self.calls.poll(now)
@@ -862,9 +908,13 @@ class Service:
                 self.voice.cancel(reason="stale-dialogue-check", private_only=True)
             if self.gate.allowed and not self.gate.permits(now):
                 self._invalidate("stale-participant-check", preserve_dialogue=self.dialogue_gate.permits(now))
-            if not self.gate.permits(now):
-                return
-            token = self.analysis_token
+            if self.gate.permits(now):
+                token = self.analysis_token
+            else:
+                from .recordings import history_visible
+                if not history_visible(self):
+                    return
+                token = self.archive.token
         local = dt.datetime.fromtimestamp(now, ZONE)
         due = self.store.get("daily_time", "20:00")
         if not self.store.get("daily_paused",False) and local.strftime("%H:%M") >= due and not quiet(now):
@@ -875,7 +925,8 @@ class Service:
             report = summarize(self.store, start, now)
             from .conversation import Tokens
             self.schedules.manual["daily"]="running"
-            try:self.delivery.send(key, "daily", summary_text(report), now, token=Tokens(token,self.schedules.tokens["daily"]))
+            try:self.delivery.send(key, "daily", summary_text(report), now, token=Tokens(token,self.schedules.tokens["daily"]),
+                                   transport=self.display_transport)
             finally:self.schedules.manual["daily"]="done"
 
     def _maintenance_loop(self):
@@ -964,6 +1015,7 @@ class Service:
             if command == "revoke":
                 if args["id"] == "owner": self.owner_setup.cancel()
                 self.store.execute("UPDATE agreements SET active=0 WHERE id=?", (args["id"],))
+                self.store.set("single_user_local", False)
                 if args["id"]=="owner":
                     self.archive.invalidate();self.gate.enable(False,now);self.store.set("enabled",False)
                 self._invalidate("consent-revoked")
@@ -1005,6 +1057,8 @@ class Service:
                 if "general_dialogue" in args and type(args["general_dialogue"]) is not bool:
                     raise ValueError("general_dialogue must be boolean")
                 if "continuous_archive" in args:
+                    self.history_summaries.cancel()
+                    self._end_local_history_scope()
                     self.archive.invalidate()
                     self.capture_epoch += 1
                     self._discard_checks()
@@ -1112,7 +1166,10 @@ class Handler(socketserver.StreamRequestHandler):
             if command == "status":
                 result = service.status()
             elif command == "ui-feedback":
-                result = service.feedback.snapshot(service.voice_gate.permits(service.clock()))
+                from .recordings import history_visible
+                with service.lock:
+                    result = service.feedback.snapshot(history_visible(service))
+                    if not history_visible(service): result = service.feedback.snapshot(False)
             elif command == "ui-attention":
                 if set(args) != {"mode"}: raise ValueError("invalid attention control")
                 result = service.attention.manual(args["mode"])
@@ -1127,9 +1184,49 @@ class Handler(socketserver.StreamRequestHandler):
             elif command == "ui-state":
                 from .local_ui import snapshot
                 result = snapshot(service, want_preview=args.get("preview") is True)
+            elif command == "ui-local-access-status":
+                if args: raise ValueError("invalid local access status")
+                from .recordings import _allowed, history_visible, local_voice_history_allowed
+                with service.lock:
+                    voice_ready = bool(service.voice is not None and service.voice.ready)
+                    evidence = getattr(service, 'latest_evidence', None)
+                    captured_at = getattr(evidence, 'captured_at', None)
+                    audio = getattr(service.inputs, 'audio_status', {})
+                    audio = audio if isinstance(audio, dict) else {}
+                    from .voice_catalog import profiles
+                    selected = service.store.get('voice_profile')
+                    trusted = service.trusted_ids()
+                    scene = getattr(evidence, 'scene', None)
+                    faces = getattr(scene, 'faces', 0) if scene is not None and getattr(scene, 'available', False) else 0
+                    result = {"single_user_local": service.store.get("single_user_local", False) is True,
+                              "history_visible": history_visible(service), "raw_allowed": _allowed(service),
+                              "local_feedback_restored": bool(service.feedback.local_restored),
+                              "voice_sensing_ready": local_voice_history_allowed(service),
+                              "call_safe": service.meeting.local_summary_safe(), "voice_output_ready": voice_ready,
+                              "local_summary_ready": bool(voice_ready and service.voice.local_history_audio_permitted()),
+                              "voice_enabled": service.store.get('voice_enabled', False) is True,
+                              "voice_profile_available": selected in {p['id'] for p in profiles(service.store)},
+                              "echo_cancellation_ready": audio.get('echo_cancellation') is True,
+                              "voice_worker_warm": bool(service.voice is not None and service.voice.readiness.get('voice') == 'ready'),
+                              "sensing_fresh": bool(type(captured_at) in (int, float) and 0 <= service.clock()-captured_at <= Gate.MAX_AGE),
+                              "camera_healthy": getattr(evidence, 'camera_ok', False) is True,
+                              "microphone_healthy": getattr(evidence, 'microphone_ok', False) is True,
+                              "other_face_detected": bool(evidence and evidence.camera_ok and evidence.camera_certain and evidence.camera_ids - trusted),
+                              "other_voice_detected": bool(evidence and evidence.voice_certain and evidence.voice_ids - trusted),
+                              "multiple_faces_detected": faces >= 2}
             elif command == "ui-observe":
                 from .local_ui import observe
                 result = observe(service, args["source"])
+            elif command == "ui-single-user":
+                if set(args) != {"enabled"} or type(args["enabled"]) is not bool:
+                    raise ValueError("invalid single-user setting")
+                with service.lock:
+                    if args["enabled"] and not service.store.execute("SELECT 1 FROM agreements WHERE id='owner' AND active=1"):
+                        raise ValueError("active owner consent required")
+                    service.history_summaries.cancel()
+                    service._end_local_history_scope()
+                    service.store.set("single_user_local", args["enabled"])
+                    result = {"single_user_local": args["enabled"]}
             elif command == "voice-preview":
                 if service.voice is None: raise ValueError("voice unavailable")
                 result = service.voice.preview(args["profile"])
@@ -1227,11 +1324,24 @@ class Handler(socketserver.StreamRequestHandler):
                     result = {"queued": False, "message": str(error)[:300]}
             elif command == "ui-observations":
                 from .observation_browser import browse
-                from .recordings import _allowed
-                result = browse(service, args) if _allowed(service) else {"hidden": True, "items": [], "days": [], "total": 0}
+                from .recordings import _allowed, history_visible
+                with service.lock:
+                    result = browse(service, args) if history_visible(service) else {"hidden": True, "items": [], "days": [], "total": 0}
+                    if not history_visible(service): result = {"hidden": True, "items": [], "days": [], "total": 0}
+                    elif not _allowed(service):
+                        for item in result.get("items", []): item.pop("frame", None)
             elif command == "ui-recordings":
                 from .recordings import list_recordings
                 result = list_recordings(service, args)
+            elif command == "ui-history-summary":
+                action = args.get('action')
+                if action == 'start':
+                    result = service.history_summaries.start({k: v for k, v in args.items() if k != 'action'})
+                elif action == 'status' and set(args) == {'action', 'id'}:
+                    result = service.history_summaries.status(args['id'])
+                elif action == 'cancel' and set(args) == {'action', 'id'}:
+                    result = service.history_summaries.cancel_id(args['id'])
+                else: raise ValueError('invalid summary command')
             elif command == "ui-recording-play":
                 from .recordings import playback
                 result = playback(service, args)

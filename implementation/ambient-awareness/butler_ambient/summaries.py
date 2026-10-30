@@ -5,10 +5,10 @@ import math
 from .analysis import ACTIVITIES, export_observations
 
 
-def summarize(store, start, end, *, local=False):
+def summarize(store, start, end, *, local=False, expire=True):
     if not math.isfinite(start) or not math.isfinite(end) or not start < end or end - start > 366 * 86400:
         raise ValueError("select a positive period of at most 366 days")
-    rows = store.history(start, end)
+    rows = store.history(start, end) if expire else store.history(start, end, expire=False)
     edges = {start, end}
     for row in rows:
         edges.update((max(start, row["start"]), min(end, row["end"])))
@@ -50,10 +50,15 @@ def summarize(store, start, end, *, local=False):
 
 
 def summary_text(summary):
-    minutes = ", ".join(f"{key}: ~{value / 60:.1f} min" for key, value in summary["approximate_seconds"].items() if value)
-    sources = ", ".join(x["observation_id"] for x in summary["evidence"][:8]) or "none"
-    return (f"Butler activity summary\n{minutes or 'No classified activity.'}\n"
-            f"Possible work topics: {', '.join(summary['work_topics']) or 'unknown'}.\n"
-            f"Observation coverage: {summary['coverage_fraction']:.0%}; "
-            f"unobserved: ~{(summary['end'] - summary['start'] - summary['covered_seconds']) / 60:.1f} min.\n"
-            f"{summary['uncertainty']}\nEvidence: {sources}")
+    activities = {"work": "работа", "browsing": "просмотр сайтов", "youtube": "видео", "reading": "чтение",
+                  "rest": "отдых", "entertainment": "развлечения", "unknown": "не определено"}
+    topics = {"software development": "разработка", "writing": "тексты", "communications": "общение",
+              "research": "исследования", "planning": "планирование", "finance": "финансы", "unknown": "не определено"}
+    minutes = ", ".join(f"{activities.get(key, key)}: ~{value / 60:.1f} мин" for key, value in summary["approximate_seconds"].items() if value)
+    sources = ", ".join(x["observation_id"] for x in summary["evidence"][:8]) or "нет"
+    work_topics = ", ".join(topics.get(topic, topic) for topic in summary['work_topics']) or "не определены"
+    return (f"Дневная сводка Butler\n{minutes or 'Распознанных занятий нет.'}\n"
+            f"Возможные рабочие темы: {work_topics}.\n"
+            f"Охват наблюдений: {summary['coverage_fraction']:.0%}; "
+            f"не наблюдалось: ~{(summary['end'] - summary['start'] - summary['covered_seconds']) / 60:.1f} мин.\n"
+            f"Это приблизительная оценка модели; промежутки без наблюдений не распределены.\nНаблюдения: {sources}")

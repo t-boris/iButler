@@ -4,6 +4,7 @@ import json
 import re
 import tempfile
 import threading
+import time
 import types
 import unittest
 from pathlib import Path
@@ -291,6 +292,22 @@ class ManagementTests(unittest.TestCase):
         self.assertEqual(cli.call_count,2)
         self.assertIn('не прерывается',result['message'])
 
+    def test_builtin_delivery_settings_are_independent_and_default_to_display_only(self):
+        with patch.object(self.manager, 'cron_jobs', return_value=[]):
+            rows = {r['id']: r for r in self.manager.snapshot()['jobs']}
+        self.assertFalse(rows['builtin:daily']['telegram_enabled'])
+        self.assertFalse(rows['builtin:advice']['telegram_enabled'])
+        self.manager.control({'id': 'builtin:daily', 'action': 'update', 'telegram_enabled': True})
+        with patch.object(self.manager, 'cron_jobs', return_value=[]):
+            rows = {r['id']: r for r in self.manager.snapshot()['jobs']}
+        self.assertTrue(rows['builtin:daily']['telegram_enabled'])
+        self.assertFalse(rows['builtin:advice']['telegram_enabled'])
+        with self.assertRaises(ValueError):
+            self.manager.control({'id': 'builtin:daily', 'action': 'update', 'telegram_enabled': 'true'})
+        with self.assertRaises(ValueError):
+            self.manager.control({'id': 'ours', 'action': 'update', 'telegram_enabled': True})
+        self.assertTrue(self.store.get('schedule_telegram_daily'))
+
     def test_builtin_pause_survives_restart_and_stop_cancels_only_analysis(self):
         self.manager.control({'id':'builtin:analysis','action':'pause'})
         self.assertTrue(self.store.get('analysis_paused'))
@@ -313,6 +330,20 @@ class ManagementTests(unittest.TestCase):
         self.manager.control({'id':'builtin:analysis','action':'run'})
         self.assertEqual(self.service.pending.get_nowait(),('owner-request',self.service.gate.generation))
         with self.assertRaises(ValueError):self.manager.control({'id':'builtin:advice','action':'run'})
+        self.service.delivery.transport.send.assert_not_called()
+
+    def test_manual_daily_display_works_with_single_user_history_permission(self):
+        self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
+        self.store.set('continuous_archive', True)
+        self.store.set('single_user_local', True)
+        self.service.gate.enable(True, self.now)
+        self.assertFalse(self.service.gate.permits(self.now))
+        self.manager.control({'id': 'builtin:daily', 'action': 'run'})
+        deadline = time.monotonic() + 2
+        while self.manager.manual.get('daily') == 'running' and time.monotonic() < deadline:
+            time.sleep(.01)
+        self.assertEqual(self.manager.manual.get('daily'), 'done')
+        self.assertEqual([c['title'] for c in self.service.display.snapshot()['cards']], ['Дневная сводка'])
         self.service.delivery.transport.send.assert_not_called()
 
     def test_stop_discards_late_analysis_results_without_changing_permission(self):

@@ -32,6 +32,68 @@ class ArchiveTests(unittest.TestCase):
         self.now+=1
         return Batch(self.now-1,self.now,kwargs.get('frames',[b'controlled jpeg']),kwargs.get('pcm',b'\0'*32000),frame_at=self.now,gaps=kwargs.get('gaps',()))
 
+    def test_advice_is_evaluated_after_a_successful_source_when_another_fails(self):
+        self.store.media('camera', self.now-2, self.now-1, b'jpeg', 'mjpeg')
+        self.store.media('microphone', self.now-2, self.now-1, b'wave', 'wav')
+        self.s.analysis_error = 'synthetic-source-failure'
+        self.s.analysis_diagnostic = {'source': 'camera'}
+        self.s.delivery.send = Mock(return_value='sent')
+        candidate = {'key': 'synthetic', 'topic': 'work', 'created_at': self.now, 'text': 'synthetic advice'}
+        with patch.object(self.s, 'analyze_group', side_effect=[False, True]), \
+             patch('butler_ambient.service.advice_candidate', return_value=candidate):
+            self.s.analysis_tick(self.a.generation, archive=True)
+        self.assertEqual(self.s.delivery.send.call_count, 1)
+        self.assertEqual(self.s.analysis_error, 'synthetic-source-failure')
+
+    def test_advice_after_source_failure_is_shown_only_in_display(self):
+        self.store.media('camera', self.now-2, self.now-1, b'jpeg', 'mjpeg')
+        self.store.media('microphone', self.now-2, self.now-1, b'wave', 'wav')
+        self.s.analysis_error = 'synthetic-source-failure'
+        self.s.analysis_diagnostic = {'source': 'camera'}
+        candidate = {'key': 'synthetic', 'topic': 'work', 'created_at': self.now, 'text': 'synthetic advice'}
+        with patch.object(self.s, 'analyze_group', side_effect=[False, True]), \
+             patch('butler_ambient.service.advice_candidate', return_value=candidate), \
+             patch('butler_ambient.delivery.quiet', return_value=False):
+            self.s.analysis_tick(self.a.generation, archive=True)
+        cards = self.s.display.snapshot()['cards']
+        self.assertEqual([card['title'] for card in cards], ['Инициативный совет'])
+        self.s.delivery.transport.send.assert_not_called()
+        self.assertEqual(self.s.analysis_error, 'synthetic-source-failure')
+
+    def test_stopped_analysis_does_not_publish_advice_after_a_source_failure(self):
+        self.store.media('camera', self.now-2, self.now-1, b'jpeg', 'mjpeg')
+        self.s.analysis_error = 'synthetic-source-failure'
+        self.s.analysis_diagnostic = {'source': 'camera'}
+        token = threading.Event()
+        def fail(*args, **kwargs):
+            token.set()
+            return False
+        candidate = {'key': 'synthetic-cancelled', 'topic': 'work', 'created_at': self.now, 'text': 'synthetic advice'}
+        with patch.object(self.s, 'analyze_group', side_effect=fail), \
+             patch('butler_ambient.service.advice_candidate', return_value=candidate), \
+             patch('butler_ambient.delivery.quiet', return_value=False):
+            self.s.analysis_tick(self.a.generation, run_token=token, archive=True)
+        self.assertEqual(self.s.display.snapshot()['cards'], [])
+        self.s.delivery.transport.send.assert_not_called()
+
+    def test_advice_telegram_is_optional_and_keeps_the_display_card(self):
+        self.store.set('schedule_telegram_advice', True)
+        self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
+        for _ in range(3):
+            self.now += .1
+            self.s.gate.check(Evidence(self.now, True, True, frozenset({'owner'}), True), self.now)
+        self.s.analysis_token = threading.Event()
+        self.s.delivery.transport.send.return_value = 'core:synthetic'
+        candidate = {'key': 'synthetic-telegram', 'topic': 'work', 'created_at': self.now, 'text': 'synthetic advice'}
+        with patch('butler_ambient.service.advice_candidate', return_value=candidate), \
+             patch('butler_ambient.delivery.quiet', return_value=False):
+            self.s.analysis_tick(self.a.generation, archive=True)
+            self.s.analysis_tick(self.a.generation, archive=True)
+        cards = self.s.display.snapshot()['cards']
+        self.assertEqual([card['title'] for card in cards], ['Инициативный совет'])
+        self.assertEqual(cards[0]['status'], 'Передано в очередь Telegram.')
+        self.s.delivery.transport.send.assert_called_once()
+
     def test_failed_media_database_insert_removes_partial_file_and_leaves_database_usable(self):
         self.store.execute("CREATE TRIGGER injected_failure BEFORE INSERT ON media BEGIN SELECT RAISE(ABORT,'injected storage failure'); END")
         with self.assertRaises(sqlite3.Error):
@@ -150,6 +212,23 @@ class ArchiveTests(unittest.TestCase):
         self.assertEqual(self.s.pending.get_nowait(),('archive',self.a.generation))
         self.assertEqual(len(self.store.execute("SELECT id FROM media WHERE storage_class='spool' AND analyzed=0")),1)
         self.assertEqual(len(self.store.execute("SELECT id FROM media WHERE storage_class='requested' AND analyzed=0")),5)
+
+    def test_advice_is_not_skipped_when_backlog_yields_to_fresh_capture(self):
+        for i in range(10):
+            self.store.media('camera', 10+i, 11+i, b'\xff\xd8L\xff\xd9', 'mjpeg')
+        def incoming(*args, **kwargs):
+            self.now += 60
+            self.store.media('camera', self.now-1, self.now, b'\xff\xd8F\xff\xd9', 'mjpeg', temporary=True)
+            return []
+        self.s.analyzer.analyze.side_effect = incoming
+        def candidate(rows, now):
+            return {'key': 'synthetic-yield', 'topic': 'work', 'created_at': now, 'text': 'synthetic advice'}
+        with patch('butler_ambient.service.advice_candidate', side_effect=candidate), \
+             patch('butler_ambient.delivery.quiet', return_value=False):
+            self.s.analysis_tick(self.a.generation, archive=True)
+        self.assertEqual([card['title'] for card in self.s.display.snapshot()['cards']], ['Инициативный совет'])
+        self.s.delivery.transport.send.assert_not_called()
+        self.assertEqual(self.s.pending.get_nowait(), ('archive', self.a.generation))
 
     def test_current_minute_precedes_old_spool_as_well_as_legacy(self):
         for i in range(7):self.store.media('camera',10+i,11+i,b'\xff\xd8O\xff\xd9','mjpeg',temporary=True)

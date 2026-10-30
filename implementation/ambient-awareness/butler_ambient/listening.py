@@ -7,10 +7,11 @@ import math
 from array import array
 import time
 from collections import deque
+from dataclasses import replace
 
 from .analysis import LocalAnalyzer
 from .attention import BUSY, CAUSE_TEXT
-from .conversation import GENERAL, Conversation, explicit_address, hearing_check, hearing_vocative, silence_requested, speech_echo, STOP_CUE
+from .conversation import GENERAL, Conversation, explicit_address, hearing_check, hearing_vocative, silence_requested, single_user_summary_request, speech_echo, STOP_CUE
 from .sensing import Batch
 from .transcript import DraftDecoder, TranscriptStream, join_segments
 from .dialogue_state import unfinished
@@ -70,6 +71,8 @@ class Listening:
         self.token = threading.Event()
         self.audio = bytearray()
         self.pre_roll = b''
+        self.dictation_generation = 0
+        self.dictation_id = None
         self.pre_check = None
         self.pre_checks = []
         self.candidate_active = False
@@ -115,11 +118,34 @@ class Listening:
                 self.prior_checks = list(pending['checks'].items) if isinstance(pending['checks'], UtteranceChecks) else []
             else:
                 self.utterance = self.transcripts.begin(born)
+                current_dictation = self._dictating()
+                self.transcripts.rows[self.utterance]['dictation_id'] = current_dictation.id if current_dictation else None
+                self.transcripts.rows[self.utterance]['dictation_generation'] = self.dictation_generation
                 self.transcripts.rows[self.utterance]['private_epoch'] = (self.service.voice_gate.generation
                     if self.service.voice_gate.permits(self.service.clock()) else None)
                 self.prior_checks = []
             self.last_draft_size = 0
         return self.utterance
+
+    def begin_dictation(self, identifier):
+        """Start a fresh assembler without cancelling already accepted agent work."""
+        self.dictation_generation += 1
+        self.dictation_id = identifier
+        self._cancel_capture('dictation-boundary')
+        self._discard_pending('dictation-boundary')
+        if self.pending_endpoint is not None:
+            pending = self.pending_endpoint
+            if len(pending) > 5: self._revision(pending[5], '', 'dictation-boundary')
+            self.pending_endpoint = None
+        self.audio.clear(); self.pre_roll = b''; self.pre_check = None; self.pre_checks = []
+        self.candidate_active = False; self.candidate_quiet = 0; self.checks = UtteranceChecks()
+        self.last_draft_size = 0
+        if not self.processing: self.phase = 'waiting'
+
+    def stop_dictation(self, identifier, at):
+        # The next complete microphone block is clipped at this timestamp;
+        # this includes its pre-stop portion but never admits its later samples.
+        if identifier != self.dictation_id: raise ValueError('dictation session changed')
 
     def _revision(self, identifier, text, state):
         revision = self.transcripts.update(identifier, text, state)
@@ -264,6 +290,20 @@ class Listening:
             self.checks = UtteranceChecks()
             self.phase = 'input-unavailable'
             return
+        dictation = self._dictating()
+        boundary = False
+        if dictation is not None and dictation.id == self.dictation_id:
+            check = MicrophoneCheck(batch.end)
+            if evidence is not None: check.resolve(evidence, now=s.clock(), trusted=s.trusted_ids())
+            if dictation.stopping_at is not None and not dictation.stop_boundary_pending:
+                return check
+            start = max(0, min(16000, math.ceil((dictation.armed_at - batch.start) * 16000)))
+            end = 16000 if dictation.stopping_at is None else max(0, min(16000, math.floor((dictation.stopping_at - batch.start) * 16000)))
+            boundary = dictation.stopping_at is not None and batch.end >= dictation.stopping_at
+            if end <= start and not boundary:
+                return check
+            end = max(start, end)
+            batch = replace(batch, pcm=b'\0' * (start * 2) + batch.pcm[start * 2:end * 2] + b'\0' * ((16000 - end) * 2))
         # Complete PCM seconds are timestamped at pipe-read completion. Small
         # early/late scheduling jitter does not overlap or lose PCM samples.
         numbered = batch.stream_id is not None and batch.sample_start is not None and batch.sample_end is not None
@@ -287,7 +327,7 @@ class Listening:
         check = MicrophoneCheck(batch.end)
         if evidence is not None: check.resolve(evidence,now=s.clock(),trusted=s.trusted_ids())
         speaking = self.speech(batch.pcm)
-        confirmation_only = (not speaking and (getattr(s.commands, 'pending', None) is not None or s.voice.session.question is not None)
+        confirmation_only = (dictation is None and not speaking and (getattr(s.commands, 'pending', None) is not None or s.voice.session.question is not None)
                              and s.voice_gate.permits(s.clock()) and self.confirmation_candidate(batch.pcm))
         self.counts['batches'] = self.counts.get('batches', 0)+1
         if speaking or confirmation_only:
@@ -335,6 +375,11 @@ class Listening:
                 self.pre_checks = [check]
                 self.candidate_active = False; self.candidate_quiet = 0
             self.pre_check = check
+            if boundary:
+                self.pre_roll = b''; self.pre_checks = []; self.pre_check = None
+                self.candidate_active = False; self.candidate_quiet = 0
+                self.phase = 'waiting'
+                dictation.stop_boundary_pending = False
             if not keep and self.phase not in {'transcription', 'participant-check', 'blocked', 'routed', 'routed-general', 'heard', 'error'}:
                 self.phase = 'waiting'
             return check
@@ -349,7 +394,7 @@ class Listening:
         # actual quiet tail. A sparse voiced second is not a completed turn.
         tail = Conversation._silence_tail(batch.pcm)
         activity = speaking or confirmation_only or self.confirmation_candidate(batch.pcm)
-        final = tail >= .45 or not activity
+        final = boundary or tail >= .45 or not activity
         if not final and len(self.audio) < 32000*20:
             return check
         identifier = self.utterance
@@ -370,12 +415,24 @@ class Listening:
             self._clear_attention()
             self._revision(identifier, '', 'queue-full')
             self.mark('queue-full', 'Фраза завершена, но очередь распознавания заполнена: обработать её не удалось.')
+            if boundary:
+                self.phase = 'waiting'
+                dictation.stop_boundary_pending = False
             return check
         self.jobs.put_nowait(task)
+        if boundary: dictation.stop_boundary_pending = False
         return check
 
     def valid(self, token, at):
         return self.enabled and token is self.token and not token.is_set() and 0 <= self.service.clock()-at <= 8
+
+    def valid_dictation(self, token, at, identifier):
+        row = self.transcripts.rows.get(identifier, {})
+        current = self._dictating()
+        return (current is not None and row.get('dictation_id') == current.id
+                and row.get('dictation_generation') == self.dictation_generation
+                and self.enabled and token is self.token and not token.is_set()
+                and 0 <= self.service.clock() - at <= 90)
 
     def _report_expired(self, token):
         if token is self.token and not token.is_set() and self.enabled:
@@ -391,13 +448,20 @@ class Listening:
         s = self.service
         self.current_episode = None
         with s.lock:
-            if not self.valid(token, at):
+            if not self.valid(token, at) and not self.valid_dictation(token, at, identifier):
                 self._revision(identifier, '', 'expired')
                 self._report_expired(token)
                 return
             identifier = identifier or self.transcripts.begin(at-len(pcm)/32000)
             row = self.transcripts.rows.get(identifier)
             if row is None or row['state'] not in {'capturing', 'draft'}:
+                return
+            dictation = self._dictating()
+            row.setdefault('dictation_generation', self.dictation_generation)
+            row.setdefault('dictation_id', dictation.id if dictation is not None else None)
+            generation, dictation_id = row['dictation_generation'], row['dictation_id']
+            if generation != self.dictation_generation or (dictation_id is not None and (dictation is None or dictation.id != dictation_id)):
+                self._revision(identifier, '', 'dictation-boundary')
                 return
             row.setdefault('private_epoch', s.voice_gate.generation if s.voice_gate.permits(s.clock()) else None)
             pending, self.pending_endpoint = self.pending_endpoint, None
@@ -420,7 +484,8 @@ class Listening:
             completed = endpointer.complete(pcm)
             if completed is False and len(pcm) < 32000 * 20:
                 with s.lock:
-                    if self.valid(token, at):
+                    if (generation == self.dictation_generation and self._dictating() is None
+                            and self.valid(token, at)):
                         self.pending_endpoint = (pcm, token, at, owner, queued, identifier)
                         self.phase = 'awaiting-continuation'
                         self.mark('end-of-thought-wait', 'Мысль ещё не завершена; жду продолжения.')
@@ -436,7 +501,11 @@ class Listening:
                 return
         transcribed = time.monotonic()
         with s.lock:
-            if not self.valid(token, at):
+            dictation = self._dictating()
+            if generation != self.dictation_generation or (dictation_id is not None and (dictation is None or dictation.id != dictation_id)):
+                self._revision(identifier, '', 'dictation-boundary')
+                return
+            if not self.valid(token, at) and not self.valid_dictation(token, at, identifier):
                 self._revision(identifier, '', 'expired')
                 self._report_expired(token)
                 return
@@ -446,8 +515,7 @@ class Listening:
                 self.segment_text.pop(identifier, None)
                 return
             text = join_segments(self.segment_text.get(identifier, ''), text)
-            dictation = self._dictating()
-            if dictation is not None and not confirmation_only:
+            if dictation_id is not None and dictation is not None and not confirmation_only:
                 # Dictation claims every utterance that finishes while it listens (the first sentence must never reach the
                 # voice dialogue). The words are kept nowhere else: the transcript row is closed empty, no episode is
                 # captured, nothing is routed, and the event line carries no text.
@@ -500,6 +568,9 @@ class Listening:
             if not self.transcripts.claim(identifier): return
             from .recordings import voice_target
             local_navigation = voice_target(text, s.clock()) is not None
+            aliases = s.store.get('address_aliases', ['Бата', 'Батлер', 'Butler'])
+            if s.store.get('single_user_local', False) is True and single_user_summary_request(text, aliases):
+                local_navigation = True
             feedback = None if local_navigation else getattr(s, 'feedback', None)
             if feedback is not None:
                 text, joined = feedback.join(text)
@@ -516,7 +587,6 @@ class Listening:
             if s.clock()-voice.last_playback_finished < 2.5 and speech_echo(text, voice.last_spoken):
                 self._clear_attention()
                 self.mark('echo', 'Мой голос из динамика: ответ не требуется.'); return
-            aliases = s.store.get('address_aliases', ['Бата', 'Батлер', 'Butler'])
             hearing = explicit_address(text, aliases) and hearing_check(text, aliases)
             prior=self.public_attention if attention_epoch==self.attention_epoch else None
             self.public_attention=None
@@ -567,10 +637,33 @@ class Listening:
                     meeting_id=getattr(s.meeting, "recording_id", None), now=s.clock())
             # Intercept before corrections, dialogue classification, feedback
             # joining or any cloud dispatch. A recordings request is local.
-            from .recordings import navigate_voice
-            if navigate_voice(s, text, authorized=bool(actor_owner and not company)):
+            from .recordings import history_visible, local_voice_history_allowed, navigate_voice
+            local_only = (s.store.get('single_user_local', False) is True and not company
+                          and isinstance(owner, UtteranceChecks) and owner.checked
+                          and not any(item.nonowner for item in owner.items)
+                          and history_visible(s))
+            if navigate_voice(s, text, authorized=bool((actor_owner and not company) or local_only)):
                 self.phase = 'heard'
                 self.mark('recordings-navigation', 'Записи открыты локально.')
+                return
+            # A fixed, read-only local summary has no owner-identity claim and
+            # never enters the agent or the privileged command planner.
+            local_summary = local_only and single_user_summary_request(text, aliases)
+            if local_summary:
+                s.meeting.update()
+                if not s.meeting.local_summary_safe() or not local_voice_history_allowed(s):
+                    self.phase = 'blocked'
+                    self.mark('local-summary-unavailable', 'Локальная сводка не озвучивается во время встречи или при недоступной проверке вызова.')
+                    return
+                if not (voice.ready and voice.local_history_audio_permitted()) or voice.jobs.full():
+                    self.phase = 'blocked'
+                    self.mark('local-summary-unavailable', 'Локальная сводка сейчас недоступна.')
+                    return
+                input_token = threading.Event()
+                voice.pending_pcm, voice.pending_generation, voice.pending_actor = pcm, GENERAL, False
+                voice.jobs.put_nowait((pcm, input_token, GENERAL, False, 'single-user-history:' + str(s.local_history_epoch), queued, False, text))
+                self.phase = 'routed-general'
+                self.mark('local-summary', 'Готовлю сводку локально.')
                 return
             if feedback is not None and actor_owner and s.voice_gate.permits(s.clock()):
                 correction = feedback.voice_correction(text, current=self.current_episode, allow_remember=bool(verified_owner))

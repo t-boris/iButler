@@ -211,7 +211,7 @@ class BrowserTests(unittest.TestCase):
         self.store.execute("UPDATE media SET preserved=? WHERE id=?", (str(frame), media))
         self.service.gate.enable(False, NOW)
         self.assertIsNone(browse(self.service, {"day": "2026-10-26"})["items"][0]["frame"])
-        self.service.gate.enable(True, NOW)
+        authorize(self.service)
         self.assertEqual(browse(self.service, {"day": "2026-10-26"})["items"][0]["frame"], str(frame))
         frame.unlink()
         self.assertIsNone(browse(self.service, {"day": "2026-10-26"})["items"][0]["frame"])

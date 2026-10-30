@@ -25,6 +25,7 @@ class Meeting:
         self.automatic_quiet, self.automatic_state = self.quiet, self.state
 
     def update(self):
+        summary_was_safe = self.local_summary_safe()
         now = self.service.clock()
         mode = self.service.store.get('meeting_mode', 'auto')
         health = getattr(self.service.inputs, 'audio_status', {})
@@ -82,6 +83,11 @@ class Meeting:
         if quiet != self.quiet:
             self.revision += 1
         self.quiet, self.state = quiet, state
+        if summary_was_safe and not self.local_summary_safe():
+            # A local private summary must not continue into a call or quiet mode,
+            # even if a later release makes the room available again.
+            invalidate = getattr(self.service, '_end_local_history_scope', None)
+            if callable(invalidate): invalidate()
         if changed_to_quiet and manual != "busy":
             voice = self.service.voice
             if voice is not None:
@@ -93,6 +99,11 @@ class Meeting:
                     # An admitted turn (the owner named Butler or was answered) is finished; only idle dialogue stops.
                     voice.cancel(clear_context=False, reason='meeting-started')
         return changed_to_quiet
+
+    def local_summary_safe(self):
+        """Private facts must not be spoken into an active or unknown call."""
+        return (not self.quiet and not self.automatic_quiet
+                and self.automatic_state not in {'checking', 'detector-unavailable'})
 
     def snapshot(self):
         return {'detected':self.detected, 'recording_id':self.recording_id, 'quiet':self.quiet, 'state':self.state, 'fresh':self.fresh,

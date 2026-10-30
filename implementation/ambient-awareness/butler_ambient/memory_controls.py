@@ -173,7 +173,7 @@ class MemoryControls:
             "screen-permission": "Открыть системный запрос разрешения записи экрана для Butler",
             "video-settings": "Открыть системные настройки камеры Butler"}[capability]
 
-    def read(self, capability, args):
+    def read(self, capability, args, *, read_only=False):
         if capability == "recordings":
             where, params = ("WHERE complete=1 AND source=?", [args["source"]]) if "source" in args else ("WHERE complete=1", [])
             rows = self.store.execute("SELECT * FROM media " + where + " ORDER BY start DESC,id DESC LIMIT ?", (*params, args.get("limit", 5)))
@@ -187,7 +187,7 @@ class MemoryControls:
             count = self.store.execute("SELECT COUNT(*) AS n FROM visual_artifacts")[0]["n"]
             return "Подготовка изображения: " + {"idle": "ожидает запроса", "queued": "в очереди", "working": "выполняется", "ready": "готово", "failed": "ошибка", "cancelled": "отменена"}.get(visual.state["status"], visual.state["status"]) + ". Результатов: " + str(count) + "."
         start, end = self._period(args)
-        data = summarize(self.store, start, end)
+        data = summarize(self.store, start, end, expire=not read_only)
         minutes = "; ".join(ACTIVITIES.get(k, k) + ": около " + str(round(v / 60, 1)) + " минут" for k, v in data["approximate_seconds"].items() if v)
         topics = [" ".join(t.split())[:80] for t in data["work_topics"][:3]]
         return ("Сводка с " + self._stamp(start) + " по " + self._stamp(end) + ". " + (minutes + ". " if minutes else "Деятельность не определена. ")

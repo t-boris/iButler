@@ -1,5 +1,17 @@
 # Changelog — butler-ambient
 
+## Unreleased — owner-local history summaries and selection
+
+- Preserve an open recording selection across periodic refreshes and raw-access recovery; explicit refresh and hard permission loss still clear or reload as before.
+- Add on-demand local summaries for a recording session, a day of recordings, and a day of observations. Summaries distinguish key points, possible conclusions and limitations, warn when bounded input is incomplete, and are cancelled on hard history-scope loss. They do not transmit or persist summary text.
+- Show a clearly labelled first-fragment preview while a long summary is still running; explain when the current raw-file permission hides images.
+- Under owner decision DEC-098, show already-preserved camera/screen stills in the local Images gallery in single-user mode even without automatic identity confirmation. Hard history closes still clear them; this does not unlock raw audio/video, capture, deletion, Finder access or delivery.
+
+## 0.12.0 — 2026-10-30 (Display delivery for local schedules)
+
+- Show built-in daily summaries and proactive advice as Russian-language Display cards, with a separate opt-in Telegram setting for each; neither is spoken. Local single-user history permits the summary without biometric confirmation, while optional Telegram delivery still requires the owner gate. The settings can also be requested through the existing confirmed schedule command. External OpenClaw schedules keep their existing delivery behavior.
+- Consider fresh advice before an archive analysis yields to new capture or returns after a different source fails; retain the existing policy, meeting and quota checks.
+
 ## 0.11.3 — 2026-10-28 (Dictation while an agent is working)
 
 - Let panel dictation start while an agent request is pending without audible speech. Defer its spoken output until dictation ends.
@@ -143,3 +155,32 @@
 - Reload private conversation rules through the agent's existing memory tool (DEC-075), and honor any grammatical-case Butler-name mention against an unsure negative judge (DEC-076).
 - Add Auto / Busy / Free controls that retain the owner's availability choice until established situation changes (DEC-077). Repeated microphone samples cannot defeat it.
 - Add a Pipecat/Silero/Smart Turn endpoint adapter. Active endpointing remains gated on calibration using owner speech; the default remains the existing shadow mode.
+
+# Pending: owner-local single-user mode
+
+The owner authorized a single-user mode in Recordings DEC-097 after reporting false owner-verification blocks (MarkView BUG-010). A local opt-in separates history visibility from raw playback permission; pause, explicit archive off and consent revocation hide history. Automatic face/voice or crowd classifications no longer hide already-stored local history in this explicitly chosen mode. Local voice navigation accepts checked but unattributed speech without identifying the speaker or dispatching the request externally; spoken private summaries still require fresh healthy participant sensing and a safe call state. Media playback and file actions retain the existing stricter gates. A follow-up corrected gallery paths and the native gallery cache to use the stricter gate and made denied originals and paused history visibly distinct from missing data. This history scope was tested, installed and enabled; wider identity-gated local and voice paths remain under review.
+
+Local feedback and voice-episode viewing also uses the single-user history signal. Soft identity loss keeps local rows while cancelling exports and privileged context; pause and consent revocation still clear them. Corrections retain their pre-existing stricter action gate, and the panel clears restricted episode/image caches on access loss or the first failed poll.
+
+# Dictation boundary fix — 2026-10-28
+
+- Start a new in-memory capture generation for each panel dictation, discard earlier pending or in-flight speech, and clip microphone blocks at the service's start and stop command timestamps. Stop waits for the final clipped block and its local recognition; silence and duration no longer end the session automatically. Manual pause and loss of microphone access still interrupt it.
+- Dictation still stays in the message field, never sends itself, and does not change owner, participant, media or transmission permissions. The text limit remains in force.
+
+- Restore saved dialogue-feedback episodes after a service restart into a separate single-user local read-only cache, without restoring agent context or correction authority. Respect consent, pause, archive-off and text expiry; the new read does not run retention.
+
+- Permit source-authorized local rule browsing in single-user mode without automatic owner identity. Listing uses a nonmutating reader, filters tombstones, checks access again before returning, and marks the view read-only; the native dialog disables mutations while the stricter gate is closed.
+
+- Recheck history and raw permissions before returning a panel snapshot. If the raw lease expires during assembly, remove gallery paths and image feed entries while preserving independently authorized local history; a hard close also removes history and feedback.
+
+- Invalidate delayed rule-list replies and close the local rule dialog on access loss, a failed poll, pause or mode change. Poll during the modal event loop so an external pause or revocation is observed even while rules are open.
+- Close an editable rule dialog if the dialogue lease expires, even when single-user read-only history stays visible; reopening uses the current access mode.
+- If service stop begins during a panel snapshot, suppress live camera preview and report recording disabled in the final response.
+- Deny strict raw access immediately when service stop begins, including playback already converting outside the service lock.
+- Keep cached Recordings history and selection when only raw permission falls; stop playback, remove paths, invalidate pending media replies and refresh when raw permission returns. Hard close and failed poll still clear history.
+- Reject a late Smart Turn result from a pre-dictation generation so it cannot reinsert old audio into the next dictated phrase.
+
+# Recordings content opening — 2026-10-28
+
+- Open a session’s first observation with one selection, report pending or failed analysis clearly, and preserve the opened result through periodic refresh. Default to records with facts or transcripts; the checkbox can show all records.
+- Resolve a session using its former media, observation or transcript anchor if ongoing analysis changes the session identity between list and open. Preserve existing raw-media gates and pause/disconnection clearing.

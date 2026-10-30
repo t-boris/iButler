@@ -19,6 +19,43 @@ class NothingSent(RuntimeError):
     """The transport could not hand the message over at all: the reservation is released."""
 
 
+class DisplayTransport:
+    """Publish autonomous results as local Display cards without spoken output."""
+
+    def __init__(self, service):
+        self.service = service
+
+    def send(self, text, token=None, *, key=None, kind="status"):
+        titles = {"daily": "Дневная сводка", "advice": "Инициативный совет"}
+        if kind not in titles:
+            raise NothingSent("unsupported Display notice")
+        with self.service.lock:
+            if token is not None and token.is_set():
+                raise NothingSent("delivery canceled by observation policy")
+            if kind == "daily" and not self.service.gate.permits(self.service.clock()):
+                from .recordings import history_visible
+                if not history_visible(self.service):
+                    raise NothingSent("local history unavailable")
+            card = self.service.display.present(
+                {"kind": "text", "title": titles[kind], "markdown": text}, origin="ambient")
+            send_telegram = self.service.store.get("schedule_telegram_" + kind, False) is True
+        if send_telegram:
+            try:
+                with self.service.lock:
+                    if not self.service.gate.permits(self.service.clock()):
+                        raise NothingSent("owner verification required for Telegram")
+                from .conversation import Tokens
+                external_token = Tokens(token, self.service.analysis_token) if token is not None else self.service.analysis_token
+                receipt = self.service.delivery.transport.send(text, token=external_token, key=str(key) + ":telegram", kind=kind)
+                status = "Передано в очередь Telegram." if str(receipt).startswith("core:") else "Отправлено в Telegram."
+            except NothingSent:
+                status = "Не отправлено в Telegram: требуется подтверждение владельца или доступ к каналу. Повтор не выполнялся."
+            except Exception:
+                status = "Результат отправки в Telegram неизвестен; повтор не выполнялся."
+            self.service.display.delivery_status(card["id"], status)
+        return "display:" + card["id"]
+
+
 CORE_CLIENT = 'lib/butler_core_client.py'
 
 
@@ -246,17 +283,19 @@ def advice_candidate(rows, now):
         else:
             tail_end = max(tail_end, b)
     if "work" in activities and tail_start is not None and tail_end - tail_start >= 3600:
-        topic, suggestion, benefit = "rest", "Consider a short break.", "A change of focus may help you return refreshed."
+        topic, suggestion, benefit = "rest", "Можно сделать небольшой перерыв.", "Смена занятия может помочь восстановить внимание."
     elif "reading" in activities or "book" in kinds:
-        topic, suggestion, benefit = "reading", "You could note one idea from the reading.", "A brief note may help you recall it later."
+        topic, suggestion, benefit = "reading", "Можно записать одну мысль из прочитанного.", "Короткая заметка поможет вернуться к ней позже."
     elif "work" in activities:
-        topic, suggestion, benefit = "work", "You could note your next step before switching tasks.", "It may make returning to the task easier."
+        topic, suggestion, benefit = "work", "Перед переключением можно записать следующий шаг.", "Так будет проще вернуться к задаче."
     elif activities & {"rest", "entertainment", "youtube"}:
-        topic, suggestion, benefit = "entertainment", "If useful, save a favorite item for later.", "It may help you find something you enjoyed again."
+        topic, suggestion, benefit = "entertainment", "Если материал понравился, можно сохранить его на потом.", "Так его будет проще найти снова."
     else:
         return None
     evidence = sorted({r["id"] for r in recent})
     key = hashlib.sha256(json.dumps([topic, evidence]).encode()).hexdigest()
-    basis = ", ".join(sorted(x for x in activities if x)) or ", ".join(sorted(kinds))
+    labels = {"work": "работа", "reading": "чтение", "rest": "отдых", "entertainment": "развлечение",
+              "youtube": "видео", "book": "книга", "activity": "занятие"}
+    basis = ", ".join(labels.get(x, x) for x in sorted(x for x in activities if x)) or ", ".join(labels.get(x, x) for x in sorted(kinds))
     return {"key": key, "topic": topic, "created_at": now,
-            "text": f"{suggestion}\nExpected benefit: {benefit}\nBasis: possible {basis}; uncertain model inference.\nEvidence: {', '.join(evidence[:6])}"}
+            "text": f"{suggestion}\nВозможная польза: {benefit}\nОснование: возможно, {basis}; вывод модели может быть неточным.\nНаблюдения: {', '.join(evidence[:6])}"}

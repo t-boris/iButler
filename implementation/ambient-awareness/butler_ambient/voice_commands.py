@@ -107,6 +107,7 @@ def confirmation(text, aliases=("Бата", "Батлер", "Butler")):
 # DEC-067: Butler's own device and mode controls stay local even when the butler agent answers everything else.
 LOCAL_CONTROL = re.compile(r"\b(?:я\s+(?:на\s+встрече|не\s+на\s+встрече)|режим\s+встреч\w*|тихий\s+режим|познакомься|микрофон\w*|камер\w*|"
                            r"громкост\w*|(?:смени|поменяй|выбери)\s+голос|голос\s+(?:потише|погромче)|наблюдени\w*|постоянн\w*\s+анализ|"
+                           r"(?:сводк\w*|совет\w*).{0,60}(?:телеграм\w*|telegram)|(?:телеграм\w*|telegram).{0,60}(?:сводк\w*|совет\w*)|"
                            r"(?:какие|покажи|перечисли)\s+(?:у\s+тебя\s+)?(?:модели|задания|настройки|возможности|записи|наблюдения|папки))\b", re.I)
 
 
@@ -121,7 +122,7 @@ def control_request(text):
         r"\bкак\s+(?:там|идёт|продвигается)\s+(?:задача|работа|кодекс)|\bя\s+(?:на\s+встрече|не\s+на\s+встрече)|"
         r"\b(?:какие|покажи|перечисли)\s+(?:у\s+тебя\s+)?(?:модели|задания|задачи|настройки|возможности|записи|наблюдения|папки)\b|"
         r"\b(?:составь|дай|сделай|подготовь)\s+(?:мне\s+)?сводку\b|"
-        r"\bчто\s+ты\s+(?:умеешь|можешь)\s*[?.!]*$", text, re.I))
+        r"\bчто\s+ты\s+(?:умеешь|можешь)\s*[?.!]*$", text, re.I)) or bool(local_control(text) and re.search(r"\b(?:присылай|отправляй|перестань)\b", text, re.I))
 
 
 @dataclass(frozen=True)
@@ -242,6 +243,7 @@ class VoiceCommands:
             "If the requested target/action is ambiguous use unknown. parameters is a JSON object, NOT an encoded string. "
             "Include only fields actually requested; silent/unknown have empty parameters {}. "
             "schedule: {id,action} (run/pause/resume/stop/update; optional daily_time/cron/timezone/model). "
+            "For builtin:daily or builtin:advice, action update may set telegram_enabled true/false only when explicitly requested. "
             "component: {id,model,executable}, only requested changed fields. "
             "preferences: {muted,disabled_topics,daily_time,voice_enabled,address_aliases,meeting_mode,continuous_archive}, only requested fields. "
             "meeting_mode: quiet for 'я на встрече/не вмешивайся', available for explicit 'я не на встрече', auto for automatic detection. "
@@ -275,7 +277,7 @@ class VoiceCommands:
             if len(json.dumps(parameters,ensure_ascii=False)) > 2000: raise ValueError("Слишком сложная команда: уточните одно действие.")
             return
         allowed = {"guest-enroll":{"name"},"work":{"project","task","kind"},"computer":{"task","kind"},"work-status":{"id"},"work-cancel":{"id"},
-            "schedule":{"id","action","cron","timezone","model","daily_time"},
+            "schedule":{"id","action","cron","timezone","model","daily_time","telegram_enabled"},
             "component":{"id","model","executable"},
             "preferences":{"muted","disabled_topics","daily_time","voice_enabled","address_aliases","meeting_mode","continuous_archive"},
             "devices":{"camera","microphone","camera_size","speech_language"}, "voice":{"profile"}, "revoke":{"id"}}
@@ -291,6 +293,9 @@ class VoiceCommands:
             jobs = self._inventory('jobs')
             if parameters["id"] not in {j["id"] for j in jobs} or parameters.get("action") not in {"run","pause","resume","stop","update"}:
                 raise ValueError("Не найдено однозначное задание или действие.")
+            if "telegram_enabled" in parameters and (parameters["id"] not in {"builtin:daily", "builtin:advice"}
+                    or parameters["action"] != "update" or type(parameters["telegram_enabled"]) is not bool):
+                raise ValueError("Уточните Telegram для сводки или советов.")
         if capability == "component":
             if parameters["id"] not in {c["id"] for c in self._inventory('components')}: raise ValueError("Компонент не найден.")
         if capability == "voice" and parameters.get("profile") not in {"calm","baritone","warm"}: raise ValueError("Нужно выбрать существующий голос.")
@@ -353,6 +358,8 @@ class VoiceCommands:
             text = action + ": " + job["name"]
             for key,label in [("daily_time","время"),("cron","расписание"),("timezone","часовой пояс"),("model","модель")]:
                 if key in args: text += "; " + label + ": " + str(args[key])
+            if "telegram_enabled" in args:
+                text += "; Telegram: " + ("включить дополнительно к Display" if args["telegram_enabled"] else "выключить, оставить Display")
             return text
         if capability == "component":
             row = next(c for c in self._inventory('components') if c["id"] == args["id"])

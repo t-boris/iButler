@@ -355,10 +355,10 @@ class GeneralDialogueTests(unittest.TestCase):
             self.hear('Батлер, привет!')
             self.v.state = 'ready'
             self.s.analysis_tick(self.s.archive.generation, archive=True)
-            self.assertIsNone(self.s.delivery.send.call_args.kwargs['transport'])
+            self.assertIs(self.s.delivery.send.call_args.kwargs['transport'], self.s.display_transport)
             self.run_routed()
             self.s.analysis_tick(self.s.archive.generation, archive=True)
-            self.assertIs(self.s.delivery.send.call_args.kwargs['transport'], self.v)
+            self.assertIs(self.s.delivery.send.call_args.kwargs['transport'], self.s.display_transport)
 
     def test_advice_refused_by_a_busy_voice_falls_back_to_the_default_transport(self):
         from butler_ambient.delivery import Delivery

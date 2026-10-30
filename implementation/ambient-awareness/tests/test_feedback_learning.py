@@ -96,6 +96,44 @@ class FeedbackTest(unittest.TestCase):
         self.s.dialogue_gate.invalidate("company")
         with self.assertRaises(ValueError): self.fb.rule_control({"action": "remember", "event": "x", "text": "anything"})
 
+    def test_single_user_rule_list_is_read_only_and_does_not_clean_tombstones(self):
+        from butler_core.rules import RuleStore
+        rules = RuleStore(self.s.config['vault'], self.s.config['workspace'], clock=self.s.clock)
+        rules.put('Visible', 'Visible', 'Synthetic rule', operation='one', authorized=True)
+        rules.put('Tombstoned', 'Deleted', 'Synthetic deleted rule', operation='two', authorized=True)
+        rules.deletions.write_text(json.dumps({'Tombstoned': {'at': self.now}}))
+        removed_rule = rules.root / 'Tombstoned.md'
+        history = rules.root / '.history' / 'Tombstoned' / '1.md'
+        self.assertTrue(removed_rule.exists() and history.exists())
+        self.store.execute("INSERT OR REPLACE INTO agreements VALUES ('owner','Owner',1,'{}')")
+        self.store.set('single_user_local', True)
+        self.s.dialogue_gate.invalidate('absence'); self.s.gate.invalidate(self.now)
+        with patch.object(RuleStore, 'scan', side_effect=AssertionError('scan deletes tombstoned files')):
+            result = self.fb.rule_control({'action': 'list'})
+        self.assertEqual([r['id'] for r in result['rules']], ['Visible'])
+        self.assertTrue(result['read_only'])
+        self.assertTrue(removed_rule.exists() and history.exists())
+        with self.assertRaises(ValueError): self.fb.rule_control({'action': 'remember', 'event': 'no', 'text': 'No'})
+        with patch.object(self.fb, '_source_allowed', return_value=False):
+            with self.assertRaises(ValueError): self.fb.rule_control({'action': 'list'})
+        with patch.object(self.fb, '_source_allowed', side_effect=[True, False]):
+            with self.assertRaises(ValueError): self.fb.rule_control({'action': 'list'})
+        with patch.object(self.fb, '_read_rules', side_effect=lambda rules: (self.store.set('single_user_local', False), [])[1]):
+            with self.assertRaises(ValueError): self.fb.rule_control({'action': 'list'})
+        with self.assertRaises(ValueError): self.fb.rule_control({'action': 'list'})
+        self.store.set('single_user_local', True)
+        self.store.set('continuous_archive', False)
+        with self.assertRaises(ValueError): self.fb.rule_control({'action': 'list'})
+        self.store.set('continuous_archive', True)
+        self.s.control('enabled', {'value': False})
+        with self.assertRaises(ValueError): self.fb.rule_control({'action': 'list'})
+        self.s.control('enabled', {'value': True})
+        self.s.control('revoke', {'id': 'owner'})
+        with self.assertRaises(ValueError): self.fb.rule_control({'action': 'list'})
+
+    def test_verified_owner_can_still_list_with_existing_controls(self):
+        self.assertFalse(self.fb.rule_control({'action': 'list'})['read_only'])
+
     def test_pause_discards_private_work_and_unfinished_continuation(self):
         identifier = self.episode()
         self.fb.correct({"id": identifier, "revision": 1, "kind": "unfinished", "event": "wait-1"})

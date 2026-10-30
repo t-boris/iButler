@@ -98,7 +98,8 @@ class Schedules:
             running=self.manual.get(key)=="running"
             rows.append({"id":"builtin:"+key,"kind":"builtin","name":name,"enabled":enabled,"running":running,
                 "status":"running" if running else "ready" if enabled else "paused","schedule":schedule,"next_run":next_run if enabled else None,
-                "model":model,"error":"","daily_time":daily if key=="daily" else ""})
+                "model":model,"error":"","daily_time":daily if key=="daily" else "",
+                "telegram_enabled":s.store.get("schedule_telegram_"+key,False) is True if key in {"daily","advice"} else None})
         for value in running_dispatches(self.workspace):
             if value["dispatch_id"].startswith("voice-"):continue
             rows.append({"id":"dispatch:"+value["dispatch_id"],"kind":"dispatch","name":"Задача · "+str(value.get("task_kind","")),
@@ -114,11 +115,13 @@ class Schedules:
                 "pause_semantics":"Пауза отключает будущие запуски. Остановить прерывает текущую работу и отключает расписание."}
 
     def control(self,args):
-        if not isinstance(args,dict) or set(args)-{"id","action","cron","timezone","model","daily_time"}:
+        if not isinstance(args,dict) or set(args)-{"id","action","cron","timezone","model","daily_time","telegram_enabled"}:
             raise ValueError("invalid scheduled-run control")
         key,action=args.get("id"),args.get("action")
         if not isinstance(key,str) or action not in {"run","pause","resume","stop","update"}:
             raise ValueError("invalid scheduled-run action")
+        if "telegram_enabled" in args and (action != "update" or key not in {"builtin:daily", "builtin:advice"}):
+            raise ValueError("Telegram delivery is not configurable for this job here")
         if key.startswith("builtin:"):return self._builtin(key.split(":",1)[1],action,args)
         if key.startswith("backburner:"):return self._backburner_control(key.split(":",1)[1],action)
         if key.startswith("voice:"):
@@ -214,8 +217,15 @@ class Schedules:
         s=self.service
         setting={"daily":"daily_paused","advice":"muted","analysis":"analysis_paused"}[key]
         if action=="update":
-            if key!="daily" or "daily_time" not in args:raise ValueError("only the daily summary time is editable here")
-            s.control("preferences",{"daily_time":args["daily_time"]})
+            if key not in {"daily","advice"} or not ({"daily_time","telegram_enabled"} & args.keys()):
+                raise ValueError("no supported setting supplied")
+            if "telegram_enabled" in args and type(args["telegram_enabled"]) is not bool:
+                raise ValueError("telegram_enabled must be boolean")
+            if "daily_time" in args:
+                if key!="daily":raise ValueError("only the daily summary time is editable here")
+                s.control("preferences",{"daily_time":args["daily_time"]})
+            if "telegram_enabled" in args:
+                s.store.set("schedule_telegram_"+key,args["telegram_enabled"])
         elif action in {"pause","stop","resume"}:
             with s.lock:
                 s.store.set(setting,action!="resume")
@@ -230,7 +240,11 @@ class Schedules:
         elif action=="run":
             if self.manual.get(key)=="running":raise ValueError("this job is already running")
             policy=s.archive if key=="analysis" and s.archive.enabled else s.gate
-            if not policy.permits(s.clock()):raise ValueError("observation permission is paused")
+            permitted = policy.permits(s.clock())
+            if not permitted and key=="daily":
+                from .recordings import history_visible
+                permitted = history_visible(s)
+            if not permitted:raise ValueError("observation permission is paused")
             if key=="analysis":
                 try:s.pending.put_nowait(("archive-request" if s.archive.enabled else "owner-request",policy.generation))
                 except Exception:raise ValueError("analysis is already queued") from None
@@ -239,12 +253,14 @@ class Schedules:
             from .conversation import Tokens
             from .summaries import summarize,summary_text
             token=threading.Event();self.tokens[key]=token;self.manual[key]="running"
+            policy_token = s.analysis_token if s.gate.permits(s.clock()) else s.archive.token
             def run():
                 try:
                     now=s.clock();local=dt.datetime.fromtimestamp(now,ZONE)
                     start=dt.datetime.combine(local.date(),dt.time(),ZONE).timestamp()
                     report=summarize(s.store,start,now)
-                    s.delivery.send("daily:"+local.date().isoformat(),"daily",summary_text(report),now,token=Tokens(token,s.analysis_token))
+                    s.delivery.send("daily:"+local.date().isoformat(),"daily",summary_text(report),now,
+                                    token=Tokens(token,policy_token),transport=s.display_transport)
                     self.manual[key]="done"
                 except Exception:self.manual[key]="failed"
             threading.Thread(target=run,daemon=True).start()

@@ -154,7 +154,8 @@ def browse(service, args):
             items = sorted(items + runs, key=lambda item: item["start"], reverse=True)
         total = len(items)
         page = items[request["offset"]:request["offset"] + request["limit"]]
-        shown = service.gate.enabled
+        from .recordings import _allowed
+        shown = _allowed(service)
         for item in page:
             preserved = item.pop("preserved", None)
             if item["type"] == "observation":

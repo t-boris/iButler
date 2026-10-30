@@ -398,6 +398,14 @@ class Display:
         if voice is not None and callable(getattr(voice, "_debug", None)):
             voice._debug("display", text)
 
+    def delivery_status(self, card_id, status):
+        """Attach a delivery outcome if the card has not been cleared."""
+        with self.lock:
+            try: card = self._card(card_id)
+            except ValueError: return
+            card["status"] = status
+            self._persist_card(card)
+
     def _finish(self, card, status, count, *, locked=False):
         """Record the outcome on the card. ``locked`` tells the panel the card's replies are spent (it also reads this from the snapshot)."""
         with self.lock:

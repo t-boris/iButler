@@ -2,6 +2,10 @@
 
 Semantic versioning per package (DEC-040). Each entry names the migration wave and the decisions it implements.
 
+## Unreleased
+
+- Prepare the workspace semantic reindexer to publish a rebuild in one SQLite transaction, preserving the previous index if a file is skipped or an embedding fails. Concurrent index writers may wait while a rebuild runs.
+
 ## 0.17.1 — 2026-10-27 (conversation learning report)
 
 - Count labelled decisions with an unknown acceptance outcome in the report's unknown total and share, and distinguish these from unlabelled decisions (REQ-061).

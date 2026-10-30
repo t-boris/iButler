@@ -18,6 +18,7 @@ from butler_ambient.listening import Listening
 from butler_ambient.panel_chat import MAX_TEXT
 from butler_ambient.policy import Evidence
 from butler_ambient.service import Handler, Service
+from butler_ambient.sensing import Batch
 from butler_ambient.store import Store
 
 
@@ -85,7 +86,7 @@ class StateMachineTests(unittest.TestCase):
 
     # -- hearing ----------------------------------------------------------------------------
 
-    def test_phrases_accumulate_and_the_dictation_ends_two_seconds_after_the_last_words(self):
+    def test_phrases_accumulate_until_explicit_stop(self):
         self.dictation.start()
         self.service.advance(3)
         self.assertTrue(self.dictation.hear("Первая фраза."))
@@ -95,7 +96,8 @@ class StateMachineTests(unittest.TestCase):
         self.assertEqual(self.dictation.snapshot()["state"], "listening")
         self.service.advance(.2)
         view = self.dictation.snapshot()
-        self.assertEqual((view["state"], view["text"]), ("done", "Первая фраза. Вторая фраза."))
+        self.assertEqual((view["state"], view["text"]), ("listening", "Первая фраза. Вторая фраза."))
+        self.assertEqual(self.dictation.stop()["state"], "done")
 
     def test_separate_phrases_are_not_merged_on_a_repeated_boundary_word(self):
         self.dictation.start()
@@ -117,27 +119,29 @@ class StateMachineTests(unittest.TestCase):
         self.service.advance(5)
         self.assertEqual(self.dictation.snapshot()["state"], "listening")           # an utterance waits for recognition
         self.service.listening.jobs.get()
-        self.assertEqual(self.dictation.snapshot()["state"], "done")
+        self.assertEqual(self.dictation.snapshot()["state"], "listening")
+        self.assertEqual(self.dictation.stop()["state"], "done")
 
-    def test_nothing_heard_ends_neutrally_after_thirty_seconds(self):
+    def test_silence_does_not_stop_dictation(self):
         self.dictation.start()
         self.service.advance(NOTHING_HEARD_AFTER - 1)
         self.assertEqual(self.dictation.snapshot()["state"], "listening")
         self.service.advance(2)
-        view = self.dictation.snapshot()
+        self.assertEqual(self.dictation.snapshot()["state"], "listening")
+        view = self.dictation.stop()
         self.assertEqual((view["state"], view["text"], view["note"], view["reason"]), ("done", "", NOTHING, None))
 
-    def test_a_long_dictation_is_cut_at_the_limit_and_at_the_message_size(self):
+    def test_long_dictation_stays_active_at_text_limit(self):
         self.dictation.start()
         self.dictation.hear("слово")
         self.service.listening.phase = "listening"                                 # still talking
         self.service.advance(TOTAL_LIMIT + 1)
-        self.assertEqual(self.dictation.snapshot()["state"], "done")
-        self.dictation.start()
-        self.dictation.start()
+        self.assertEqual(self.dictation.snapshot()["state"], "listening")
+        self.service.listening.phase = "waiting"
         self.dictation.hear("а" * (MAX_TEXT + 500))
         view = self.dictation.snapshot()
-        self.assertEqual((view["state"], len(view["text"])), ("done", MAX_TEXT))
+        self.assertEqual((view["state"], len(view["text"])), ("listening", MAX_TEXT))
+        self.assertEqual(self.dictation.stop()["state"], "done")
 
     def test_drafts_show_only_while_listening_and_never_survive_the_dictation(self):
         self.dictation.start()
@@ -147,6 +151,8 @@ class StateMachineTests(unittest.TestCase):
         self.assertEqual(self.dictation.snapshot()["partial"], "")
         self.dictation.partial("ещё")
         self.service.advance(SILENCE_AFTER + 1)
+        self.assertEqual(self.dictation.snapshot()["partial"], "ещё")
+        self.dictation.stop()
         self.assertEqual(self.dictation.snapshot()["partial"], "")
 
     # -- stopping ---------------------------------------------------------------------------
@@ -252,6 +258,80 @@ class HearingPathTests(unittest.TestCase):
         view = self.s.dictation.start()
         self.assertEqual(view["state"], "listening", view)
 
+    def test_inflight_pre_start_recognition_is_not_dictated_or_routed(self):
+        self.admit()
+        entered, release = threading.Event(), threading.Event()
+        def transcribe(*args, **kwargs):
+            entered.set()
+            release.wait(5)
+            return "старая фраза"
+        self.l.model.transcribe.side_effect = transcribe
+        identifier = self.l._begin(self.now - 1)
+        thread = threading.Thread(target=self.process, args=("старая фраза", True, identifier))
+        thread.start()
+        self.assertTrue(entered.wait(2))
+        self.start()
+        release.set()
+        thread.join(5)
+        self.assertFalse(thread.is_alive())
+        self.assertEqual(self.s.dictation.snapshot()["text"], "")
+        self.assertTrue(self.s.voice.jobs.empty())
+
+    def test_queued_pre_start_phrase_is_discarded(self):
+        self.admit()
+        identifier = self.l._begin(self.now - 1)
+        self.l.utterance = None  # already queued before the button was pressed
+        self.start()
+        self.process("старая фраза", owner=True, identifier=identifier)
+        self.assertEqual(self.s.dictation.snapshot()["text"], "")
+        self.assertTrue(self.s.voice.jobs.empty())
+
+    def test_inflight_old_endpointer_cannot_restore_pre_start_audio(self):
+        self.admit()
+        entered, release = threading.Event(), threading.Event()
+        self.s.smart_turn = Mock()
+        def complete(_pcm):
+            entered.set()
+            release.wait(5)
+            return False
+        self.s.smart_turn.complete.side_effect = complete
+        identifier = self.l._begin(self.now - 1)
+        thread = threading.Thread(target=self.process, args=('старая фраза', True, identifier))
+        thread.start()
+        self.assertTrue(entered.wait(2))
+        self.start()
+        release.set()
+        thread.join(5)
+        self.assertFalse(thread.is_alive())
+        self.assertTrue(self.l.pending_endpoint is None, 'old endpoint must not restore audio after dictation starts')
+        self.assertEqual(self.s.dictation.snapshot()['text'], '')
+        self.process('новая фраза', owner=True)
+        self.assertEqual(self.s.dictation.snapshot()['text'], 'новая фраза')
+        self.assertTrue(self.s.voice.jobs.empty())
+
+    def test_audio_is_clipped_at_start_and_stop(self):
+        self.admit()
+        self.start()
+        self.l.speech = Mock(return_value=True)
+        self.l.confirmation_candidate = Mock(return_value=True)
+        self.now += .5
+        first = Batch(self.now - 1, self.now, [], b"\x01\x00" * 8000 + b"\x02\x00" * 8000)
+        self.l.feed(first)
+        self.assertEqual(self.l.audio[:16000], b"\0" * 16000)
+        self.assertEqual(self.l.audio[16000:], b"\x02\x00" * 8000)
+        self.now += .25
+        self.s.dictation.stop()
+        self.now += .75
+        second = Batch(self.now - 1, self.now, [], b"\x03\x00" * 16000)
+        self.l.feed(second)
+        task = self.l.jobs.get_nowait()
+        self.assertEqual(task[0][-32000:-24000], b"\x03\x00" * 4000)
+        self.assertEqual(task[0][-24000:], b"\0" * 24000)
+        self.l.model.transcribe.return_value = "новая фраза"
+        self.l.process(*task)
+        self.assertEqual(self.s.dictation.snapshot()["text"], "новая фраза")
+        self.assertEqual(self.s.dictation.snapshot()["state"], "done")
+
     def test_an_addressed_first_sentence_reaches_the_field_and_not_the_voice_dialogue(self):
         self.admit()
         self.start()
@@ -320,6 +400,10 @@ class HearingPathTests(unittest.TestCase):
         self.start()
         self.process("Первая", owner=True)
         self.s.dictation.stop()
+        self.l.speech = Mock(return_value=False)
+        self.l.confirmation_candidate = Mock(return_value=False)
+        self.now += 1
+        self.l.feed(Batch(self.now - 1, self.now, [], b"\0" * 32000))
         self.assertEqual(self.s.dictation.snapshot()["state"], "done")
         self.now += 1
         self.process("Батлер, вторая", owner=True)

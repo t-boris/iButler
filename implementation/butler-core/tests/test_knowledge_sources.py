@@ -73,6 +73,59 @@ class SourcesTest(unittest.TestCase):
             end=max(end,start+len(value))
         self.assertEqual(end,len(text))
 
+    def test_full_reindex_failure_preserves_the_previous_index(self):
+        e = importlib.import_module('lib.embeddings')
+        for name in ('a.md', 'b.md'):
+            (self.vault / name).write_text('# Synthetic\n' + 'example words ' * 60)
+        with e._connect() as con:
+            e._stamp_meta(con)
+            con.execute("INSERT INTO files VALUES ('old.md', 1, 1, 1)")
+            con.execute("INSERT INTO chunks (path,scope,heading,start_line,end_line,date,text,embedding) VALUES ('old.md','vault','',1,1,NULL,'synthetic',?)", (b'old',))
+            con.commit()
+        class Vector:
+            def tobytes(self): return b'new'
+        with patch.object(e, 'is_available', return_value=True), patch.object(e, 'embed_docs', side_effect=[[Vector()], RuntimeError('synthetic failure')]):
+            with self.assertRaisesRegex(RuntimeError, 'synthetic failure'):
+                e.reindex(full=True)
+        with e._connect() as con:
+            self.assertEqual(con.execute('SELECT path FROM files').fetchall(), [('old.md',)])
+            self.assertEqual(con.execute('SELECT path,embedding FROM chunks').fetchall(), [('old.md', b'old')])
+
+    def test_full_reindex_does_not_publish_a_skipped_file(self):
+        e = importlib.import_module('lib.embeddings')
+        path = self.vault / 'new.md'
+        path.write_text('synthetic')
+        with e._connect() as con:
+            e._stamp_meta(con)
+            con.execute("INSERT INTO files VALUES ('old.md', 1, 1, 0)")
+            con.commit()
+        with patch.object(e, 'is_available', return_value=True), patch.object(e, '_index_one', return_value=None):
+            with self.assertRaisesRegex(RuntimeError, 'full reindex incomplete'):
+                e.reindex(full=True)
+        with e._connect() as con:
+            self.assertEqual(con.execute('SELECT path FROM files').fetchall(), [('old.md',)])
+
+    def test_full_reindex_publishes_only_after_all_files_succeed(self):
+        e = importlib.import_module('lib.embeddings')
+        path = self.vault / 'new.md'
+        path.write_text('# Synthetic\n' + 'example words ' * 60)
+        with e._connect() as con:
+            e._stamp_meta(con)
+            con.execute("INSERT INTO files VALUES ('old.md', 1, 1, 0)")
+            con.commit()
+        class Vector:
+            def tobytes(self): return b'new'
+        def embed(texts):
+            import sqlite3
+            with sqlite3.connect(e.DB_PATH) as reader:
+                self.assertEqual(reader.execute('SELECT path FROM files').fetchall(), [('old.md',)])
+            return [Vector() for _ in texts]
+        with patch.object(e, 'is_available', return_value=True), patch.object(e, 'embed_docs', side_effect=embed):
+            result = e.reindex(full=True)
+        self.assertEqual(result.reindexed, 1)
+        with e._connect() as con:
+            self.assertEqual(con.execute('SELECT path FROM files').fetchall(), [('new.md',)])
+
     def test_semantic_model_inputs_bound_both_long_titles_and_body(self):
         e=importlib.import_module('lib.embeddings')
         path=self.vault/'large.md';path.write_text('---\ntitle: '+('T'*5000)+'\n---\n# '+('H'*5000)+'\n'+('word '*3000))

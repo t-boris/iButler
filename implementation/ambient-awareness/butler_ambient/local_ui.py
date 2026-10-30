@@ -3,6 +3,26 @@ from __future__ import annotations
 
 import json
 import base64
+from pathlib import Path
+
+
+def stored_frames(service):
+    """Owner-local preserved still images only; never include raw files or audio/video."""
+    from .recordings import history_visible
+    if not history_visible(service): return []
+    root = (service.store.root / 'preserved').resolve()
+    rows = service.store.execute("""SELECT id,source,start,preserved FROM media
+        WHERE source IN ('camera','screen') AND preserved IS NOT NULL AND complete=1
+        ORDER BY start DESC LIMIT 200""")
+    items = []
+    for row in rows:
+        path = Path(row['preserved'])
+        if path.suffix.lower() not in {'.jpg', '.jpeg', '.png', '.webp'} or path.is_symlink(): continue
+        resolved = path.resolve()
+        if not resolved.is_relative_to(root) or not resolved.is_file(): continue
+        items.append({'id': 'stored-frame:' + row['id'], 'kind': 'stored-frame', 'origin_kind': row['source'],
+                      'at': row['start'], 'path': str(resolved), 'available': True, 'sent': {'state': 'not-requested'}})
+    return items if history_visible(service) else []
 
 
 def snapshot(service, *, want_preview=False):
@@ -17,9 +37,14 @@ def snapshot(service, *, want_preview=False):
             "SELECT source,MAX(end) AS at FROM media GROUP BY source")}
         result["last_analysis"] = {r["source"]: r["at"] for r in service.store.execute(
             "SELECT source,MAX(end) AS at FROM observations GROUP BY source")}
-        from .recordings import _allowed
-        owner_visible = _allowed(service)
+        from .recordings import _allowed, history_visible
+        owner_visible = history_visible(service)
+        result["history_visible"] = owner_visible
         result["recordings_allowed"] = owner_visible
+        result["recordings_raw_allowed"] = _allowed(service)
+        result["single_user_local"] = service.store.get("single_user_local", False) is True
+        result["stored_frames_allowed"] = owner_visible
+        result["stored_frames"] = stored_frames(service) if owner_visible else []
         result["recordings_navigation"] = getattr(service, "recordings_navigation", None) if owner_visible else None
         result["recent"] = []
         # Only observations that concluded something: more than half of the stored rows carry no fact at all.
@@ -70,7 +95,7 @@ def snapshot(service, *, want_preview=False):
         result["voice"]["calls"] = service.calls.snapshot() if getattr(service, "calls", None) is not None else None
         feedback = getattr(service, "feedback", None)
         if feedback is not None:
-            result["feedback"] = feedback.snapshot(bool(result["voice"]["dialogue_allowed"]))
+            result["feedback"] = feedback.snapshot(owner_visible)
         from . import __version__
         result["version"] = __version__
         result["work"] = service.work.snapshot()
@@ -120,7 +145,7 @@ def snapshot(service, *, want_preview=False):
         result["voice"]["owner_setup"] = service.owner_setup.snapshot()
         result["preview"] = None
         result["visual"] = service.visual.snapshot() if service.visual is not None else None
-        if not owner_visible and result["visual"] is not None:
+        if not result["recordings_raw_allowed"] and result["visual"] is not None:
             # Gallery metadata may remain; image paths, and the folder an imported image sits in, are hidden on a pause.
             result["visual"] = {"artifacts": [], "roots": [], "status": "hidden"}
         display = getattr(service, "display", None)
@@ -128,17 +153,43 @@ def snapshot(service, *, want_preview=False):
         result["feed"] = feed(service, result)
         result["panel_chat"] = service.panel_chat.snapshot() if getattr(service, "panel_chat", None) is not None else None
         result["dictation"] = service.dictation.snapshot() if getattr(service, "dictation", None) is not None else None
+
+        def finish():
+            # A lease can expire while snapshots are assembled even under the
+            # service lock. Never upgrade an initially denied response, and
+            # strip data whose permission expired before returning it.
+            visible = owner_visible and history_visible(service)
+            raw = visible and result["recordings_raw_allowed"] and _allowed(service)
+            if not visible:
+                result["history_visible"] = result["recordings_allowed"] = False
+                result["stored_frames_allowed"] = False; result["stored_frames"] = []
+                result["recordings_navigation"] = None
+                result["recent"] = []
+                if feedback is not None: result["feedback"] = feedback.snapshot(False)
+            if not raw:
+                result["recordings_raw_allowed"] = False
+                if result["visual"] is not None:
+                    result["visual"] = {"artifacts": [], "roots": [], "status": "hidden"}
+            if not visible or not raw:
+                result["feed"] = [entry for entry in result["feed"]
+                    if (visible or (not entry.get("episode") and not entry.get("id", "").startswith("episode:")))
+                    and (raw or (not entry.get("image") and entry.get("kind") != "image"))]
+            if service.stop_event.is_set():
+                result["enabled"] = result["recording_allowed"] = result["action_permission"] = False
+                result["preview"] = None
+            return result
+
         destination = service.store.root / "raw/ui-preview.jpg"
         if not result["recording_allowed"]:
             destination.unlink(missing_ok=True)
-        elif want_preview:
+        elif want_preview and not service.stop_event.is_set():
             live=service.preview_frame
             if live is not None and 0<=service.clock()-live[1]<=2.5 and service.archive.enabled:
                 # This private Unix-socket response is not an MCP result. No
                 # original file is created just to display a fresh camera feed.
                 result['preview']={'jpeg_base64':base64.b64encode(live[0]).decode('ascii'),'captured_at':live[1]}
                 destination.unlink(missing_ok=True)
-                return result
+                return finish()
             if live is not None:service.preview_frame=None
             rows = service.store.execute("SELECT path,end FROM media WHERE source='camera' AND path IS NOT NULL AND end>=? ORDER BY end DESC LIMIT 1", (service.clock() - 2.5,))
             if rows:
@@ -152,7 +203,7 @@ def snapshot(service, *, want_preview=False):
                     temporary.chmod(0o600)
                     temporary.replace(destination)
                     result["preview"] = {"path": str(destination), "captured_at": rows[0]["end"]}
-        return result
+        return finish()
 
 
 EVENT_KINDS = {"heard": "heard", "reply": "reply", "error": "error", "interrupted": "error", "display": "display",
@@ -232,6 +283,9 @@ def merge_heard(entries):
             if twin is not None:
                 if twin.get("who") == "Голос" and entry.get("who") != "Голос":
                     twin["who"] = entry["who"]
+                if entry.get("episode") and not twin.get("episode"):
+                    for key in ("episode", "revision", "annotation", "memories"):
+                        if key in entry: twin[key] = entry[key]
                 continue
         result.append(entry)
     return result

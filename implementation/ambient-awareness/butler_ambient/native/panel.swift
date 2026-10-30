@@ -5,6 +5,10 @@ import WebKit
 import AVFoundation
 import AVKit
 
+func setRuleAlertReadOnly(_ alert: NSAlert, _ readOnly: Bool) {
+    for index in [0, 2, 3, 4] { alert.buttons[index].isEnabled = !readOnly }
+}
+
 func previewImage(_ preview: [String: Any]) -> NSImage? {
     if let encoded = preview["jpeg_base64"] as? String, let data = Data(base64Encoded: encoded) {
         return NSImage(data: data)
@@ -179,6 +183,7 @@ final class FeedEntryView: NSView {
 final class FeedView: NSView {
     var onCorrection: ((FeedEntry, String) -> Void)?
     var markdownRenderer: ((String) -> NSAttributedString)?
+    private var correctionsAllowed = true
     let scroll = NSScrollView()
     let stack = VerticalStackView()
     let placeholder = NSTextField(wrappingLabelWithString: "Пока тихо. Реплики, события, снимки и уведомления появятся здесь.")
@@ -233,6 +238,16 @@ final class FeedView: NSView {
     func scrollToTop() { scroll.contentView.scroll(to: .zero); scroll.reflectScrolledClipView(scroll.contentView) }
     @objc func refilter() { show(entries, force: true) }
     var visibleEntries: [FeedEntry] { entries.filter { eventsToggle.state == .on || $0.kind != "event" } }
+    func setCorrectionsAllowed(_ allowed: Bool) {
+        correctionsAllowed = allowed
+        for view in views.values { view.correctButton.isEnabled = allowed }
+    }
+    func clearRestricted(history: Bool, media: Bool) {
+        show(entries.filter { entry in
+            (!history || (entry.episode == nil && !entry.id.hasPrefix("episode:"))) &&
+            (!media || (entry.image == nil && entry.kind != "image"))
+        })
+    }
     func show(_ entries: [FeedEntry], force: Bool = false) {
         let unchanged = entries == self.entries
         self.entries = entries
@@ -246,6 +261,7 @@ final class FeedView: NSView {
             let view = views[entry.id] ?? FeedEntryView(entry, markdownRenderer: markdownRenderer)
             view.onCorrection = onCorrection
             view.update(entry)
+            view.correctButton.isEnabled = correctionsAllowed
             kept[entry.id] = view
             ordered.append(view)
         }
@@ -503,14 +519,18 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
     let day = NSPopUpButton(), source = NSPopUpButton(), files = NSPopUpButton()
     let table = NSTableView(), detail = NSTextView(), picture = NSImageView(), player = AVPlayerView()
     let status = NSTextField(labelWithString: ""), meeting = NSButton(title: "Сохранять текущую встречу", target: nil, action: nil)
+    let resultsOnly = NSButton(checkboxWithTitle: "Только с результатами", target: nil, action: nil)
     let more = NSButton(title: "Ещё сессии", target: nil, action: nil)
+    let summarizeSession = NSButton(title: "Сводка сессии", target: nil, action: nil)
+    let summarizeDay = NSButton(title: "Сводка дня", target: nil, action: nil)
     let play = NSButton(title: "Открыть / воспроизвести", target: nil, action: nil)
     let preserve = NSButton(title: "Сохранить файл", target: nil, action: nil)
     let remove = NSButton(title: "Удалить файл", target: nil, action: nil)
     var entries: [[String: Any]] = [], rows: [[String: Any]] = [], expanded = Set<String>()
     var selected: [String: Any]?, chosenDay: String?, total = 0, serial = 0, navigationSerial = 0
-    var loaded = false, permitted = false, lastPoll = Date.distantPast
+    var loaded = false, permitted = false, rawPermitted = false, lastPoll = Date.distantPast
     var requestedTime: Double?
+    var rebuilding = false
 
     init(panel: Panel) {
         self.panel = panel
@@ -519,19 +539,22 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
         day.target = self; day.action = #selector(changeDay)
         source.addItems(withTitles: ["Все источники", "Камера", "Экран", "Микрофон", "Звук приложений", "Изображения", "Дисплей"])
         source.target = self; source.action = #selector(reload)
+        resultsOnly.state = .on; resultsOnly.target = self; resultsOnly.action = #selector(reload)
         meeting.target = self; meeting.action = #selector(mark)
         more.target = self; more.action = #selector(loadMore)
+        summarizeSession.target = self; summarizeSession.action = #selector(summarizeSelectedSession)
+        summarizeDay.target = self; summarizeDay.action = #selector(summarizeRecordingsDay)
         play.target = self; play.action = #selector(openFile)
         preserve.target = self; preserve.action = #selector(preserveFile)
         remove.target = self; remove.action = #selector(deleteFile)
         files.target = self; files.action = #selector(changeFile)
         status.font = Theme.font(11); status.textColor = Theme.dim; status.maximumNumberOfLines = 2
         status.lineBreakMode = .byWordWrapping
-        let controls = NSStackView(views: [day, source, refresh]); controls.spacing = 8
+        let controls = NSStackView(views: [day, source, resultsOnly, refresh]); controls.spacing = 8
         let column = NSTableColumn(identifier: .init("recording")); table.addTableColumn(column)
         table.headerView = nil; table.rowHeight = 44; table.dataSource = self; table.delegate = self
         table.target = self; table.doubleAction = #selector(expandSession)
-        table.setAccessibilityLabel("Записи по сессиям; двойной щелчок раскрывает сессию")
+        table.setAccessibilityLabel("Записи по сессиям; выберите сессию, чтобы открыть содержимое")
         let list = NSScrollView(); list.documentView = table; list.hasVerticalScroller = true
         detail.isEditable = false; detail.isSelectable = true; detail.isRichText = false
         detail.font = Theme.font(12); detail.textColor = Theme.text; detail.backgroundColor = Theme.raised
@@ -555,7 +578,7 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
         list.widthAnchor.constraint(equalTo: body.widthAnchor, multiplier: 0.44).isActive = true
         list.heightAnchor.constraint(equalTo: body.heightAnchor).isActive = true
         right.heightAnchor.constraint(equalTo: body.heightAnchor).isActive = true
-        let footer = NSStackView(views: [more, meeting]); footer.spacing = 12
+        let footer = NSStackView(views: [more, summarizeSession, summarizeDay, meeting]); footer.spacing = 12
         let stack = NSStackView(views: [controls, body, footer, status]); stack.orientation = .vertical; stack.spacing = 10; stack.alignment = .leading
         addSubview(stack); stack.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([stack.leadingAnchor.constraint(equalTo: leadingAnchor), stack.trailingAnchor.constraint(equalTo: trailingAnchor),
@@ -567,21 +590,41 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     func clear() {
         serial += 1; entries = []; rows = []; selected = nil; expanded = []; loaded = false
-        table.reloadData(); detail.string = "Записи доступны только подтверждённому владельцу при разрешённой записи."
+        table.reloadData(); detail.string = "Записи скрыты: проверьте паузу, согласие и режим доступа."
         player.player?.pause(); player.player = nil; player.isHidden = true; picture.image = nil; picture.isHidden = true
-        files.removeAllItems(); play.isEnabled = false; preserve.isEnabled = false; remove.isEnabled = false; meeting.isEnabled = false; more.isHidden = true
+        files.removeAllItems(); play.isEnabled = false; preserve.isEnabled = false; remove.isEnabled = false; summarizeSession.isEnabled = false; meeting.isEnabled = false; more.isHidden = true
         day.removeAllItems()
     }
     func updatePermission(_ value: [String: Any]?) {
-        permitted = value?["recordings_allowed"] as? Bool == true
+        let raw = value?["recordings_raw_allowed"] as? Bool ?? (value?["recordings_allowed"] as? Bool == true)
+        let rawWasPermitted = rawPermitted
+        rawPermitted = raw
+        permitted = (value?["history_visible"] as? Bool ?? value?["recordings_allowed"] as? Bool) == true
         if !permitted { clear(); return }
+        if rawWasPermitted && !raw {
+            // A transient raw lease loss is not a history close. Invalidate
+            // pending media replies, remove paths and stop the player while
+            // preserving the rows, expansion, selection and text.
+            serial += 1
+            entries = safeEntries(entries)
+            meeting.isEnabled = false
+            rebuild()
+            if let item = selected, item["type"] as? String == "session", let id = item["id"] as? String,
+               (item["observations"] as? [[String: Any]] ?? []).isEmpty {
+                fetchChildren(id, offset: 0, selectFirst: true)
+            }
+        }
         if let navigation = value?["recordings_navigation"] as? [String: Any], let next = navigation["serial"] as? Int, next != navigationSerial {
             navigationSerial = next; chosenDay = navigation["day"] as? String; requestedTime = navigation["at"] as? Double
             panel?.select(.recordings); panel?.show(); load(reset: true)
-        } else if panel?.section == .recordings && (!loaded || (Date().timeIntervalSince(lastPoll) > 15 && player.player?.timeControlStatus != .playing)) { load(reset: true) }
+        } else if panel?.section == .recordings && (!loaded || (selected == nil && panel?.historySummarySection != .recordings && ((raw && !rawWasPermitted) || (Date().timeIntervalSince(lastPoll) > 15 && player.player?.timeControlStatus != .playing)))) {
+            load(reset: true, refreshExpanded: raw && !rawWasPermitted)
+        } else if raw && !rawWasPermitted && selected != nil {
+            status.stringValue = "Доступ к исходным файлам изменился; нажмите «Обновить», чтобы обновить список файлов."
+        }
     }
     func request(offset: Int = 0) -> [String: Any] {
-        var args: [String: Any] = ["empty": true, "limit": 100, "offset": offset]
+        var args: [String: Any] = ["empty": true, "results_only": resultsOnly.state == .on, "limit": 100, "offset": offset]
         if let chosenDay { args["day"] = chosenDay }
         let values = ["all", "camera", "screen", "microphone", "system-audio", "generated", "display"]
         if values.indices.contains(source.indexOfSelectedItem) { args["source"] = values[source.indexOfSelectedItem] }
@@ -590,7 +633,43 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
     @objc func reload() { expanded = []; load(reset: true) }
     @objc func changeDay() { chosenDay = day.selectedItem?.representedObject as? String; reload() }
     @objc func loadMore() { load(reset: false) }
-    func load(reset: Bool) {
+    func selectedSessionID() -> String? {
+        guard let item = selected, let id = item["id"] as? String else { return nil }
+        if item["type"] as? String == "session" { return id }
+        return entries.first { entry in
+            (entry["observations"] as? [[String: Any]] ?? []).contains { $0["id"] as? String == id }
+        }?["id"] as? String
+    }
+    @objc func summarizeSelectedSession() {
+        guard let panel, let day = chosenDay, let session = selectedSessionID() else { return }
+        var args: [String: Any] = ["kind": "session", "day": day, "session": session]
+        if let source = request()["source"] as? String, source != "all" { args["source"] = source }
+        panel.startHistorySummary(args, title: "Сводка записи", status: status, section: .recordings)
+    }
+    @objc func summarizeRecordingsDay() {
+        guard let panel, let day = chosenDay else { return }
+        var args: [String: Any] = ["kind": "recordings", "day": day]
+        if let source = request()["source"] as? String, source != "all" {
+            guard !["generated", "display"].contains(source) else { status.stringValue = "Для этого источника сводка недоступна."; return }
+            args["source"] = source
+        }
+        panel.startHistorySummary(args, title: "Сводка записей за \(day)", status: status, section: .recordings)
+    }
+    func safeEntries(_ values: [[String: Any]]) -> [[String: Any]] {
+        guard !rawPermitted else { return values }
+        return values.filter { !["artifact", "display"].contains($0["type"] as? String ?? "") }.map { value in
+            var row = value
+            row.removeValue(forKey: "image"); row.removeValue(forKey: "frame")
+            if let media = row["media"] as? [[String: Any]] {
+                row["media"] = media.map { file in
+                    var clean = file; clean.removeValue(forKey: "path"); clean["preserved"] = false; return clean
+                }
+            }
+            if let children = row["observations"] as? [[String: Any]] { row["observations"] = safeEntries(children) }
+            return row
+        }
+    }
+    func load(reset: Bool, refreshExpanded: Bool = false) {
         guard permitted, let panel, let json = panel.jsonArgument(request(offset: reset ? 0 : entries.count)) else { return }
         serial += 1; let token = serial; lastPoll = Date(); status.stringValue = "Загружаю записи…"
         panel.command(["ui-recordings", json]) { [weak self] value in
@@ -603,13 +682,26 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
                 self.day.addItem(withTitle: title); self.day.lastItem?.representedObject = title
                 if title == self.chosenDay { self.day.select(self.day.lastItem) }
             }
-            let page = value["items"] as? [[String: Any]] ?? []
+            var page = self.safeEntries(value["items"] as? [[String: Any]] ?? [])
+            if reset {
+                let prior = Dictionary(self.entries.compactMap { entry -> (String, [[String: Any]])? in
+                    guard let id = entry["id"] as? String, self.expanded.contains(id),
+                          let children = entry["observations"] as? [[String: Any]], !children.isEmpty else { return nil }
+                    return (id, self.safeEntries(children))
+                }, uniquingKeysWith: { first, _ in first })
+                for index in page.indices {
+                    if let id = page[index]["id"] as? String, let children = prior[id],
+                       (page[index]["observations"] as? [[String: Any]] ?? []).isEmpty {
+                        page[index]["observations"] = children
+                    }
+                }
+            }
             self.entries = reset ? page : self.entries + page; self.total = value["total"] as? Int ?? self.entries.count
             self.more.isHidden = self.entries.count >= self.total
             let state = value["meeting"] as? [String: Any] ?? [:]
             self.meeting.isEnabled = state["detected"] as? Bool == true && state["marked"] as? Bool != true
             self.meeting.title = state["marked"] as? Bool == true ? "Встреча сохраняется 30 дней" : "Сохранять текущую встречу"
-            self.status.stringValue = "Сессий и событий: \(self.entries.count) из \(self.total) · транскрипты и отмеченные встречи: 30 дней."
+            self.status.stringValue = "Сессий и событий: \(self.entries.count) из \(self.total) · транскрипты и отмеченные встречи: 30 дней." + (self.rawPermitted ? "" : " Исходники закрыты; сохранённые кадры доступны в «Изображениях».")
             if let at = self.requestedTime {
                 if let session = self.entries.first(where: { ($0["start"] as? Double ?? 0) <= at && ($0["end"] as? Double ?? 0) >= at }), let id = session["id"] as? String {
                     self.expanded.insert(id)
@@ -617,7 +709,10 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
             }
             self.rebuild()
             for entry in self.entries where self.expanded.contains(entry["id"] as? String ?? "") {
-                if (entry["observations"] as? [[String: Any]] ?? []).isEmpty, let id = entry["id"] as? String { self.fetchChildren(id, offset: 0) }
+                let children = entry["observations"] as? [[String: Any]] ?? []
+                if (children.isEmpty || (refreshExpanded && children.count <= 100)), let id = entry["id"] as? String {
+                    self.fetchChildren(id, offset: 0, selectFirst: self.selected?["id"] as? String == id)
+                }
             }
             if let at = self.requestedTime {
                 let index = self.rows.indices.filter { self.rows[$0]["type"] as? String != "gap" }.min {
@@ -629,6 +724,8 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
         }
     }
     func rebuild() {
+        rebuilding = true
+        defer { rebuilding = false }
         let id = selected?["id"] as? String
         rows = []
         for entry in entries {
@@ -661,38 +758,67 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
         }
         return label
     }
-    func tableViewSelectionDidChange(_ notification: Notification) { showDetail(table.selectedRow) }
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        guard !rebuilding else { return }
+        panel?.cancelHistorySummary(ifSection: .recordings)
+        let row = table.selectedRow
+        showDetail(row)
+        guard rows.indices.contains(row), rows[row]["type"] as? String == "session" else { return }
+        openSession(row, selectFirst: true)
+    }
     @objc func expandSession() {
         let row = table.clickedRow >= 0 ? table.clickedRow : table.selectedRow
         guard rows.indices.contains(row) else { return }
         let entry = rows[row]
         if entry["type"] as? String == "more", let id = entry["session"] as? String {
             fetchChildren(id, offset: entry["offset"] as? Int ?? 0)
-        } else if entry["type"] as? String == "session", let id = entry["id"] as? String {
-            if expanded.contains(id) { expanded.remove(id) } else {
-                expanded.insert(id)
-                if (entry["observations"] as? [[String: Any]] ?? []).isEmpty { fetchChildren(id, offset: 0) }
-            }
-            rebuild()
+        } else if entry["type"] as? String == "session" {
+            openSession(row, selectFirst: true)
         }
     }
-    func fetchChildren(_ id: String, offset: Int) {
+    func openSession(_ row: Int, selectFirst: Bool) {
+        guard permitted, rows.indices.contains(row), let id = rows[row]["id"] as? String else { return }
+        expanded.insert(id)
+        let children = rows[row]["observations"] as? [[String: Any]] ?? []
+        rebuild()
+        if children.isEmpty {
+            status.stringValue = "Загружаю содержимое записи…"
+            fetchChildren(id, offset: 0, selectFirst: selectFirst)
+        } else if selectFirst { selectFirstChild(id) }
+    }
+    func selectFirstChild(_ id: String) {
+        guard selected?["id"] as? String == id,
+              let parent = rows.firstIndex(where: { $0["id"] as? String == id }),
+              rows.indices.contains(parent + 1), rows[parent + 1]["type"] as? String == "observation" else { return }
+        table.selectRowIndexes(IndexSet(integer: parent + 1), byExtendingSelection: false)
+        table.scrollRowToVisible(parent + 1)
+        showDetail(parent + 1)
+    }
+    func fetchChildren(_ id: String, offset: Int, selectFirst: Bool = false) {
         guard let panel else { return }
         var args = request(offset: offset); args["session"] = id
         guard let json = panel.jsonArgument(args) else { return }
         let token = serial
         panel.command(["ui-recordings", json]) { [weak self] value in
-            guard let self, self.permitted, token == self.serial, let value, value["hidden"] as? Bool != true,
+            guard let self, self.permitted, token == self.serial,
                   let index = self.entries.firstIndex(where: { $0["id"] as? String == id }) else { return }
+            guard let value else { self.status.stringValue = "Не удалось загрузить содержимое. Нажмите «Обновить»."; return }
+            if value["hidden"] as? Bool == true { self.clear(); return }
             let prior = offset == 0 ? [] : (self.entries[index]["observations"] as? [[String: Any]] ?? [])
-            self.entries[index]["observations"] = prior + (value["items"] as? [[String: Any]] ?? [])
+            let page = self.safeEntries(value["items"] as? [[String: Any]] ?? [])
+            self.entries[index]["observations"] = prior + page
             self.rebuild()
+            if page.isEmpty && offset == 0 { self.status.stringValue = "Содержимое пока недоступно. Нажмите «Обновить»." }
+            else {
+                self.status.stringValue = "Содержимое записи загружено."
+                if selectFirst { self.selectFirstChild(id) }
+            }
         }
     }
     func showDetail(_ row: Int) {
         player.player?.pause(); player.player = nil; player.isHidden = true; picture.image = nil; picture.isHidden = true
         files.removeAllItems(); selected = rows.indices.contains(row) ? rows[row] : nil
-        play.isEnabled = false; preserve.isEnabled = false; remove.isEnabled = false
+        play.isEnabled = false; preserve.isEnabled = false; remove.isEnabled = false; summarizeSession.isEnabled = selectedSessionID() != nil
         guard let item = selected, let panel else { detail.string = "Выберите сессию; двойной щелчок раскрывает её наблюдения."; return }
         if item["type"] as? String == "observation" {
             let facts = item["facts"] as? [[String: Any]] ?? []
@@ -712,16 +838,21 @@ final class RecordingsPane: NSView, NSTableViewDataSource, NSTableViewDelegate {
                 }.joined(separator: " · ")
             }.joined(separator: "\n\n")
             let transcripts = item["transcripts"] as? [[String: Any]] ?? []
+            if facts.isEmpty && transcripts.isEmpty {
+                let status = item["analysis_status"] as? String
+                text += status == "pending" ? "\n\nЗапись ещё ожидает анализа." : status == "failed" ? "\n\nАнализ этой записи не удался." : "\n\nРезультатов анализа для этой записи нет."
+            }
             text += "\n\nТранскрипт:\n" + (transcripts.isEmpty ? "Не сохранён или истёк срок хранения." : transcripts.compactMap { $0["text"] as? String }.joined(separator: "\n"))
             let media = item["media"] as? [[String: Any]] ?? []
             for file in media {
                 files.addItem(withTitle: "\(file["source"] as? String ?? "Файл") · \(panel.clock(file["start"]))" + (file["path"] as? String == nil ? " · недоступен" : "") + (file["preserved"] as? Bool == true ? " · сохранён" : ""))
                 files.lastItem?.representedObject = file
             }
-            if media.isEmpty || !media.contains(where: { $0["path"] as? String != nil }) { text += "\n\nОригинал недоступен: удалён после анализа или по сроку." }
+            if !rawPermitted { text += "\n\nДоступ к исходным файлам сейчас закрыт." }
+            else if media.isEmpty || !media.contains(where: { $0["path"] as? String != nil }) { text += "\n\nОригинал недоступен: удалён после анализа или по сроку." }
             detail.string = text
         } else if item["type"] as? String == "session" {
-            detail.string = "\(panel.clock(item["start"]))–\(panel.clock(item["end"])) · \(item["count"] ?? 0) наблюдений\nДвойной щелчок раскрывает наблюдения с фактами, текстом и отдельными файлами."
+            detail.string = "\(panel.clock(item["start"]))–\(panel.clock(item["end"])) · \(item["count"] ?? 0) наблюдений\nЗагружаю содержимое…"
         } else {
             let card = item["card"] as? [String: Any] ?? [:]
             detail.string = (item["title"] as? String ?? "Материал") + "\n\n" + (card["markdown"] as? String ?? card["mermaid"] as? String ?? "")
@@ -824,6 +955,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     let obsSource = NSPopUpButton(frame: .zero, pullsDown: false)
     let obsEmpty = NSButton(checkboxWithTitle: "Показать пустые и пропуски", target: nil, action: nil)
     let obsRefresh = NSButton(title: "Обновить", target: nil, action: nil)
+    let obsMakeSummary = NSButton(title: "Сводка дня", target: nil, action: nil)
     let obsMore = NSButton(title: "Показать ещё", target: nil, action: nil)
     let obsSummary = NSTextField(wrappingLabelWithString: "")
     let obsStatus = NSTextField(labelWithString: "")
@@ -836,6 +968,13 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     var observationDay: String?
     var observationTotal = 0
     var observationSerial = 0
+    var ruleSerial = 0
+    var activeRuleAlert: NSAlert?
+    var activeRuleReadOnly = false
+    var historySummarySerial = 0
+    var storedFrameScopeSerial = 0
+    var historySummaryJob: String?
+    var historySummarySection: Section?
     var observationSelectedID: String?
     var observationsLoaded = false
     var dictationConsumed: String?      // the dictation whose text already went into the field
@@ -849,6 +988,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     let feedbackStatus = NSTextField(wrappingLabelWithString: "Исправления: данных пока нет.")
     static let archiveTitle = "Постоянный анализ разговоров, видео и звука приложений"
     let archiveToggle = NSButton(checkboxWithTitle: Panel.archiveTitle, target: nil, action: nil)
+    let singleUserToggle = NSButton(checkboxWithTitle: "История без проверки владельца (только я)", target: nil, action: nil)
     let storageInfo = StableTextField(wrappingLabelWithString: "Определяю объём временного буфера…")
     let ownerSetupStatus = NSTextField(wrappingLabelWithString: "Эталоны голоса хранятся на этом Mac. Восстановление владельца — через локальное подтверждение macOS.")
     let guestName = NSTextField()
@@ -889,6 +1029,8 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     let jobZone = NSTextField()
     let jobModel = NSComboBox()
     let jobDailyTime = NSTextField()
+    let jobDeliveryLabel = NSTextField(labelWithString: "Результат показывается в Display.")
+    let jobTelegram = NSButton(checkboxWithTitle: "Дополнительно отправлять в Telegram", target: nil, action: nil)
     var components: [[String: Any]] = []
     var localModels: [String] = []
     var routes: [[String: Any]] {
@@ -913,6 +1055,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     let visualState = NSTextField(wrappingLabelWithString: "Материалы пока не выбраны.")
     let gallery = NSPopUpButton()
     let revealButton = NSButton(title: "Показать в Finder", target: nil, action: nil)
+    let deleteImageButton = NSButton(title: "Удалить", target: nil, action: nil)
     let componentSave = NSButton(title: "Сохранить компонент", target: nil, action: nil)
     let ownerSetupCancel = NSButton(title: "Отменить регистрацию", target: nil, action: nil)
     let debugStamp = NSTextField(labelWithString: "")
@@ -923,6 +1066,8 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     var testNow: Date?
     var testReplies: [String: [String: Any]] = [:]
     var testNoReply: Set<String> = []
+    var testDeferRecordingChildren = false
+    var testPendingRecordingChildren: (([String: Any]?) -> Void)?
     /// Seconds a command may run before the panel gives up on it. «Остановить» задание chains up to three CLI calls of 12 s
     /// in the service; 15 s would report a failure that is still succeeding.
     static func commandTimeout(_ name: String) -> Double { ["ui-state": 8, "ui-schedule-control": 60, "ui-recording-play": 75][name] ?? 15 }
@@ -946,6 +1091,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     var testDisplayAction: [String: Any]? = ["status": "синтетически: действие принято"]
     var testObservations: [String: Any]?
     var testSupersedeObservation = false
+    var testSupersedeRule = false
     var testDictation: [String: Any]? = ["state": "listening", "id": "synthetic-1", "text": "", "partial": ""]
     var restoringFrame = true
     let tagline = NSTextField(labelWithString: "Личный помощник")
@@ -1280,7 +1426,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         return card(container)
     }
     func observationsHistoryView() -> NSView {
-        for (button, action) in [(obsPrev, #selector(olderObservationDay)), (obsNext, #selector(newerObservationDay)), (obsRefresh, #selector(reloadObservations)), (obsMore, #selector(moreObservations))] {
+        for (button, action) in [(obsPrev, #selector(olderObservationDay)), (obsNext, #selector(newerObservationDay)), (obsRefresh, #selector(reloadObservations)), (obsMore, #selector(moreObservations)), (obsMakeSummary, #selector(summarizeObservationDay))] {
             button.target = self; button.action = action
         }
         obsPrev.toolTip = "Более ранний день"; obsNext.toolTip = "Более поздний день"
@@ -1296,7 +1442,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         obsEmpty.target = self; obsEmpty.action = #selector(reloadObservations)
         obsEmpty.toolTip = "Наблюдения без вывода и интервалы, когда запись или анализ не работали"
         let spacer = NSView(); spacer.setContentHuggingPriority(.init(1), for: .horizontal)
-        let toolbar = row([obsPrev, obsDay, obsNext, obsSource, obsEmpty, spacer, obsRefresh])
+        let toolbar = row([obsPrev, obsDay, obsNext, obsSource, obsEmpty, spacer, obsMakeSummary, obsRefresh])
         obsSummary.textColor = Theme.dim
         obsSummary.font = Theme.font(12)
         obsSummary.isSelectable = true
@@ -1358,6 +1504,8 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         stack.addArrangedSubview(voiceToggle)
         archiveToggle.target = self; archiveToggle.action = #selector(toggleArchive)
         stack.addArrangedSubview(archiveToggle)
+        singleUserToggle.target = self; singleUserToggle.action = #selector(toggleSingleUser)
+        stack.addArrangedSubview(singleUserToggle)
         fill(stack, label("Во время встречи анализ продолжается, Butler молчит. Видео и звук хранятся во временном буфере до анализа; затем остаются результаты и нужные изображения. Полная Пауза останавливает все источники."))
         fill(stack, storageInfo)
         fixedLabel(storageInfo, height: 196)
@@ -1429,7 +1577,8 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         gallery.target = self; gallery.action = #selector(chooseArtifact)
         gallery.widthAnchor.constraint(lessThanOrEqualToConstant: 460).isActive = true
         revealButton.target = self; revealButton.action = #selector(revealArtifact); revealButton.isEnabled = false
-        stack.addArrangedSubview(row([gallery, NSButton(title: "Показать", target: self, action: #selector(showArtifact)), revealButton, NSButton(title: "Удалить", target: self, action: #selector(deleteArtifact))]))
+        deleteImageButton.target = self; deleteImageButton.action = #selector(deleteArtifact)
+        stack.addArrangedSubview(row([gallery, NSButton(title: "Показать", target: self, action: #selector(showArtifact)), revealButton, deleteImageButton]))
         return card(scrolling(stack))
     }
     func tableScroll(_ table: NSTableView, columns: [(String, String, CGFloat)], minHeight: CGFloat = 220) -> NSScrollView {
@@ -1505,6 +1654,9 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
             for field: NSControl in [jobCron, jobZone, jobModel, jobDailyTime] { field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal) }
             jobCron.placeholderString = "0 9 * * *"; jobModel.placeholderString = "Модель агента Butler"
             stack.addArrangedSubview(grid)
+            jobDeliveryLabel.isHidden = true; jobTelegram.isHidden = true
+            stack.addArrangedSubview(jobDeliveryLabel)
+            stack.addArrangedSubview(jobTelegram)
             let actions = row([])
             for (index, title) in ["Запустить", "Пауза", "Продолжить", "Остановить", "Сохранить"].enumerated() {
                 let button = NSButton(title: title, target: self, action: #selector(controlJob(_:))); button.tag = index
@@ -1805,6 +1957,9 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         }
         var body = facts.isEmpty ? "Анализ не выделил ничего значимого." : "Выводы модели (могут содержать ошибки):\n" + lines.joined(separator: "\n")
         body += "\n\n" + (item["original"] as? Bool == true ? "Оригинал пока хранится на этом Mac и будет удалён после анализа или по сроку (24 часа)." : "Оригинал удалён после анализа: остались только выводы.")
+        if state["recordings_raw_allowed"] as? Bool == false, ["camera", "screen"].contains(item["source"] as? String ?? "") {
+            body += "\nЗдесь исходный файл скрыт; сохранённые кадры доступны в разделе «Изображения»."
+        }
         return ("\(source) · \(clock(start, seconds: true))–\(clock(end, seconds: true))", body)
     }
     func analysisBannerText(_ analysis: [String: Any]?) -> String? {
@@ -1823,15 +1978,23 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         defaults.set(history ? "history" : "now", forKey: "observationsMode")
         if history && !observationsLoaded { loadObservations(reset: true) }
     }
-    @objc func reloadObservations() { loadObservations(reset: true) }
+    @objc func reloadObservations() { cancelHistorySummary(ifSection: .observations); loadObservations(reset: true) }
+    @objc func summarizeObservationDay() {
+        guard let day = observationDay else { obsStatus.stringValue = "Сначала выберите день."; return }
+        var args: [String: Any] = ["kind": "observations", "day": day]
+        if let source = obsSource.selectedItem?.representedObject as? String, !source.isEmpty { args["source"] = source }
+        startHistorySummary(args, title: "Сводка наблюдений за \(day)", status: obsStatus, section: .observations)
+    }
     @objc func moreObservations() { loadObservations(reset: false) }
     @objc func changeObservationDay() {
+        cancelHistorySummary(ifSection: .observations)
         observationDay = obsDay.selectedItem?.representedObject as? String
         loadObservations(reset: true)
     }
     func stepObservationDay(_ delta: Int) {
         guard let day = observationDay, let index = observationDays.firstIndex(where: { $0["day"] as? String == day }), observationDays.indices.contains(index + delta),
               let next = observationDays[index + delta]["day"] as? String else { return }
+        cancelHistorySummary(ifSection: .observations)
         observationDay = next
         loadObservations(reset: true)
     }
@@ -1856,7 +2019,14 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
                 self.obsStatus.stringValue = "История недоступна: нет связи с Butler."
                 return
             }
-            self.applyObservations(value, append: !reset)
+            guard (self.state["history_visible"] as? Bool ?? self.state["recordings_allowed"] as? Bool) != false else { return }
+            var safe = value
+            if self.state["recordings_raw_allowed"] as? Bool == false {
+                safe["items"] = (value["items"] as? [[String: Any]] ?? []).map { item in
+                    var row = item; row.removeValue(forKey: "frame"); return row
+                }
+            }
+            self.applyObservations(safe, append: !reset)
         }
     }
     func applyObservations(_ value: [String: Any], append: Bool) {
@@ -2482,6 +2652,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
     @objc func about() { NSApp.orderFrontStandardAboutPanel(options: [.applicationName: "Butler", .credits: NSAttributedString(string: "Личный помощник · обработка наблюдений на этом Mac")]) }
     func select(_ value: Section, showHiddenPage: Bool = false) {
         let value = value.isHidden && !showHiddenPage ? Section.display : value
+        if let active = historySummarySection, active != value { cancelHistorySummary() }
         section = value
         for (key, page) in pages { page.isHidden = key != value }
         pageTitle.stringValue = value.title; pageDetail.stringValue = value.detail
@@ -2656,8 +2827,12 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
             for field: NSControl in [jobCron, jobZone, jobModel] { field.isEnabled = cron }
             jobDailyTime.stringValue = value["daily_time"] as? String ?? ""
             jobDailyTime.isEnabled = value["id"] as? String == "builtin:daily"
+            let localDelivery = ["builtin:daily", "builtin:advice"].contains(value["id"] as? String ?? "")
+            jobDeliveryLabel.isHidden = !localDelivery; jobTelegram.isHidden = !localDelivery
+            jobTelegram.state = value["telegram_enabled"] as? Bool == true ? .on : .off
             let last = value["last_result"].map { " · \($0)" } ?? ""
-            jobMessage.stringValue = "Следующий по плану: \(time(value["next_run"]))\nПоследний подтверждённый: \(time(value["last_run"]))\(last)\nМодель: \(value["model"] ?? "—")\n\(value["error"] ?? "")"
+            let deliveryNote = cron ? " Доставка этого задания управляется OpenClaw." : ""
+            jobMessage.stringValue = "Следующий по плану: \(time(value["next_run"]))\nПоследний подтверждённый: \(time(value["last_run"]))\(last)\nМодель: \(value["model"] ?? "—")\n\(value["error"] ?? "")\(deliveryNote)"
         }
     }
     func reconcile(_ table: NSTableView, id: String?) {
@@ -2748,7 +2923,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
             }
         }
     }
-    func jsonCommand(_ name: String, _ values: [String: String], completion: @escaping ([String: Any]?) -> Void) {
+    func jsonCommand(_ name: String, _ values: [String: Any], completion: @escaping ([String: Any]?) -> Void) {
         guard let data = try? JSONSerialization.data(withJSONObject: values), let json = String(data: data, encoding: .utf8) else { return }
         command([name, json], completion: completion)
     }
@@ -2777,13 +2952,16 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         guard let id = jobID, id == selectedID(jobTable), let value = jobs.first(where: { $0["id"] as? String == id }) else { return }
         let actions = ["run", "pause", "resume", "stop", "update"]
         guard actions.indices.contains(sender.tag) else { return }
-        var values = ["id": id, "action": actions[sender.tag]]
+        var values: [String: Any] = ["id": id, "action": actions[sender.tag]]
         if sender.tag == 4 {
             if value["kind"] as? String == "cron" {
                 if !jobCron.stringValue.isEmpty { values["cron"] = jobCron.stringValue }
                 values["timezone"] = jobZone.stringValue
                 if !jobModel.stringValue.isEmpty { values["model"] = jobModel.stringValue }
-            } else if id == "builtin:daily" { values["daily_time"] = jobDailyTime.stringValue }
+            } else if id == "builtin:daily" || id == "builtin:advice" {
+                if id == "builtin:daily" { values["daily_time"] = jobDailyTime.stringValue }
+                values["telegram_enabled"] = jobTelegram.state == .on
+            }
         }
         jobMessage.stringValue = "Применяю к выбранному заданию Butler…"
         jsonCommand("ui-schedule-control", values) { value in
@@ -2812,11 +2990,127 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
             self.refresh()
         }
     }
+    func cancelHistorySummary(ifSection: Section? = nil) {
+        if let ifSection, historySummarySection != ifSection { return }
+        historySummarySerial += 1
+        let old = historySummaryJob
+        historySummaryJob = nil; historySummarySection = nil
+        if let old, let json = jsonArgument(["action": "cancel", "id": old]) {
+            command(["ui-history-summary", json]) { _ in }
+        }
+    }
+    static func historySummaryText(_ value: [String: Any], preview: Bool = false) -> String {
+        let result = value["summary"] as? [String: Any] ?? [:]
+        var lines = [result["summary"] as? String ?? "Сводка недоступна."]
+        for (key, heading) in [("key_points", "Главное"), ("conclusions", "Возможные выводы"), ("limitations", "Ограничения")] {
+            let items = result[key] as? [String] ?? []
+            if !items.isEmpty { lines.append("\n\(heading):\n" + items.map { "• " + $0 }.joined(separator: "\n")) }
+        }
+        if preview { lines.insert("Предварительная сводка первого фрагмента. Полная сводка ещё готовится.\n", at: 0) }
+        else if value["partial"] as? Bool == true {
+            lines.append(value["partial_reason"] as? String == "interrupted" ? "\nПолная обработка прервалась; показана сводка только первого фрагмента." : "\nОбработана только часть данных: выбранный объём превысил предел.")
+        }
+        lines.append("\nАвтоматическая локальная сводка; выводы могут быть неточными. В выбранных данных наблюдений: \(value["observations"] ?? 0), транскриптов: \(value["transcripts"] ?? 0).")
+        return lines.joined(separator: "\n")
+    }
+    func showHistorySummaryInline(_ value: [String: Any], section: Section, preview: Bool) {
+        let text = Panel.historySummaryText(value, preview: preview)
+        if section == .recordings { recordingsPane?.detail.string = text }
+        else if section == .observations {
+            obsDetailTitle.stringValue = preview ? "Предварительная сводка" : "Сводка дня"
+            obsDetailBody.stringValue = text; obsFrame.image = nil; obsFrame.isHidden = true
+        }
+    }
+    func startHistorySummary(_ scope: [String: Any], title: String, status: NSTextField, section: Section) {
+        guard (state["history_visible"] as? Bool ?? state["recordings_allowed"] as? Bool) == true else {
+            status.stringValue = "История сейчас недоступна."; return
+        }
+        cancelHistorySummary()
+        historySummarySection = section
+        let serial = historySummarySerial
+        var request = scope; request["action"] = "start"
+        guard let json = jsonArgument(request) else { return }
+        status.stringValue = "Готовлю локальную сводку…"
+        command(["ui-history-summary", json]) { value in
+            guard let id = value?["id"] as? String else {
+                if serial == self.historySummarySerial { status.stringValue = "Не удалось запустить локальную сводку." }
+                return
+            }
+            guard serial == self.historySummarySerial else {
+                if let json = self.jsonArgument(["action": "cancel", "id": id]) { self.command(["ui-history-summary", json]) { _ in } }
+                return
+            }
+            self.historySummaryJob = id
+            self.pollHistorySummary(id, serial: serial, title: title, status: status, section: section)
+        }
+    }
+    func pollHistorySummary(_ id: String, serial: Int, title: String, status: NSTextField, section: Section) {
+        guard serial == historySummarySerial, section == self.section,
+              let json = jsonArgument(["action": "status", "id": id]) else { return }
+        command(["ui-history-summary", json]) { value in
+            guard serial == self.historySummarySerial, section == self.section else { return }
+            switch value?["state"] as? String {
+            case "working":
+                let done = value?["completed"] as? Int ?? 0, total = value?["total"] as? Int ?? 0
+                status.stringValue = total == 0 ? "Подготавливаю локальные данные…" : done < total ? "Локальная сводка: \(done) из \(total) частей…" : "Объединяю выводы локально…"
+                if let value, value["summary"] != nil { self.showHistorySummaryInline(value, section: section, preview: true) }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) { self.pollHistorySummary(id, serial: serial, title: title, status: status, section: section) }
+            case "ready":
+                guard let value, (self.state["history_visible"] as? Bool ?? self.state["recordings_allowed"] as? Bool) == true else { return }
+                self.historySummaryJob = nil; self.historySummarySection = nil
+                status.stringValue = "Локальная сводка готова."
+                self.showHistorySummaryInline(value, section: section, preview: false)
+                let alert = NSAlert(); alert.messageText = title
+                let text = NSTextView(); text.isEditable = false; text.isSelectable = true; text.string = Panel.historySummaryText(value)
+                text.font = Theme.font(12); text.textColor = Theme.text; text.backgroundColor = Theme.raised
+                let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: 680, height: 360))
+                scroll.hasVerticalScroller = true; scroll.documentView = text
+                text.frame = NSRect(x: 0, y: 0, width: 660, height: 360); text.isVerticallyResizable = true; text.textContainer?.widthTracksTextView = true
+                alert.accessoryView = scroll; alert.addButton(withTitle: "Закрыть")
+                _ = self.runRuleAlert(alert, readOnly: true)
+                if let json = self.jsonArgument(["action": "cancel", "id": id]) { self.command(["ui-history-summary", json]) { _ in } }
+            case "hidden", "cancelled", "expired":
+                self.historySummaryJob = nil; self.historySummarySection = nil; status.stringValue = "Сводка отменена: доступ к истории изменился."
+            default:
+                self.historySummaryJob = nil; self.historySummarySection = nil
+                status.stringValue = value?["reason"] as? String == "model-unavailable" ? "Локальная модель недоступна. Проверьте её в разделе «Модели по задачам»." : "Не удалось подготовить сводку. Попробуйте выбрать меньший период или источник."
+            }
+        }
+    }
+    func ruleAccessAllowed(_ value: [String: Any]?, readOnly: Bool) -> Bool {
+        guard let value, value["enabled"] as? Bool == true else { return false }
+        if readOnly { return (value["history_visible"] as? Bool ?? value["recordings_allowed"] as? Bool) == true }
+        return (value["voice"] as? [String: Any])?["dialogue_allowed"] as? Bool == true
+    }
+    func invalidateRuleView() {
+        ruleSerial += 1
+        if let alert = activeRuleAlert {
+            if NSApp.modalWindow === alert.window { NSApp.abortModal() }
+            alert.window.orderOut(nil)
+            activeRuleAlert = nil
+        }
+    }
+    func runRuleAlert(_ alert: NSAlert, readOnly: Bool) -> NSApplication.ModalResponse {
+        activeRuleReadOnly = readOnly; activeRuleAlert = alert
+        // The ordinary timer runs in the default run-loop mode. Keep polling
+        // while AppKit's modal loop is open so a remote pause/revocation can
+        // close a view that already contains local rules.
+        let modalTimer = Timer(timeInterval: 1, repeats: true) { [weak self] _ in self?.refresh() }
+        RunLoop.main.add(modalTimer, forMode: .modalPanel)
+        defer { modalTimer.invalidate() }
+        let response = alert.runModal()
+        if activeRuleAlert === alert { activeRuleAlert = nil }
+        return response
+    }
     @objc func manageRules() {
+        ruleSerial += 1; let serial = ruleSerial
         command(["ui-rule", "{\"action\":\"list\"}"]) { result in
+            guard serial == self.ruleSerial else { return }
             guard let rules = result?["rules"] as? [[String: Any]] else { NSSound.beep(); return }
+            let readOnly = result?["read_only"] as? Bool ?? true
+            guard self.ruleAccessAllowed(self.state, readOnly: readOnly) else { return }
             let alert = NSAlert(); alert.messageText = "Правила и предпочтения"
-            alert.informativeText = "Действующие правила хранятся в Butler/Rules. Выберите правило для просмотра или изменения."
+            alert.informativeText = readOnly ? "Сейчас правила доступны только для просмотра." : "Действующие правила хранятся в Butler/Rules. Выберите правило для просмотра или изменения."
             let box = NSStackView(); box.orientation = .vertical; box.alignment = .leading
             let choices = NSPopUpButton(frame: NSRect(x: 0, y: 0, width: 460, height: 28))
             choices.addItem(withTitle: "Новое предпочтение")
@@ -2826,7 +3120,9 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
             box.addArrangedSubview(choices); box.addArrangedSubview(wording)
             box.frame = NSRect(x: 0, y: 0, width: 460, height: 70); alert.accessoryView = box
             for title in ["Сохранить", "Посмотреть", "Ограничить…", "Завершить действие", "Удалить", "Отмена"] { alert.addButton(withTitle: title) }
-            let response = alert.runModal().rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
+            setRuleAlertReadOnly(alert, readOnly)
+            let response = self.runRuleAlert(alert, readOnly: readOnly).rawValue - NSApplication.ModalResponse.alertFirstButtonReturn.rawValue
+            guard serial == self.ruleSerial else { return }
             guard response < 5 else { return }
             let chosen = choices.indexOfSelectedItem > 0 ? rules[choices.indexOfSelectedItem - 1] : nil
             if response == 1 {
@@ -2838,7 +3134,7 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
                     }.joined(separator: "\n")
                     return "\(rule["text"] as? String ?? "")\nОбласть: \(rule["scope"] ?? "")\nИсточник: \(rule["source"] ?? "")\nСтатус: \(rule["status"] ?? "")\nРевизия: \(rule["revision"] ?? "")\nДата: \(rule["updated_at"] ?? "")\nПримеры применения:\n\(uses.isEmpty ? "Пока нет записей применения." : uses)"
                 } ?? "Введите новое предпочтение."
-                info.runModal(); return
+                _ = self.runRuleAlert(info, readOnly: readOnly); return
             }
             var args: [String: Any] = ["event": UUID().uuidString]
             if let chosen { args["id"] = chosen["id"] }
@@ -2854,13 +3150,13 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
                 let fields = NSStackView(views: [app, words]); fields.orientation = .vertical
                 fields.frame = NSRect(x: 0, y: 0, width: 420, height: 60); narrow.accessoryView = fields
                 narrow.addButton(withTitle: "Применить"); narrow.addButton(withTitle: "Отмена")
-                guard narrow.runModal() == .alertFirstButtonReturn else { return }
+                guard self.runRuleAlert(narrow, readOnly: readOnly) == .alertFirstButtonReturn, serial == self.ruleSerial else { return }
                 var narrowed = ["mode": "private"]
                 if !app.stringValue.isEmpty { narrowed["application"] = app.stringValue }
                 if !words.stringValue.isEmpty { narrowed["contains"] = words.stringValue }
                 args["action"] = "narrow"; args["scope"] = narrowed
             } else { guard chosen != nil else { return }; args["action"] = response == 3 ? "retire" : "delete" }
-            guard let data = try? JSONSerialization.data(withJSONObject: args), let json = String(data: data, encoding: .utf8) else { return }
+            guard serial == self.ruleSerial, let data = try? JSONSerialization.data(withJSONObject: args), let json = String(data: data, encoding: .utf8) else { return }
             self.command(["ui-rule", json]) { _ in self.refresh() }
         }
     }
@@ -2891,6 +3187,12 @@ final class Panel: NSObject, NSMenuDelegate, NSWindowDelegate, NSApplicationDele
         if testing {
             testCommands.append(arguments)
             if let name = arguments.first {
+                if name == "ui-rule" && testSupersedeRule { invalidateRuleView() }
+                if name == "ui-recordings", testDeferRecordingChildren, arguments.count > 1,
+                   let data = arguments[1].data(using: .utf8),
+                   let args = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any], args["session"] != nil {
+                    testPendingRecordingChildren = completion; return
+                }
                 if testNoReply.contains(name) { completion(nil); return }
                 if let reply = testReplies[name] { completion(reply); return }
             }
@@ -2982,15 +3284,23 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
         if window.isVisible && Date().timeIntervalSince(lastManagementRefresh) > 15 { loadManagement() }
         if busy { return }
         busy = true
+        let frameSerial = storedFrameScopeSerial
         command(window.isVisible && [.voice, .observations].contains(section) ? ["ui-state", "--preview"] : ["ui-state"]) { result in
             self.busy = false
-            guard let value = result else {
+            guard var value = result else {
+                self.cancelHistorySummary()
+                self.clearStoredFrames()
+                self.invalidateRuleView()
+                self.observationSerial += 1
+                self.feed.clearRestricted(history: true, media: true)
+                self.feed.setCorrectionsAllowed(false)
                 self.recordingsPane?.updatePermission(nil)
                 self.artifactImage.image = nil
                 self.artifacts = []; self.gallery.removeAllItems(); self.revealButton.isEnabled = false
                 self.artifactCaption.stringValue = "Изображения скрыты: проверка владельца недоступна."
                 self.observationItems = []; self.observationTable.reloadData(); self.showObservationDetail(-1)
                 self.history.stringValue = "Наблюдения скрыты: проверка владельца недоступна."
+                self.state["history_visible"] = false
                 self.state["recordings_allowed"] = false
                 self.failureStreak += 1
                 if let heard = self.lastGoodState, self.failureStreak < self.disconnectAfterFailures {
@@ -3017,8 +3327,10 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
                 self.microphoneMeter.doubleValue = -70
                 return
             }
+            if frameSerial != self.storedFrameScopeSerial { value["stored_frames_allowed"] = false; value["stored_frames"] = [] }
             self.recordingsPane?.updatePermission(value)
             self.state = value
+            if !self.ruleAccessAllowed(value, readOnly: self.activeRuleReadOnly) { self.invalidateRuleView() }
             self.lastGoodState = Date()
             if self.failureStreak > 0 {
                 self.failureStreak = 0
@@ -3030,7 +3342,24 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
                 self.window.subtitle = "\(self.section.title) · v\(version)"
             }
             self.updateDisplay(value["display"] as? [String: Any])
-            if value["recordings_allowed"] as? Bool == false {
+            if value["recordings_raw_allowed"] as? Bool == false {
+                self.feed.clearRestricted(history: false, media: true)
+                self.observationItems = self.observationItems.map { item in
+                    var safe = item; safe.removeValue(forKey: "frame"); return safe
+                }
+                self.obsFrame.image = nil; self.obsFrame.isHidden = true
+                let selectedFrame = self.artifacts.indices.contains(self.gallery.indexOfSelectedItem) && self.artifacts[self.gallery.indexOfSelectedItem]["kind"] as? String == "stored-frame"
+                if value["stored_frames_allowed"] as? Bool != true || !selectedFrame {
+                    self.artifactImage.image = nil; self.artifacts = []; self.gallery.removeAllItems()
+                    self.revealButton.isEnabled = false
+                    self.artifactCaption.stringValue = "Изображения скрыты: нет разрешения на исходные файлы."
+                }
+            }
+            let historyAllowed = value["history_visible"] as? Bool ?? value["recordings_allowed"] as? Bool
+            if historyAllowed == false {
+                self.cancelHistorySummary()
+                self.feed.clearRestricted(history: true, media: false)
+                self.observationSerial += 1
                 self.observationItems = []; self.observationTable.reloadData(); self.showObservationDetail(-1)
                 self.history.stringValue = "Наблюдения скрыты до подтверждения владельца."
             }
@@ -3057,7 +3386,7 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
                 ((feedback["error"] as? String) == nil ? "" : "\nСохранение или анализ временно недоступны; исправление разговора выполняется отдельно.")
             if !allowed {
                 self.image.image = nil
-                self.artifactImage.image = nil
+                if !(self.artifacts.indices.contains(self.gallery.indexOfSelectedItem) && self.artifacts[self.gallery.indexOfSelectedItem]["kind"] as? String == "stored-frame" && value["stored_frames_allowed"] as? Bool == true) { self.artifactImage.image = nil }
                 self.message.stringValue = enabled ? reasons[value["participant_check"] as? String ?? ""] ?? "Нужны три свежие успешные проверки участников. Свежие изображения сейчас недоступны." : "Камера и микрофон остановлены. Нажмите «Продолжить», чтобы включить проверки."
             } else if self.cameraPreview {
                 if let preview = value["preview"] as? [String: Any], let image = previewImage(preview) {
@@ -3069,7 +3398,7 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
                 }
             }
             let recent = value["recent"] as? [[String: Any]] ?? []
-            self.history.stringValue = recent.isEmpty ? "Пока нет наблюдений с выводом." : recent.prefix(8).map {
+            self.history.stringValue = historyAllowed == false ? "Наблюдения скрыты: проверьте паузу, согласие и режим доступа." : recent.isEmpty ? "Пока нет наблюдений с выводом." : recent.prefix(8).map {
                 "\(self.time($0["at"])) · \(Panel.observationSources[$0["source"] as? String ?? ""] ?? ($0["source"] as? String ?? "")): \(($0["details"] as? [String] ?? []).joined(separator: "; "))"
             }.joined(separator: "\n")
             let banner = self.analysisBannerText(value["analysis"] as? [String: Any])
@@ -3202,7 +3531,12 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
             self.debugStatus.stringValue = (statusLines + ["Этап фонового анализа: \(analysisDiagnostic)", "Собеседники и представление: \(disclosure)"]).joined(separator: "\n")
             self.participantSummary.stringValue = "Владелец: \(dialogueWorking ? "подтверждён · " + (participant["confirmed_by"] as? String == "voice" ? "голос" : "камера") : "проверяю")\nСвежие проверки: \(participant["consecutive_checks"] ?? 0)/3"
             self.microphoneMeter.doubleValue = input["rms_dbfs"] as? Double ?? -70
-            self.feed.show((value["feed"] as? [[String: Any]] ?? []).map(FeedEntry.init))
+            self.feed.setCorrectionsAllowed(dialogueWorking)
+            let feedEntries = (value["feed"] as? [[String: Any]] ?? []).map(FeedEntry.init).filter { entry in
+                (historyAllowed != false || (entry.episode == nil && !entry.id.hasPrefix("episode:"))) &&
+                (value["recordings_raw_allowed"] as? Bool != false || (entry.image == nil && entry.kind != "image"))
+            }
+            self.feed.show(feedEntries)
             self.updatePanelChat(value["panel_chat"] as? [String: Any])
             self.applyDictation(value["dictation"] as? [String: Any])
             let profiles = voice["profiles"] as? [[String: String]] ?? []
@@ -3232,6 +3566,7 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
             let archiveChosen = archive["preference"] as? Bool ?? archiveEffective
             self.archiveToggle.state = archiveChosen ? .on : .off
             self.archiveToggle.title = Panel.archiveTitle + (archiveChosen && !archiveEffective ? " (на паузе)" : "")
+            self.singleUserToggle.state = value["single_user_local"] as? Bool == true ? .on : .off
             let work = value["work"] as? [String: Any] ?? [:]
             let workRows = work["jobs"] as? [[String: Any]] ?? []
             let workLabels = ["running":"выполняется", "done":"готово", "failed":"ошибка", "cancelled":"отменено", "interrupted":"прервано"]
@@ -3270,7 +3605,9 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
             if voice["dialogue_allowed"] as? Bool == true && !allowed {
                 self.voiceState.stringValue += "\nРазговор доступен; запись наблюдений на паузе."
             }
-            if let visual = value["visual"] as? [String: Any] {
+            if let incomingVisual = value["visual"] as? [String: Any] ?? (value["stored_frames_allowed"] as? Bool == true ? ["artifacts": [], "roots": [], "status": "hidden"] : nil) {
+                let visual: [String: Any] = value["recordings_raw_allowed"] as? Bool == false
+                    ? ["artifacts": [], "roots": [], "status": "hidden"] : incomingVisual
                 let roots = visual["roots"] as? [String] ?? []
                 if roots != self.roots {
                     self.roots = roots
@@ -3285,17 +3622,25 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
                     let parts = progress.replacingOccurrences(of: "searching:", with: "").components(separatedBy: ";available:")
                     if parts.count == 2 { self.visualState.stringValue += "\nПроверено \(parts[0]); всего доступно \(parts[1]). Поиск проверяет до 24 изображений за запрос." }
                 }
-                self.artifacts = visual["artifacts"] as? [[String: Any]] ?? []
+                let selectedID = self.artifacts.indices.contains(self.gallery.indexOfSelectedItem) ? self.artifacts[self.gallery.indexOfSelectedItem]["id"] as? String : nil
+                let oldIDs = self.artifacts.compactMap { $0["id"] as? String }
+                let existing = visual["artifacts"] as? [[String: Any]] ?? []
+                let frames = value["stored_frames_allowed"] as? Bool == true ? (value["stored_frames"] as? [[String: Any]] ?? []) : []
+                if status == "hidden" && !frames.isEmpty { self.visualState.stringValue = "Сохранённые кадры камеры и экрана · только локально." }
+                self.artifacts = existing + frames
                 let request = visual["request_id"] as? String ?? ""
                 let previous = self.gallery.itemTitles
                 let titles = self.artifacts.enumerated().map { index, artifact in self.artifactTitle(index, artifact) }
-                if previous != titles && !titles.isEmpty {
+                if (previous != titles || oldIDs != self.artifacts.compactMap { $0["id"] as? String }) && !titles.isEmpty {
                     self.gallery.removeAllItems()
                     self.gallery.addItems(withTitles: titles)
+                    if let selectedID, let index = self.artifacts.firstIndex(where: { $0["id"] as? String == selectedID }) { self.gallery.selectItem(at: index) }
                     self.displayArtifact()          // the details below always describe the image the popup shows
                 } else if titles.isEmpty {
                     self.gallery.removeAllItems()
                     self.gallery.addItem(withTitle: "Результатов пока нет")
+                    self.artifactImage.image = nil
+                    self.artifactCaption.stringValue = status == "hidden" ? "Изображения скрыты: нет разрешения на исходные файлы." : "Результатов пока нет."
                     self.revealButton.isEnabled = false
                 }
                 if allowed && status == "ready" && request != self.lastVisualRequest && !self.artifacts.isEmpty {
@@ -3400,6 +3745,9 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
     }
     /// Decides from the state read just now, not from the last poll: a stale «enabled» would flip the wrong way.
     @objc func toggle() {
+        cancelHistorySummary()
+        clearStoredFrames()
+        invalidateRuleView()
         command(["ui-state"]) { fresh in
             guard let enabled = fresh?["enabled"] as? Bool else {
                 self.message.stringValue = "Нет связи с Butler: пауза не переключена."
@@ -3461,7 +3809,25 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
         command(["preferences", json]) { _ in self.refresh() }
     }
     @objc func toggleArchive() {
+        if archiveToggle.state != .on { cancelHistorySummary(); clearStoredFrames(); invalidateRuleView() }
         command(["preferences", archiveToggle.state == .on ? "{\"continuous_archive\":true}" : "{\"continuous_archive\":false}"]) { _ in self.refresh() }
+    }
+    @objc func toggleSingleUser() {
+        if singleUserToggle.state != .on {
+            cancelHistorySummary()
+            clearStoredFrames()
+            invalidateRuleView()
+            // Invalidate in-flight history replies immediately; do not wait for the next poll.
+            state["recordings_allowed"] = false
+            state["history_visible"] = false
+            observationSerial += 1
+            observationItems = []; observationTable.reloadData(); showObservationDetail(-1)
+            feed.clearRestricted(history: true, media: false)
+            feed.setCorrectionsAllowed(false)
+            history.stringValue = "Наблюдения скрыты: проверяю режим доступа."
+            recordingsPane?.updatePermission(nil)
+        }
+        command(["ui-single-user", singleUserToggle.state == .on ? "{\"enabled\":true}" : "{\"enabled\":false}"]) { _ in self.refresh() }
     }
     @objc func toggleFaceWake() {
         command(["preferences", faceWake.state == .on ? "{\"face_wake_dialogue\":true}" : "{\"face_wake_dialogue\":false}"]) { _ in self.refresh() }
@@ -3561,20 +3927,33 @@ DispatchQueue.global().asyncAfter(deadline: .now() + Panel.commandTimeout(name),
     func displayArtifact() {
         guard artifacts.indices.contains(gallery.indexOfSelectedItem) else { artifactImage.image = nil; revealButton.isEnabled = false; return }
         let artifact = artifacts[gallery.indexOfSelectedItem]
-        let allowed = state["recording_allowed"] as? Bool == true
+        let frame = artifact["kind"] as? String == "stored-frame"
+        let allowed = frame ? state["stored_frames_allowed"] as? Bool == true : state["recording_allowed"] as? Bool == true
         let path = allowed ? artifact["path"] as? String : nil
         artifactImage.image = path.flatMap { NSImage(contentsOfFile: $0) }
         artifactCaption.stringValue = artifactProvenance(artifact, allowed: allowed)
-        revealButton.isEnabled = path.map { FileManager.default.fileExists(atPath: $0) } ?? false
+        revealButton.isEnabled = !frame && (path.map { FileManager.default.fileExists(atPath: $0) } ?? false)
+        deleteImageButton.isEnabled = !frame
+    }
+    func clearStoredFrames() {
+        storedFrameScopeSerial += 1
+        state["stored_frames_allowed"] = false; state["stored_frames"] = []
+        if artifacts.contains(where: { $0["kind"] as? String == "stored-frame" }) {
+            artifactImage.image = nil; artifacts = []; gallery.removeAllItems()
+            artifactCaption.stringValue = "Сохранённые кадры скрыты."
+            revealButton.isEnabled = false; deleteImageButton.isEnabled = false
+        }
     }
     @objc func revealArtifact() {
         guard state["recording_allowed"] as? Bool == true, artifacts.indices.contains(gallery.indexOfSelectedItem),
+              artifacts[gallery.indexOfSelectedItem]["kind"] as? String != "stored-frame",
               let path = artifacts[gallery.indexOfSelectedItem]["path"] as? String, FileManager.default.fileExists(atPath: path) else { return }
         if testing { testRevealed = path; return }
         NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: path)])
     }
     @objc func deleteArtifact() {
         guard artifacts.indices.contains(gallery.indexOfSelectedItem), let key = artifacts[gallery.indexOfSelectedItem]["id"] as? String else { return }
+        guard artifacts[gallery.indexOfSelectedItem]["kind"] as? String != "stored-frame" else { return }
         artifactImage.image = nil
         command(["ui-visual-delete", key]) { _ in self.refresh() }
     }
@@ -3593,6 +3972,33 @@ func runLayoutTests(output: String) -> Int32 {
     var checks: [[String: Any]] = []
     var snapshots: [[String: Any]] = []
     func check(_ name: String, _ passed: Bool) { checks.append(["name": name, "passed": passed]) }
+    let summaryText = Panel.historySummaryText(["summary": ["summary": "Суть", "key_points": ["Факт"], "conclusions": ["Вывод"], "limitations": ["Недостаточно данных"]], "partial": true, "observations": 2, "transcripts": 1])
+    check("history-summary-shows-conclusions-and-partial-warning", summaryText.contains("Суть") && summaryText.contains("Вывод") && summaryText.contains("только часть") && summaryText.contains("транскриптов: 1"))
+    let previewText = Panel.historySummaryText(["summary": ["summary": "Часть"], "partial": true], preview: true)
+    check("history-summary-preview-distinguishes-unfinished-from-truncated", previewText.contains("первого фрагмента") && previewText.contains("ещё готовится") && !previewText.contains("превысил предел"))
+    let ruleAlert = NSAlert()
+    for title in ["Save", "View", "Narrow", "Retire", "Delete", "Cancel"] { ruleAlert.addButton(withTitle: title) }
+    setRuleAlertReadOnly(ruleAlert, true)
+    check("local-rule-view-disables-mutations", [0, 2, 3, 4].allSatisfy { !ruleAlert.buttons[$0].isEnabled } && ruleAlert.buttons[1].isEnabled && ruleAlert.buttons[5].isEnabled)
+    setRuleAlertReadOnly(ruleAlert, false)
+    check("verified-rule-view-allows-existing-controls", ruleAlert.buttons.allSatisfy { $0.isEnabled })
+    let savedRuleState = panel.state
+    panel.state = ["enabled": true, "history_visible": true, "voice": ["dialogue_allowed": false]]
+    check("local-rule-view-requires-current-history", panel.ruleAccessAllowed(panel.state, readOnly: true)
+          && !panel.ruleAccessAllowed(["enabled": true, "history_visible": false], readOnly: true))
+    check("editable-rule-view-closes-on-dialogue-lease-loss", !panel.ruleAccessAllowed(panel.state, readOnly: false)
+          && panel.ruleAccessAllowed(["enabled": true, "voice": ["dialogue_allowed": true]], readOnly: false))
+    panel.activeRuleAlert = ruleAlert
+    let oldRuleSerial = panel.ruleSerial
+    panel.invalidateRuleView()
+    check("rule-scope-loss-clears-dialog-and-invalidates-requests", panel.activeRuleAlert == nil && panel.ruleSerial > oldRuleSerial)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { panel.invalidateRuleView() }
+    let cancelledRuleAlert = panel.runRuleAlert(ruleAlert, readOnly: true)
+    check("rule-scope-loss-closes-running-modal", cancelledRuleAlert == .abort && panel.activeRuleAlert == nil)
+    panel.testReplies["ui-rule"] = ["rules": [], "read_only": true]
+    panel.testSupersedeRule = true; panel.manageRules(); panel.testSupersedeRule = false
+    check("late-rule-reply-after-scope-loss-is-discarded", panel.activeRuleAlert == nil)
+    panel.testReplies.removeValue(forKey: "ui-rule"); panel.state = savedRuleState
     func layout() {
         panel.window.contentView?.layoutSubtreeIfNeeded()
         RunLoop.current.run(until: Date().addingTimeInterval(0.02))
@@ -4376,6 +4782,8 @@ func runLayoutTests(output: String) -> Int32 {
 
     // Recordings REQ-001…008: synthetic local data, no service or device access.
     let recordings = panel.recordingsPane!
+    panel.singleUserToggle.state = .on; panel.toggleSingleUser()
+    check("single-user-toggle-sends-explicit-local-choice", panel.testCommands.contains { $0 == ["ui-single-user", "{\"enabled\":true}"] })
     let recordedAt = 1793134800.0
     let recordingChild: [String: Any] = ["type": "observation", "id": "recording-o1", "source": "camera", "start": recordedAt, "end": recordedAt + 10,
         "facts": [["kind": "activity", "detail": "Работает за столом", "topic": "code", "confidence": 0.8, "basis": "model-inference"]],
@@ -4392,16 +4800,87 @@ func runLayoutTests(output: String) -> Int32 {
     check("recordings-expands-session-and-gap-is-not-selectable", recordings.rows.count == 4 && !recordings.tableView(recordings.table, shouldSelectRow: 3))
     recordings.table.selectRowIndexes(IndexSet(integer: 1), byExtendingSelection: false); layout()
     check("recordings-shows-transcript-fact-basis-and-image", recordings.detail.string.contains("Синтетический локальный транскрипт") && recordings.detail.string.contains("вывод модели") && recordings.detail.string.contains("Уверенность: 80 %") && recordings.picture.image != nil && recordings.files.numberOfItems == 2)
+    panel.showHistorySummaryInline(["summary": ["summary": "Синтетический фрагмент"], "partial": true], section: .recordings, preview: true)
+    check("recordings-shows-summary-progress-in-detail", recordings.detail.string.contains("Синтетический фрагмент") && recordings.detail.string.contains("ещё готовится"))
+    recordings.showDetail(1)
+    let priorRawSerial = recordings.serial
+    recordings.lastPoll = Date(); panel.testNoReply.insert("ui-recordings")
+    recordings.updatePermission(["history_visible": true, "recordings_raw_allowed": false])
+    let retainedMedia = recordings.selected?["media"] as? [[String: Any]] ?? []
+    check("raw-lease-loss-keeps-stored-history-and-selection-without-reload", recordings.rows.count == 4
+          && recordings.selected?["id"] as? String == "recording-o1" && recordings.detail.string.contains("Синтетический локальный транскрипт")
+          && recordings.serial > priorRawSerial && recordings.picture.image == nil && recordings.player.player == nil
+          && retainedMedia.allSatisfy { $0["path"] == nil } && !recordings.play.isEnabled)
+    panel.testNoReply.remove("ui-recordings")
+    recordings.updatePermission(["recordings_allowed": true]); recordings.reload()
+    recordings.table.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false); recordings.expandSession()
+    recordings.table.selectRowIndexes(IndexSet(integer: 1), byExtendingSelection: false); layout()
     export("butler-recordings")
     recordings.preserveFile()
     let recordingControl = panel.testCommands.last { $0.first == "ui-recording-control" }.flatMap { $0.last?.data(using: .utf8) }.flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: String] }
     check("recordings-control-binds-selected-file-and-observation", recordingControl == ["action": "preserve", "observation": "recording-o1", "media": "recording-m1"])
+    let localEpisode = FeedEntry(["id": "episode:synthetic", "episode": "synthetic", "revision": 1, "at": recordedAt, "kind": "heard", "text": "Synthetic private episode"])
+    let generalEpisode = FeedEntry(["id": "voice:general", "at": recordedAt, "kind": "heard", "text": "Synthetic general event"])
+    panel.feed.show([localEpisode, generalEpisode]); panel.feed.setCorrectionsAllowed(false)
+    check("single-user-readonly-feedback-disables-mutations", panel.feed.stack.arrangedSubviews.compactMap { $0 as? FeedEntryView }.first(where: { $0.entry.episode != nil })?.correctButton.isEnabled == false)
+    panel.observationItems = [recordingChild]; let priorObservationSerial = panel.observationSerial
+    panel.busy = true; panel.singleUserToggle.state = .off; panel.toggleSingleUser(); panel.busy = false
+    check("single-user-off-immediately-clears-history-and-invalidates-pending-observations", recordings.rows.isEmpty && panel.observationItems.isEmpty && panel.observationSerial > priorObservationSerial && panel.state["recordings_allowed"] as? Bool == false && !panel.feed.visibleEntries.contains(where: { $0.episode != nil }) && panel.feed.visibleEntries.contains(generalEpisode))
+    recordings.updatePermission(["recordings_allowed": true]); recordings.reload()
+    recordings.updatePermission(["history_visible": true, "recordings_allowed": false, "recordings_raw_allowed": false])
+    let safe = recordings.safeEntries([recordingChild])
+    let safeMedia = safe.first?["media"] as? [[String: Any]] ?? []
+    check("single-user-history-keeps-text-without-media-paths", recordings.permitted && !recordings.rows.isEmpty && safe.first?["transcripts"] != nil && safeMedia.first?["path"] == nil && recordings.player.player == nil && recordings.picture.image == nil)
+    recordings.expanded.insert("session:recording-o1"); recordings.rebuild()
+    if let row = recordings.rows.firstIndex(where: { $0["id"] as? String == "recording-o1" }) { recordings.showDetail(row) }
+    check("single-user-denied-original-is-not-described-as-deleted", recordings.detail.string.contains("Доступ к исходным файлам сейчас закрыт") && !recordings.detail.string.contains("удалён после анализа"))
     recordings.updatePermission(["recordings_allowed": false])
     check("recordings-owner-loss-clears-cached-text-media-and-days", recordings.rows.isEmpty && recordings.picture.image == nil && recordings.player.player == nil && recordings.day.numberOfItems == 0 && !recordings.detail.string.contains("транскрипт"))
     recordings.updatePermission(["recordings_allowed": true, "recordings_navigation": ["serial": 1, "day": "2026-10-27", "at": recordedAt]])
     check("recordings-voice-navigation-opens-local-section-at-day", panel.section == .recordings && recordings.chosenDay == "2026-10-27" && recordings.navigationSerial == 1 && recordings.expanded.contains("session:recording-o1"))
     panel.testNoReply.insert("ui-recordings"); recordings.reload(); panel.testNoReply.remove("ui-recordings")
     check("recordings-disconnection-clears-private-cached-state", recordings.rows.isEmpty && recordings.player.player == nil && recordings.picture.image == nil)
+    var lazySession = recordingSession; lazySession["observations"] = []
+    panel.testReplies["ui-recordings"] = ["hidden": false, "day": "2026-10-27", "days": [["day": "2026-10-27"]], "items": [lazySession, recordingGap], "total": 2]
+    panel.testDeferRecordingChildren = true
+    recordings.updatePermission(["history_visible": true, "recordings_raw_allowed": false]); recordings.reload()
+    recordings.table.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
+    check("recordings-single-click-requests-lazy-session-content", panel.testPendingRecordingChildren != nil
+          && recordings.expanded.contains("session:recording-o1") && recordings.resultsOnly.state == .on)
+    let childrenReply: [String: Any] = ["hidden": false, "items": [recordingChild], "total": 1]
+    let pendingChildren = panel.testPendingRecordingChildren; panel.testPendingRecordingChildren = nil; pendingChildren?(childrenReply)
+    check("recordings-lazy-response-shows-first-result-without-extra-click", recordings.selected?["id"] as? String == "recording-o1"
+          && recordings.detail.string.contains("Синтетический локальный транскрипт") && recordings.picture.image == nil)
+    recordings.load(reset: true)
+    check("recordings-periodic-refresh-keeps-open-result", recordings.selected?["id"] as? String == "recording-o1"
+          && recordings.detail.string.contains("Синтетический локальный транскрипт") && recordings.rows.count >= 3)
+    check("recordings-results-filter-is-enabled-by-default", recordings.request()["results_only"] as? Bool == true)
+    recordings.resultsOnly.state = .off
+    check("recordings-results-filter-can-show-all", recordings.request()["results_only"] as? Bool == false)
+    recordings.resultsOnly.state = .on
+    recordings.reload(); recordings.table.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false)
+    let staleChildren = panel.testPendingRecordingChildren; panel.testPendingRecordingChildren = nil
+    recordings.updatePermission(nil); staleChildren?(childrenReply)
+    check("recordings-pause-discards-late-session-content", recordings.rows.isEmpty && !recordings.detail.string.contains("Синтетический локальный транскрипт"))
+    panel.testDeferRecordingChildren = false
+    let browsing = RecordingsPane(panel: panel)
+    func prepareBrowsing() {
+        browsing.permitted = true; browsing.rawPermitted = false; browsing.loaded = true; browsing.lastPoll = .distantPast
+        browsing.entries = browsing.safeEntries([recordingSession]); browsing.expanded = ["session:recording-o1"]
+        browsing.selected = recordingChild; browsing.rebuild()
+    }
+    panel.testNoReply.insert("ui-recordings")
+    prepareBrowsing()
+    let beforeBackgroundPoll = panel.testCommands.count
+    browsing.updatePermission(["history_visible": true, "recordings_raw_allowed": false])
+    check("recordings-selected-result-survives-background-poll", browsing.selected?["id"] as? String == "recording-o1"
+          && browsing.detail.string.contains("Синтетический локальный транскрипт") && panel.testCommands.count == beforeBackgroundPoll)
+    prepareBrowsing()
+    let beforeRawRecovery = panel.testCommands.count
+    browsing.updatePermission(["history_visible": true, "recordings_raw_allowed": true])
+    check("recordings-selected-result-survives-raw-permission-recovery", browsing.selected?["id"] as? String == "recording-o1"
+          && browsing.detail.string.contains("Синтетический локальный транскрипт") && panel.testCommands.count == beforeRawRecovery)
+    panel.testNoReply.remove("ui-recordings")
     panel.testReplies.removeValue(forKey: "ui-recordings")
 
     // Наблюдения: «Сейчас» shows only observations that concluded something; «История» browses days, sources, empty rows and gaps.
@@ -4563,6 +5042,27 @@ func runLayoutTests(output: String) -> Int32 {
     check("images-finder-button-is-disabled-when-the-file-is-gone", !panel.revealButton.isEnabled && panel.artifactImage.image == nil)
     panel.gallery.selectItem(at: 0); panel.chooseArtifact()
     check("images-finder-button-reveals-exactly-the-shown-file", panel.revealButton.isEnabled && { panel.testRevealed = nil; panel.revealArtifact(); return panel.testRevealed == imagePath.path }())
+    panel.testState?["recordings_allowed"] = true
+    panel.testState?["recordings_raw_allowed"] = false
+    panel.refresh()
+    check("single-user-raw-denial-clears-gallery-cache", panel.artifacts.isEmpty && panel.artifactImage.image == nil && !panel.revealButton.isEnabled && !panel.artifactCaption.stringValue.contains(imagePath.path))
+    let storedFrame = artifactEntry("stored-frame", "camera", place: "камера")
+    panel.testState?["stored_frames_allowed"] = true; panel.testState?["stored_frames"] = [storedFrame]
+    panel.testState?["history_visible"] = true; panel.testState?["recording_allowed"] = false
+    panel.refresh(); panel.refresh()
+    check("stored-frame-shows-in-gallery-without-raw-lease", panel.artifacts.count == 1 && panel.artifactImage.image != nil && !panel.revealButton.isEnabled && !panel.deleteImageButton.isEnabled && panel.visualState.stringValue.contains("Сохранённые кадры"))
+    let anotherFrame = artifactEntry("stored-frame", "screen", place: "экран")
+    panel.testState?["stored_frames"] = [anotherFrame, storedFrame]; panel.refresh()
+    check("stored-frame-refresh-preserves-selection", panel.gallery.indexOfSelectedItem == 1 && panel.artifactImage.image != nil)
+    let beforeFrameDelete = panel.testCommands.count
+    panel.deleteArtifact(); panel.revealArtifact()
+    check("stored-frame-does-not-enable-delete-or-finder", panel.testCommands.count == beforeFrameDelete && !panel.revealButton.isEnabled)
+    panel.clearStoredFrames()
+    check("stored-frame-explicit-close-clears-image-and-cache", panel.artifacts.isEmpty && panel.artifactImage.image == nil && panel.state["stored_frames_allowed"] as? Bool == false)
+    panel.testState?.removeValue(forKey: "stored_frames_allowed"); panel.testState?.removeValue(forKey: "stored_frames")
+    panel.testState?.removeValue(forKey: "history_visible"); panel.testState?["recording_allowed"] = true
+    panel.testState?["recordings_raw_allowed"] = true
+    panel.refresh()
     panel.testState?["recording_allowed"] = false
     panel.testState?["visual"] = ["status": "ready", "request_id": "images-1", "artifacts": artifactList.map { var copy = $0; copy.removeValue(forKey: "path"); copy.removeValue(forKey: "place"); return copy }]
     panel.refresh(); panel.gallery.selectItem(at: 0); panel.chooseArtifact()
@@ -4724,6 +5224,16 @@ func runLayoutTests(output: String) -> Int32 {
     panel.jobTable.reloadData()
     func s6JobStatus(_ row: Int) -> String? { (panel.tableView(panel.jobTable, viewFor: panel.jobTable.tableColumns[0], row: row) as? NSTextField)?.stringValue }
     check("finished-job-status-is-translated", s6JobStatus(0) == "● выполнено" && s6JobStatus(1) == "● ошибка")
+    panel.jobs = [["id": "builtin:daily", "name": "Сводка", "kind": "builtin", "daily_time": "20:00", "telegram_enabled": false],
+                  ["id": "builtin:advice", "name": "Советы", "kind": "builtin", "telegram_enabled": true],
+                  ["id": "cron-test", "name": "Cron", "kind": "cron"]]
+    panel.jobTable.reloadData()
+    panel.jobTable.selectRowIndexes(IndexSet(integer: 0), byExtendingSelection: false); panel.populateSelection(panel.jobTable)
+    let dailyDelivery = !panel.jobTelegram.isHidden && panel.jobTelegram.state == .off && !panel.jobDeliveryLabel.isHidden
+    panel.jobTable.selectRowIndexes(IndexSet(integer: 1), byExtendingSelection: false); panel.populateSelection(panel.jobTable)
+    let adviceDelivery = !panel.jobTelegram.isHidden && panel.jobTelegram.state == .on
+    panel.jobTable.selectRowIndexes(IndexSet(integer: 2), byExtendingSelection: false); panel.populateSelection(panel.jobTable)
+    check("schedule-delivery-controls-show-only-supported-jobs", dailyDelivery && adviceDelivery && panel.jobTelegram.isHidden)
 
     // Diagnostics: the clock is a label of its own, so the text is only rewritten when something real changed.
     panel.select(.diagnostics)
@@ -4758,13 +5268,20 @@ func runLayoutTests(output: String) -> Int32 {
     // One or two dropped polls keep the last state on screen and only mark its age; the third clears it.
     panel.testState = ["enabled": true, "recording_allowed": true, "version": "0.0.0-synthetic"]
     panel.refresh(); layout()
+    panel.testState = ["enabled": false, "recording_allowed": false, "recordings_allowed": false, "version": "0.0.0-synthetic"]
+    panel.refresh(); layout()
+    check("owner-pause-shows-history-is-hidden", panel.history.stringValue.contains("Наблюдения скрыты"))
+    panel.testState = ["enabled": true, "recording_allowed": true, "version": "0.0.0-synthetic"]
+    panel.refresh(); layout()
     panel.voiceState.stringValue = "synthetic transient text"
     check("failure-streak-starts-at-zero", panel.failureStreak == 0 && panel.lastGoodState != nil)
     panel.observationItems = [obsItems[0]]; panel.obsDetailBody.stringValue = "Synthetic stored fact"
     panel.artifacts = artifactList
+    panel.feed.show([localEpisode, generalEpisode, FeedEntry(["id": "synthetic-image", "kind": "image", "image": imagePath.path, "at": recordedAt])])
     panel.testState = nil
     panel.refresh(); layout()
     check("first-failed-poll-clears-every-stored-observation-and-gallery-cache", panel.observationItems.isEmpty && panel.artifacts.isEmpty && !panel.obsDetailBody.stringValue.contains("Synthetic stored fact") && panel.state["recordings_allowed"] as? Bool == false)
+    check("first-failed-poll-clears-private-feedback-and-images-only", !panel.feed.visibleEntries.contains(where: { $0.episode != nil || $0.image != nil }) && panel.feed.visibleEntries.contains(generalEpisode))
     check("first-failed-poll-keeps-last-state", panel.heading.stringValue != "Butler недоступен" && panel.window.subtitle.contains("данные от")
           && panel.voiceState.stringValue.contains("synthetic transient text") && panel.failureStreak == 1)
     panel.refresh(); layout()
@@ -4796,6 +5313,12 @@ func runLayoutTests(output: String) -> Int32 {
     } else {
         check("icon-squircle-check-skipped-no-installed-bundle", true)
     }
+    panel.testState = nil
+    let commandsBeforeRulePoll = panel.testCommands.count
+    DispatchQueue.main.asyncAfter(deadline: .now() + 4) { if panel.activeRuleAlert != nil { panel.invalidateRuleView() } }
+    let stoppedByRulePoll = panel.runRuleAlert(ruleAlert, readOnly: true)
+    check("rule-modal-polls-and-closes-on-lost-connection", stoppedByRulePoll == .abort && panel.activeRuleAlert == nil
+          && panel.testCommands.dropFirst(commandsBeforeRulePoll).contains { $0.first == "ui-state" })
     panel.window.close()
     NSStatusBar.system.removeStatusItem(panel.item); NSStatusBar.system.removeStatusItem(restored.item)
     let lockPath = directory.appendingPathComponent(".ui-test.lock")

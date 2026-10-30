@@ -19,7 +19,34 @@ GAP_LABELS = {"owner-paused": "пауза", "analysis-buffer-full": "буфер 
 
 def _allowed(service):
     now = service.clock()
-    return bool(service.gate.permits(now) and service.dialogue_gate.permits(now))
+    return bool(not service.stop_event.is_set() and service.gate.permits(now) and service.dialogue_gate.permits(now))
+
+
+def history_visible(service):
+    """Local history policy; this never asserts identity or grants media access."""
+    if (not service.gate.enabled or service.stop_event.is_set()
+            or service.store.get("continuous_archive") is False):
+        return False
+    if not service.store.execute("SELECT 1 FROM agreements WHERE id='owner' AND active=1"):
+        return False
+    if _allowed(service):
+        return True
+    # The owner explicitly chose the single-user local-display assumption.
+    # A transient face/voice classification must not silently reintroduce
+    # the owner-identity gate for already-stored history. Consent revocation,
+    # pause and archive-off are checked above and revoke also clears the mode.
+    return service.store.get("single_user_local", False) is True
+
+
+def local_voice_history_allowed(service):
+    """Speaking local facts additionally requires fresh, healthy participant sensing."""
+    from .policy import DialogueGate, Gate
+    evidence = getattr(service, 'latest_evidence', None)
+    at = getattr(evidence, 'captured_at', None)
+    return bool(history_visible(service) and type(at) in (int, float)
+                and 0 <= service.clock() - at <= Gate.MAX_AGE
+                and evidence.camera_ok and evidence.microphone_ok
+                and not DialogueGate.company(evidence, service.trusted_ids()))
 
 
 def _path(store, value, roots=None):
@@ -113,14 +140,17 @@ def list_recordings(service, args):
     if not isinstance(args, dict):raise ValueError("invalid recordings request")
     session_id = args.get("session")
     if session_id is not None and not isinstance(session_id, str):raise ValueError("invalid session")
+    results_only = args.get('results_only', False)
+    if type(results_only) is not bool: raise ValueError('invalid results filter')
     source = args.get("source")
-    standard = {k: v for k, v in args.items() if k != "session"}
+    standard = {k: v for k, v in args.items() if k not in {"session", "results_only"}}
     if source in {"generated", "display"}:standard.pop("source")
     request = _request(standard)
     if source in {"generated", "display"}:request["source"] = source
     with service.lock:
-        if not _allowed(service):
+        if not history_visible(service):
             return {"hidden": True, "items": [], "days": [], "total": 0}
+        raw_allowed = _allowed(service)
         store, now = service.store, service.clock()
         # Resolve the containment roots once per request, while still resolving
         # each file to reject symlink escapes. Repeating root filesystem walks
@@ -135,7 +165,7 @@ def list_recordings(service, args):
         transcript_rows = store.execute("SELECT * FROM recording_transcripts WHERE start>?", (now-RETENTION,))
         extra = []
         visual = getattr(service, "visual", None)
-        if visual is not None:
+        if visual is not None and raw_allowed:
             for artifact in store.execute("SELECT * FROM visual_artifacts ORDER BY created DESC"):
                 path = visual.available(artifact)
                 at = artifact["source_time"] or artifact["created"]
@@ -143,7 +173,7 @@ def list_recordings(service, args):
                               "source": "generated", "start": at, "end": at,
                               "title": artifact.get("caption") or "Изображение", "image": path, "media": []})
         display = getattr(service, "display", None)
-        if display is not None:
+        if display is not None and raw_allowed:
             for card in display.snapshot().get("cards", []):
                 extra.append({"type": "display", "id": "display:" + card["id"], "source": "display",
                               "start": card["at"], "end": card["at"], "title": card.get("title", "Дисплей"),
@@ -189,6 +219,8 @@ def list_recordings(service, args):
             cursors[source], active[source] = cursor, candidates
             transcripts = [t for t in candidates if t["start"] < row["end"]]
             linked.update(t["id"] for t in transcripts)
+            if results_only and not facts and not transcripts:
+                continue
             media = [_media(m, store, now, roots) for m in media_rows]
             items.append({"type": "observation", "id": row["id"], "source": row["source"], "start": row["start"],
                           "end": row["end"], "facts": facts, "transcripts": transcripts, "media": media,
@@ -201,12 +233,15 @@ def list_recordings(service, args):
             AND NOT EXISTS(SELECT 1 FROM observations o WHERE o.media_id=m.id)
             AND NOT EXISTS(SELECT 1 FROM event_frames f WHERE f.media_id=m.id)""", (end, start))
         for row in pending:
-            transcripts = [t for t in day_transcripts if t["source"] == row["source"]
-                           and t["start"] < row["end"] and t["end"] > row["start"]]
+            transcripts = [t for t in transcript_sources.get(row['source'], [])
+                           if t["start"] < row["end"] and t["end"] > row["start"]]
             linked.update(t["id"] for t in transcripts)
+            if results_only and not transcripts:
+                continue
             items.append({"type": "observation", "id": "media:" + row["id"], "source": row["source"],
                           "start": row["start"], "end": row["end"], "facts": [], "transcripts": transcripts,
-                          "media": [_media(row, store, now, roots)], "meeting_id": row["meeting_id"], "original": True})
+                          "media": [_media(row, store, now, roots)], "meeting_id": row["meeting_id"], "original": True,
+                          "analysis_status": "pending" if row['analyzed'] == 0 else "failed" if row['analyzed'] < 0 else "no-result"})
         for t in transcript_rows:
             if t["id"] not in linked and t["start"] < end and t["end"] >= start:
                 items.append({"type": "observation", "id": "transcript:" + t["id"], "source": t["source"],
@@ -215,18 +250,44 @@ def list_recordings(service, args):
         if request["source"]:
             items = [i for i in items if i["source"] == request["source"]]
             gaps = [g for g in gaps if g["source"] in {request["source"], "all", "analysis"}]
+        if results_only:
+            items = [item for item in items if item.get('facts') or item.get('transcripts')]
         sessions = _sessions(items, gaps)
         if session_id is not None:
             session = next((s for s in sessions if s["id"] == session_id), None)
+            if session is None and session_id.startswith('session:'):
+                # Sessions are grouped from current data, so their first item
+                # may change while the panel is opening one. Resolve the old
+                # anchor to its current session without trusting a file path.
+                anchor = session_id[len('session:'):]
+                origins = {row['id']: row['media_id'] for row in observations}
+                def contains(item):
+                    if item['id'] == anchor: return True
+                    if anchor.startswith('media:'):
+                        media_id = anchor[len('media:'):]
+                        return (origins.get(item['id']) == media_id
+                                or any(media['id'] == media_id for media in item.get('media', [])))
+                    if anchor.startswith('transcript:'):
+                        transcript_id = anchor[len('transcript:'):]
+                        return any(row['id'] == transcript_id for row in item.get('transcripts', []))
+                    return False
+                session = next((s for s in sessions if any(contains(item) for item in s['observations'])), None)
             rows = session["observations"] if session else []
         else:
             for session in sessions:session["observations"] = []  # children load in bounded pages on expansion
-            rows = sessions + gaps + [i for i in extra if start <= i["start"] < end and (not request["source"] or i["source"] == request["source"])]
+            rows = sessions + ([] if results_only else gaps) + [i for i in extra if start <= i["start"] < end and (not request["source"] or i["source"] == request["source"])]
             rows.sort(key=lambda i: (i["start"], i.get("id", "")), reverse=True)
         offset, limit = request["offset"], request["limit"]
         # Large histories can outlive a participant lease even while holding
         # the service lock. Check the clock again before releasing content.
-        if not _allowed(service):return {"hidden": True, "items": [], "days": [], "total": 0}
+        if not history_visible(service):return {"hidden": True, "items": [], "days": [], "total": 0}
+        if not _allowed(service):
+            rows = [row for row in rows if row.get("type") not in {"artifact", "display"}]
+            for item in items:
+                for media in item.get("media", []):
+                    media["path"] = None
+                    media["preserved"] = False
+                item["original"] = False
         return {"hidden": False, "day": day, "timezone": str(ZONE), "days": days, "total": len(rows),
                 "items": rows[offset:offset+limit], "offset": offset, "limit": limit,
                 "meeting": meeting_state(service), "summary": {"gaps": _coverage(gaps)},
@@ -333,7 +394,7 @@ def navigate_voice(service, text, *, authorized):
     if target is None:return False
     # Recognised navigation requests are consumed even if access is refused;
     # they must never fall through to the cloud conversation.
-    if authorized and _allowed(service):
+    if authorized and history_visible(service):
         serial = getattr(service, "recordings_navigation", {}).get("serial", 0) + 1
         service.recordings_navigation = {**target, "serial": serial}
         ensure = getattr(service, "ensure_panel", None)

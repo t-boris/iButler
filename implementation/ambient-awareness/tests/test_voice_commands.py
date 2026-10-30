@@ -2,11 +2,11 @@
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from butler_ambient.policy import Evidence
 from butler_ambient.service import Service
 from butler_ambient.store import Store
-from butler_ambient.voice_commands import confirmation
+from butler_ambient.voice_commands import confirmation, control_request, local_control
 
 
 class VoiceCommandTests(unittest.TestCase):
@@ -30,6 +30,19 @@ class VoiceCommandTests(unittest.TestCase):
 
     def propose(self):
         return self.commands.request("preferences",{"muted":True},owner=True,generation=self.generation)
+
+    def test_telegram_schedule_change_requires_owner_confirmation(self):
+        self.assertTrue(local_control('Присылай сводку в Telegram'))
+        self.assertTrue(control_request('Присылай сводку в Telegram'))
+        jobs = [{'id': 'builtin:daily', 'name': 'Дневная сводка'}]
+        with patch.object(self.commands, '_inventory', return_value=jobs):
+            review = self.commands.request('schedule', {'id': 'builtin:daily', 'action': 'update', 'telegram_enabled': True},
+                                           owner=True, generation=self.generation)
+            self.assertIn('Telegram', review)
+            self.assertFalse(self.store.get('schedule_telegram_daily', False))
+            self.commands.respond('подтверждаю', owner=True, generation=self.generation)
+        self.assertTrue(self.store.get('schedule_telegram_daily'))
+        self.assertFalse(self.store.get('schedule_telegram_advice', False))
 
     def test_concrete_review_then_one_use_confirmation_changes_actual_store(self):
         review = self.propose()

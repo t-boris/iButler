@@ -30,6 +30,8 @@ class DialogueFeedback:
         self.service = service
         self.lock = threading.RLock()
         self.rows = deque(maxlen=80)
+        self.local_rows = []
+        self.local_restored = False
         self.events = {}
         self.jobs = queue.PriorityQueue(maxsize=256)
         self.serial = 0
@@ -287,13 +289,17 @@ class DialogueFeedback:
             self.decision(current, {'outcome':'joined-continuation','accepted':False})
             return joined, identifier
 
-    def pause(self):
+    def pause(self, *, preserve_local=False):
         with self.lock:
             self.export_cancel.set()
             self.export_cancel = threading.Event()
             self.epoch += 1
             self.continuation = None
-            self.rows.clear(); self.by_token.clear()
+            if not preserve_local:
+                self.rows.clear()
+                self.local_rows = []
+                self.local_restored = False
+            self.by_token.clear()
             self.contexts.clear(); self.retry_jobs.clear()
             self.forced_tokens.clear()
             self.next_forced.clear()
@@ -367,9 +373,40 @@ class DialogueFeedback:
                     "decision": revisions[-1] if revisions else {}, "revisions": revisions, "annotations": annotations,
                     "memories": fragments, "saved": True})
 
+    def _restore_local_history(self):
+        """Read-only display cache; never restore private agent context or run retention."""
+        from .recordings import history_visible
+        s = self.service
+        with s.lock:
+            if (self.local_restored or self.storage is None
+                    or s.store.get('single_user_local', False) is not True
+                    or not history_visible(s)):
+                return
+            with self.storage.lock:
+                saved_rows = self.storage.db.execute(
+                    "SELECT * FROM episodes WHERE deleted=0 AND id NOT IN (SELECT episode FROM deletions) "
+                    "ORDER BY born DESC LIMIT 80").fetchall()
+                restored = []
+                for saved in reversed(saved_rows):
+                    text = self.storage.private.execute(
+                        "SELECT original,corrected,expires FROM texts WHERE id=? AND expires>?",
+                        (saved['id'], s.clock())).fetchone()
+                    decisions = [json.loads(row[0]) for row in self.storage.db.execute(
+                        "SELECT data FROM decisions WHERE episode=? ORDER BY revision", (saved['id'],))]
+                    restored.append({'id': saved['id'], 'turn': saved['turn_id'], 'at': saved['born'],
+                        'mode': saved['scope'], 'text': (text['corrected'] or text['original']) if text else '',
+                        # Read-only cache never supplies a selectable correction target.
+                        'revision': 0, 'decision': decisions[-1] if decisions else {}, '_expires': text['expires'] if text else 0,
+                        'annotations': [], 'memories': [], 'saved': True})
+            with self.lock:
+                self.local_rows = restored
+                self.local_restored = True
+
     def _expire_memory(self):
         now = self.service.clock()
         with self.lock:
+            for row in self.local_rows:
+                if now >= row['_expires']: row['text'] = ''
             lifetimes = {r["id"]: (30 if r["annotations"] else 1) * 86400 for r in self.rows}
             for row in self.rows:
                 if now - row["at"] >= lifetimes[row["id"]]:
@@ -471,18 +508,42 @@ class DialogueFeedback:
                 row["memories"] = [{**m, **reference} for m, reference in zip(memories, context["memories"])]
                 self._queue("memories", {"id": identifier, "memories": list(row["memories"]), "born": row["at"]})
 
+    def _read_rules(self, rules):
+        """List rules without scan()'s tombstone cleanup or any writes."""
+        from butler_core.rules import Conflict
+        deleted, rows = rules.tombstones(), {}
+        for path in sorted(rules.root.glob('*.md')):
+            if path.is_symlink(): raise ValueError('symlink rule is forbidden')
+            row = rules.decode(path)
+            if row['id'] in deleted: continue
+            if row['id'] in rows: raise Conflict('duplicate canonical identity')
+            rows[row['id']] = row
+        return list(rows.values())
+
     def rule_control(self, args):
         s = self.service
-        if not s.gate.enabled or not s.voice_gate.permits(s.clock()): raise ValueError("owner session required")
+        action = args.get("action")
         from butler_core.rules import RuleStore
         rules = RuleStore(s.config.get("vault", s.store.root / "vault"), s.config.get("workspace", s.store.root / "workspace"), clock=s.clock)
-        action = args.get("action")
         if action == "list":
-            if not self._source_allowed(): raise ValueError("vault source unavailable")
-            rows = list(rules.scan().values())
-            for row in rows:
-                row["uses"] = self.storage.rule_uses(row["id"]) if self.storage is not None else []
-            return {"rules": rows, "profile": rules.profile()["version"]}
+            from .recordings import history_visible
+            with s.lock:
+                strict = s.voice_gate.permits(s.clock())
+                if not s.gate.enabled or s.stop_event.is_set() or not (strict or
+                        (s.store.get('single_user_local', False) is True and history_visible(s))):
+                    raise ValueError("owner session required")
+                if not self._source_allowed(): raise ValueError("vault source unavailable")
+                rows = self._read_rules(rules)
+                for row in rows:
+                    row["uses"] = self.storage.rule_uses(row["id"]) if self.storage is not None else []
+                profile = rules.profile()["version"]
+                if not self._source_allowed(): raise ValueError("vault source unavailable")
+                strict = s.voice_gate.permits(s.clock())
+                if not s.gate.enabled or s.stop_event.is_set() or not (strict or
+                        (s.store.get('single_user_local', False) is True and history_visible(s))):
+                    raise ValueError("owner session required")
+                return {"rules": rows, "profile": profile, "read_only": not strict}
+        if not s.gate.enabled or not s.voice_gate.permits(s.clock()): raise ValueError("owner session required")
         operation = args.get("event")
         if not isinstance(operation, str) or not operation: raise ValueError("operation identity required")
         allowed = self._source_allowed()
@@ -513,6 +574,7 @@ class DialogueFeedback:
                         self._refresh_profile()
                         self.storage.expire()
                         self._restore_history()
+                        self._restore_local_history()
                         if self.retry_jobs and time.monotonic() >= self.retry_at:
                             self.jobs.put_nowait(self.retry_jobs.popleft())
                             self.retry_at = time.monotonic() + 1
@@ -577,12 +639,20 @@ class DialogueFeedback:
     def snapshot(self, allowed):
         with self.lock:
             now = self.service.clock()
+            for row in self.local_rows:
+                if now >= row['_expires']: row['text'] = ''
             for row in self.rows:
                 if now - row["at"] >= (30 if row["annotations"] else 1) * 86400:
                     row["text"] = row["original"] = ""
                     row["memories"] = []
             rows = [{**{k: v for k, v in r.items() if k not in {"text", "original", "decision", "session", "revisions"}},
                      "text": r["text"], "decision": r["decision"]} for r in self.rows] if allowed else []
+            if allowed:
+                known = {row['id'] for row in rows}
+                local = [{**{k: v for k, v in row.items() if k != '_expires'},
+                          'text': row['text'] if now < row['_expires'] else ''}
+                         for row in self.local_rows if row['id'] not in known]
+                rows = sorted(local + rows, key=lambda row: row['at'])[-80:]
             return {"episodes": rows, "backlog": self.jobs.qsize() + len(self.retry_jobs), "failed": self.failed, "error": self.error or self.profile.get("error"),
                     "weekly": self.report if allowed else None, "rules": self.profile if allowed else None,
                     "write_receipts": list(self.receipts) if allowed else [], "audio_examples": False}

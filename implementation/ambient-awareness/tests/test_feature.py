@@ -235,7 +235,7 @@ class BoundaryAndSummaryTests(Fixture):
         self.assertEqual(report["approximate_seconds"]["browsing"], 20)
         self.assertEqual(report["approximate_seconds"]["youtube"], 20)
         self.assertEqual(sum(x["end"] - x["start"] for x in report["gaps"]), 30)
-        self.assertIn("software development", summary_text(report))
+        self.assertIn("разработка", summary_text(report))
     def test_screenshot_only_informs_observed_time_and_never_covers_a_gap(self):
         now = self.clock()
         self.observation(now - 100, now - 70, "camera", "unknown")
@@ -380,7 +380,7 @@ class DeliveryTests(Fixture):
             rows = [{"id": activity, "start": now - duration, "end": now, "facts": facts(activity)}]
             candidate = advice_candidate(rows, now)
             topics.add(candidate["topic"])
-            for word in ("Expected benefit:", "Evidence:", "uncertain"):
+            for word in ("Возможная польза:", "Наблюдения:", "может быть неточным"):
                 self.assertIn(word, candidate["text"])
             self.assertNotIn("reduce", candidate["text"].lower())
         self.assertEqual(topics, {"work", "rest", "reading", "entertainment"})
@@ -514,6 +514,67 @@ class ServiceTests(Fixture):
         self.service.maintenance()
         self.assertIsNone(self.store.execute("SELECT path FROM media WHERE id=?", (mid,))[0]["path"])
         self.service.delivery.transport.send.assert_not_called()
+    def test_automatic_daily_summary_is_a_display_card_without_voice_or_telegram(self):
+        self.clock.now = local_time(hour=20)
+        self.authorize()
+        self.service.delivery.transport.send.return_value = 'external-receipt'
+        self.service.maintenance()
+        self.service.maintenance()
+        cards = self.service.display.snapshot()['cards']
+        self.assertEqual(len(cards), 1)
+        self.assertEqual(cards[0]['title'], 'Дневная сводка')
+        self.assertEqual(cards[0]['kind'], 'text')
+        self.assertIn('Дневная сводка Butler', cards[0]['markdown'])
+        self.assertIn('Охват наблюдений:', cards[0]['markdown'])
+        self.service.delivery.transport.send.assert_not_called()
+        self.assertEqual(len(self.store.execute("SELECT id FROM deliveries WHERE kind='daily'")), 1)
+
+    def test_daily_display_runs_in_single_user_local_mode_without_biometric_lease(self):
+        self.clock.now = local_time(hour=20)
+        self.store.set('continuous_archive', True)
+        self.store.set('single_user_local', True)
+        self.assertFalse(self.service.gate.permits(self.clock()))
+        self.service.maintenance()
+        self.assertEqual([c['title'] for c in self.service.display.snapshot()['cards']], ['Дневная сводка'])
+        self.service.delivery.transport.send.assert_not_called()
+
+    def test_daily_display_does_not_export_without_biometric_lease(self):
+        self.clock.now = local_time(hour=20)
+        self.store.set('continuous_archive', True)
+        self.store.set('single_user_local', True)
+        self.store.set('schedule_telegram_daily', True)
+        self.service.maintenance()
+        cards = self.service.display.snapshot()['cards']
+        self.assertEqual(len(cards), 1)
+        self.assertIn('подтверждение', cards[0]['status'])
+        self.service.delivery.transport.send.assert_not_called()
+
+    def test_daily_display_can_optionally_send_telegram_once(self):
+        self.clock.now = local_time(hour=20)
+        self.store.set('schedule_telegram_daily', True)
+        self.authorize()
+        self.service.delivery.transport.send.return_value = 'synthetic-receipt'
+        self.service.maintenance()
+        self.service.maintenance()
+        cards = self.service.display.snapshot()['cards']
+        self.assertEqual(len(cards), 1)
+        self.assertEqual(cards[0]['title'], 'Дневная сводка')
+        self.assertEqual(cards[0]['status'], 'Отправлено в Telegram.')
+        self.service.delivery.transport.send.assert_called_once()
+        self.assertTrue(self.service.delivery.transport.send.call_args.kwargs['key'].endswith(':telegram'))
+
+    def test_daily_display_remains_visible_when_telegram_outcome_is_unknown(self):
+        self.clock.now = local_time(hour=20)
+        self.store.set('schedule_telegram_daily', True)
+        self.authorize()
+        self.service.delivery.transport.send.side_effect = RuntimeError('synthetic transport failure')
+        self.service.maintenance()
+        self.service.maintenance()
+        cards = self.service.display.snapshot()['cards']
+        self.assertEqual(len(cards), 1)
+        self.assertIn('неизвестен', cards[0]['status'])
+        self.service.delivery.transport.send.assert_called_once()
+
     def test_daily_summary_time_mute_exemption_and_restart_deduplication(self):
         self.clock.now = local_time(hour=20)
         self.service.store.set("daily_time", "20:00")
@@ -522,11 +583,13 @@ class ServiceTests(Fixture):
         self.authorize()
         self.service.maintenance()
         self.service.maintenance()
-        self.assertEqual(self.service.delivery.transport.send.call_count, 1)
+        self.assertEqual(len(self.service.display.snapshot()['cards']), 1)
+        self.service.delivery.transport.send.assert_not_called()
         self.assertEqual(self.store.execute("SELECT kind FROM deliveries"), [{"kind": "daily"}])
         self.service.delivery = Delivery(self.store, self.service.delivery.transport)
         self.service.maintenance()
-        self.assertEqual(self.service.delivery.transport.send.call_count, 1)
+        self.assertEqual(len(self.service.display.snapshot()['cards']), 1)
+        self.service.delivery.transport.send.assert_not_called()
     def test_biometric_work_does_not_block_owner_revocation(self):
         entered, release = threading.Event(), threading.Event()
         def slow(batch, references):

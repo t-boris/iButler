@@ -20,7 +20,7 @@ from .panel_chat import MAX_TEXT
 
 SILENCE_AFTER = 2.0        # seconds after the last recognised words, once nobody is speaking any more
 NOTHING_HEARD_AFTER = 30.0
-STOP_GRACE = 8.0          # how long «Остановить» waits for an utterance that is already being recognised
+STOP_GRACE = 90.0         # bound a final in-flight local recognition after the stop boundary
 TOTAL_LIMIT = 120.0
 KEEP_RESULT = 120.0
 SPEAKING = {"capturing-speech", "listening", "transcription", "awaiting-continuation"}
@@ -38,6 +38,7 @@ class Dictation:
         self.state, self.id, self.reason, self.note = "idle", None, None, None
         self.text = self.partial_text = ""
         self.armed_at = self.last_text_at = self.finished_at = self.stopping_at = None
+        self.stop_boundary_pending = False
 
     # -- the panel's commands ---------------------------------------------------------------
 
@@ -54,6 +55,8 @@ class Dictation:
                 self.state, self.reason, self.finished_at = "failed", reason, self.service.clock()
                 return self._view()
             self.state, self.armed_at = "listening", self.service.clock()
+            boundary = getattr(self.service.listening, 'begin_dictation', None)
+            if callable(boundary): boundary(self.id)
             return self._view()
 
     def stop(self):
@@ -61,10 +64,13 @@ class Dictation:
         with self.service.lock, self.lock:
             self._advance()
             if self.state == "listening":
-                if self._speaking():
+                if self.stopping_at is None:
                     self.stopping_at = self.service.clock()
-                else:
-                    self._finish()
+                    boundary = getattr(self.service.listening, 'stop_dictation', None)
+                    if callable(boundary):
+                        self.stop_boundary_pending = True
+                        boundary(self.id, self.stopping_at)
+                    elif not self._speaking(): self._finish()
             return self._view()
 
     # -- the hearing path -------------------------------------------------------------------
@@ -85,7 +91,7 @@ class Dictation:
                 self.last_text_at = self.service.clock()
             self.partial_text = ""
             if len(self.text) >= MAX_TEXT:
-                self._finish()
+                self.note = "Достигнут максимальный размер текста; нажмите «Остановить»."
             return True
 
     def partial(self, text):
@@ -156,15 +162,9 @@ class Dictation:
             listening = getattr(self.service, "listening", None)
             if listening is None or not listening.enabled:
                 self.interrupt()
-            elif now - self.armed_at > TOTAL_LIMIT:
-                self._finish()
             elif self.stopping_at is not None:
-                if not self._speaking() or now - self.stopping_at >= STOP_GRACE:
+                if (not self.stop_boundary_pending and not self._speaking()) or now - self.stopping_at >= STOP_GRACE:
                     self._finish()
-            elif self.text and now - self.last_text_at >= SILENCE_AFTER and not self._speaking():
-                self._finish()
-            elif not self.text and now - self.armed_at >= NOTHING_HEARD_AFTER and not self._speaking():
-                self._finish()
         elif self.state in {"done", "failed"} and self.finished_at is not None and now - self.finished_at > KEEP_RESULT:
             self._reset()
 

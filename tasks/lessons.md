@@ -613,3 +613,41 @@ To prove that late results reach the panel I asked the Codex agent to "launch a 
 **Symptom**: `butler-lesson auto-confirm` printed "scanned 0 session files"; I reported it as a broken scan path and a "design bug", and wrote that into the plan. The function had been disabled on purpose two days earlier (early `return` at the top of `auto_confirm_from_sessions`, REQ-061: a keyword match is not evidence of application); the 0 was its fixed output. The same stub made the weekly agent send a false-alarm note.
 **Rule**: before reporting a "0 results" output as a defect, read the function (look for early returns and stubs), the file's mtime and the requirement that explains it; separate "the tool is broken" from "the tool was switched off and its callers were not updated". When adding a "notify if noteworthy" clause to a cron prompt, first check what the called tools print in the normal case, or the agent will treat a stub's output as news.
 **Apply when**: diagnosing a maintenance job whose tools "work" but report nothing; editing silent-cron prompts.
+
+# Owner-local access review — 2026-10-28
+
+An identity failure and a participant-permission failure share the same gate, while history responses can include raw paths. A new local visibility policy must distinguish those decisions end to end, including cached media and in-flight playback; changing only a panel visibility flag can bypass the intended media boundary.
+
+The first single-user history release reused the new history flag for gallery paths, and the native gallery retained a previously rendered image on raw-access loss. Audit every consumer of a changed permission signal and test both server payloads and native caches across transitions, including when the broader history permission remains true.
+
+The existing summary helper called `Store.history`, which runs retention cleanup as a side effect. A newly authorized read-only local path must explicitly suppress retention and test that it does so; a function named “read” or “summary” is not evidence that it leaves files untouched.
+
+A single-user history mode still failed intermittently when it reused the automatic crowd detector: the detector reported multiple faces in 2/19 successful metadata-only samples while the owner reported being alone. Treat the owner's explicit single-user choice as the local-display policy, while keeping revocation and separate participant, raw-media and spoken-output gates. Verify stability over repeated polls, including samples with the conflicting detector signal.
+
+## Dictation boundaries — 2026-10-28
+
+An ASR result belongs to the capture session that produced its audio, not the UI mode active when recognition finishes. Clear old pre-roll on session start, tag queued and in-flight work, clip the first and last captured blocks, and test races on synthetic audio. Distinguish a service command timestamp from the physical UI click and hardware capture timestamps when describing precision.
+
+A local history view can appear fixed until a service restart: check the persisted-history restoration path as well as the in-memory pause path. Keep a local-only restored view separate from agent context and correction authority, and avoid read helpers that perform retention cleanup as a side effect.
+
+`RuleStore.scan()` is not read-only: it removes tombstoned rule files and history and rewrites a migration backup. Never make a new local browsing path call it under a no-deletion instruction merely because its name or caller says “list”.
+
+A lock protects state changes but does not stop a time-limited permission from expiring while a response is assembled. Recheck it at the final response boundary and strip already-built image paths and cached rows without elevating a response that started denied.
+
+A modal macOS dialog can outlive the access that revealed its contents, and default-mode timers may not poll while the modal run loop is active. Track both the in-flight request and the open dialog; poll in modal mode and test closure with an actually running synthetic modal.
+
+A service stop flag can change outside the service lock. Before returning a panel snapshot, recheck that flag for transient live previews and status flags as well as stored history.
+
+A stop flag may be set before permission generations are invalidated under the lock. Any strict permission predicate used after work outside the lock must check that stop flag as well as both generations.
+
+Separating server permissions is not enough: a panel may still clear history when the narrower raw-media permission drops. Test that transition with reload unavailable, retain rows and selection, and independently clear players, images, paths and in-flight media replies.
+
+A session generation must guard every asynchronous callback that can restore earlier capture, not just the final recognizer result. In particular, a late endpointer can reinsert old PCM after a dictation start has cleared the buffer.
+
+A list can be nonempty while opening yields nothing: session IDs based on the first changing item are not stable while background analysis adds or links records. Test list-to-open with intervening updates and real asynchronous child responses. Also verify that pending or empty items do not bury existing results and that a refresh does not erase an open detail.
+
+Preserving selection during a refresh must also cover recovery of narrower raw-media permission, not only its loss. For long histories, individual event rows are insufficient: offer an explicit day-level summary as well as a session summary, bound its input, and disclose partial coverage.
+
+A complete map-reduce summary may take minutes even when every model call succeeds. Show a clearly labelled early fragment and progress, and distinguish a still-running preview from a permanently truncated final result. A missing image can mean permission denial even when retained image rows exist; explain the distinction in the panel.
+
+An image gallery may be empty because its artifact table is separate from preserved event frames, even when those frames exist. If the owner explicitly changes the local permission, expose only the authorized file class under its own signal and test hard closes, symlink containment, stale polls and selection preservation separately from raw-media access.

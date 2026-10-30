@@ -330,7 +330,7 @@ def _note_date(fm: dict, rel_path: str) -> Optional[str]:
     return m.group(1) if m else None
 
 
-def _index_one(con, f: Path, rel: str, scope: str, st) -> Optional[int]:
+def _index_one(con, f: Path, rel: str, scope: str, st, *, commit: bool = True) -> Optional[int]:
     """Chunk + embed one file into the index, replacing whatever was there.
     Returns the chunk count, or None if the file could not be read."""
     try:
@@ -362,7 +362,8 @@ def _index_one(con, f: Path, rel: str, scope: str, st) -> Optional[int]:
              for i, c in enumerate(chunks)])
     con.execute("INSERT OR REPLACE INTO files VALUES (?, ?, ?, ?)",
                 (rel, st.st_mtime, st.st_size, len(chunks)))
-    con.commit()
+    if commit:
+        con.commit()
     return len(chunks)
 
 
@@ -472,11 +473,13 @@ def reindex(full: bool = False, progress: bool = False) -> ReindexStats:
                 f"the vault is really empty."
             )
 
+        # Publish the whole rebuild as one SQLite transaction. Readers keep
+        # seeing the previous index if embedding fails or the process dies.
+        con.execute("BEGIN IMMEDIATE")
         if full:
             con.execute("DELETE FROM chunks")
             con.execute("DELETE FROM files")
             _stamp_meta(con)
-            con.commit()
 
         stats = ReindexStats()
         known = {p: (mt, sz) for p, mt, sz in
@@ -502,7 +505,7 @@ def reindex(full: bool = False, progress: bool = False) -> ReindexStats:
                 stats.unchanged += 1
                 continue
 
-            n = _index_one(con, f, rel, scope, st)
+            n = _index_one(con, f, rel, scope, st, commit=False)
             if n is None:
                 stats.skipped += 1
                 continue
@@ -510,6 +513,9 @@ def reindex(full: bool = False, progress: bool = False) -> ReindexStats:
             stats.chunks_added += n
             if progress and stats.reindexed % 50 == 0:
                 print(f"  ... {stats.reindexed} files, {stats.chunks_added} chunks", file=sys.stderr)
+
+        if full and stats.skipped:
+            raise RuntimeError(f"full reindex incomplete: {stats.skipped} files skipped; previous index preserved")
 
         # Drop files deleted from the vault
         for gone in set(known) - seen:

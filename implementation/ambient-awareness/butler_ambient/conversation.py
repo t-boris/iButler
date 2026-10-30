@@ -91,6 +91,13 @@ def explicit_address(text, aliases):
     return bool(re.match(r"^\W*(?:[\w-]+[,!]?\s+){1,3}(?:" + words + r")[,!.]", text, re.I))
 
 
+def single_user_summary_request(text, aliases):
+    from .voice_commands import command_words
+    if not isinstance(text, str) or not explicit_address(text, aliases): return False
+    words = command_words(text, aliases)
+    return bool(re.fullmatch(r'(?:(?:дай|сделай|расскажи) (?:мне )?(?:краткую )?сводку наблюдений(?: за (?:последний )?час)?|что ты наблюдал за (?:последний )?час)', words))
+
+
 def _hearing_words(value):
     return " ".join(re.findall(r"[\w-]+",value.casefold()))
 
@@ -251,6 +258,8 @@ class Conversation:
         # is general only while it owns the current token; anything else that
         # uses the token (a private turn, spoken advice, a check) is private.
         self.general_token = None
+        self.local_history_token = None
+        self.local_history_epoch = None
         self.visible_mode = "private"
         self.general_history = deque(maxlen=64)
         self.general_last = float("-inf")
@@ -289,6 +298,22 @@ class Conversation:
                 and self.service.archive.enabled
                 and self.store.get("voice_enabled", False) is True
                 and self.store.get("general_dialogue", True) is True)
+
+    def local_history_audio_permitted(self):
+        """Local single-user summaries do not enable general conversation."""
+        from .recordings import local_voice_history_allowed
+        listening = getattr(self.service, 'listening', None)
+        return (listening is not None and listening.enabled and self.service.archive.enabled
+                and self.store.get('voice_enabled', False) is True
+                and self.store.get('single_user_local', False) is True
+                and self.service.meeting.local_summary_safe() and local_voice_history_allowed(self.service))
+
+    def local_history_pending(self):
+        if self.local_history_token is not None and not self.local_history_token.is_set(): return True
+        with self.jobs.mutex:
+            return any(job[2] == GENERAL and isinstance(job[4], str)
+                       and job[4].startswith('single-user-history:') and not job[1].is_set()
+                       for job in self.jobs.queue)
 
     def general_active(self):
         return math.isfinite(self.general_last) and self.general_permitted()
@@ -577,9 +602,14 @@ class Conversation:
     def _general_turn(self, *args, **kwargs):
         self.token = args[1]
         self.general_token = self.token
+        source = args[4] if len(args) > 4 and isinstance(args[4], str) else ''
+        match = re.fullmatch(r'single-user-history:(\d+)', source)
+        self.local_history_token = self.token if match else None
+        self.local_history_epoch = int(match[1]) if match else None
         self.turn_active = True
         try: return self._general_turn_body(*args, **kwargs)
         finally:
+            if self.local_history_token is args[1]: self.local_history_token = self.local_history_epoch = None
             self.turn_active = False
             if self.state in {"thinking", "speaking", "synthesizing"}: self.state = "ready"
 
@@ -770,6 +800,12 @@ class Conversation:
             if generation == GENERAL:
                 # A general turn needs no owner lease, only enabled hearing.
                 if token.is_set(): raise Canceled()
+                if self.local_history_token is not None and self.local_history_token in getattr(token, 'events', ()):
+                    if (self.local_history_epoch != self.service.local_history_epoch
+                            or not self.local_history_audio_permitted()):
+                        self.service._end_local_history_scope()
+                        raise Canceled()
+                    return
                 if not self.general_permitted():
                     self.cancel(reason="general-dialogue-unavailable")
                     raise Canceled()
@@ -1714,6 +1750,23 @@ class Conversation:
         private history, review, command, capture or tool is reachable here.
         """
         token = Tokens(turn_token, self.ended)
+        if isinstance(source, str) and source.startswith('single-user-history:'):
+            # No model, agent, private dialogue context or identity claim is
+            # involved. Recheck local history permission before and during speech.
+            aliases = self.store.get('address_aliases', ['Бата', 'Батлер', 'Butler'])
+            if (self.local_history_token is not turn_token or not single_user_summary_request(recognized, aliases)
+                    or not isinstance(queued_at, (int, float)) or not 0 <= time.monotonic() - queued_at <= 8):
+                raise Canceled()
+            self._permitted(token, generation)
+            with self.service.lock:
+                self._permitted(token, generation)
+                reply = self.service.commands.memory.read('summary', {'minutes': 60}, read_only=True)
+                self._permitted(token, generation)
+            self.state, self.phase = 'thinking', 'reply'
+            self.speak(reply, token, generation)
+            self._permitted(token, generation)
+            self._audit(turn_token, outcome='replied', rule='single-user-local-summary')
+            return
         self._audit(turn_token, source=source, mode=GENERAL, phase="address", outcome="running",
                     input_seconds=round(len(pcm)/32000, 3), conversation_active=self.conversation_active())
         self._permitted(token, generation)
@@ -1889,7 +1942,7 @@ class Conversation:
             with self.service.lock:
                 if self.private_state() and not self.turn_committed:
                     self.cancel(reason="dialogue-permission-lost", private_only=True)
-                if self.general_permitted():
+                if self.general_permitted() or (self.local_history_pending() and self.local_history_audio_permitted()):
                     if (self.state in {"paused", "disabled", "choose-voice", "unavailable"}
                             and (self.state != "unavailable" or self.service.clock() >= self.error_until)):
                         self.state = "ready"

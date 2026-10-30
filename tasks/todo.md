@@ -2189,3 +2189,89 @@ Proposed changes (all through `openclaw cron edit|rm`, never by hand-editing job
 - [x] Telegram `butler` ingress was `disconnected` ("Bad Gateway | Telegram ingress worker exited with code 1", auto-restart 2/10); after the gateway restart butler, tetyana-dyck and WhatsApp are all connected.
 - [x] State after: 17 jobs, scheduler intact, both lessons jobs ok (0 errors); only `bamberg-news-evening` still shows its old single error.
 - [ ] Not proven: the Bamberg fix (next real runs tonight 22:00 / tomorrow ~10:00 CT; with ~19 % failure rate per run it needs several runs); whether the ambient service now processes the 45k pending originals without slowing the machine over hours (watch it; the stop rule above applies).
+
+# Owner-local single-user mode — review 2026-10-28
+
+- [x] Record the owner's report and explicit decision in MarkView: BUG-010 and Recordings DEC-097. The bug report is under `docs/bugs/`, which the repository currently ignores.
+- [ ] Broader local identity-gated paths still need review; no identity is forged. History access is separate from raw access with consent, pause, archive-off and cached-media protections. On metadata-only sampling the initial release falsely hid history in 2 of 19 successful polls when the detector reported multiple faces; the owner says he is alone. The revised single-user display policy no longer inherits automatic identity/crowd classifications: after installation 25/25 polls kept history visible, including one multiple-face report, while raw access stayed denied in all 25. Voice summaries and capture retain stricter participant, sensing and call gates.
+- [x] Full ambient suite 892/892. Installed only six changed ambient modules and tested panel executable, backed up in `~/.local/share/butler-ambient/release-backups/single-user-20261029T015130Z` and `single-user-voice-20261029T015641Z`, restarted only the Butler service, and enabled single-user history. Live metadata reports Recordings and Observations visible (11,225 and 3,022 rows respectively); no transcript or audio content inspected. Voice navigation was checked with synthetic data; real owner speech remains untested.
+- [x] Follow-up privacy/UI audit: corrected the initial release's accidental gallery-path visibility and cached gallery image when only history was permitted; installed under backups `single-user-gallery-20261029T020016Z` and `single-user-cache-20261029T020246Z`. Installed and source gallery regressions pass, panel 279/279, final full Python suite 893/893. The panel now reports hidden history and denied originals accurately.
+- [ ] Extend identity-independent local use: an explicitly addressed, read-only spoken observation summary is installed, independent of the general-conversation preference. It never dispatches to the agent, never asserts identity, rechecks mode/consent/pause/recording, fresh participant sensing, company and call safety during speech, invalidates queued work across hard closes and mode changes, and rejects stale requests. Its source tests pass, including no retention cleanup and immediate cancellation without stopping unrelated disclosure audio; final full Python suite 909/909. Panel 280/280 includes immediate clearing of history when mode is disabled. Voice output was explicitly off in the owner's settings and was left off, so no real spoken output was tested. Other local identity-gated paths still need review; protected commands and raw media retain their existing gates.
+- [x] Local feedback/voice episode viewing: owner-local rows survive a soft identity failure while export and privileged context are cancelled; local reads use the separate history signal. Explicit pause/revocation clears rows; corrections retain the stricter gate. Native tests cover cache clearing on mode off or first failed poll, raw image removal and disabled corrections. Full Python 911/911, panel 282/282, installed-source focused 3/3; installed hashes match. Backup `single-user-feedback-20261029T025141Z`.
+
+# Dictation start/stop — review 2026-10-28
+
+- [x] Recorded owner's report as MarkView BUG-011; isolated old capture and in-flight recognition by session, and clipped audio at service start/stop boundaries.
+- [x] Kept dictation active through silence and until Stop; explicit interruption and existing text limits remain. Focused source and installed tests 30/30. Installed two modules with backup `dictation-boundary-20261029T025926Z`; restarted only Butler's service.
+- [ ] Live speech verification by the owner: real audio and transcript contents were not inspected. The boundary is based on command receipt and one-second microphone-block timestamps, not a hardware timestamp of the UI click.
+- [x] Final full ambient Python suite: 914/914. A bare Swift binary cannot resolve two app-bundle resources; the temporary bundled executable with installed resources passed 282/282 layout checks.
+
+# Single-user feedback restart — review 2026-10-28
+
+- [x] Restore persisted feedback for local viewing after restart despite transient identity failure, using a separate read-only cache and without restoring agent contexts, fragments or correction targets. Explicit pause, archive-off and consent revoke block it; expired text is cleared.
+- [x] Source and installed regressions 44/44; feedback learning 20/20. Installed two modules, backup `local-feedback-restore-20261029T030702Z`, restarted only Butler; metadata confirms restoration and history visible while raw access remains denied. No owner content inspected.
+- [x] Full final Python suite 917/917; all 13 changed runtime Python modules match source, installed panel matches the previously tested binary.
+- [x] Local rule list uses a nonmutating, tombstone-filtered reader in single-user mode, with the source grant and local scope rechecked before return. Pause, archive off and consent revocation block local browsing; the panel marks it read-only and disables mutation controls. Existing rule mutations and agent dispatch remain strictly gated. Installed with backup `local-rules-20261029T031258Z`; source and installed feedback tests 22/22, bundled panel 284/284.
+
+- [x] Final source suite 919/919; all 13 modified ambient modules and the 284/284 tested panel match installed artifacts.
+
+# Snapshot permission recheck — review 2026-10-28
+
+- [x] Recheck access at the end of panel snapshot assembly; strip raw image paths and feed entries on expired strict permission, and local history and feedback on hard close. Source and installed recordings tests 46/46; backup `snapshot-recheck-20261029T031641Z`. Ten metadata-only live polls: history 10/10 visible, raw 0/10, no errors.
+- [x] Full final ambient suite 921/921; panel unchanged from 284/284 build.
+
+# Rule dialog scope — review 2026-10-28
+
+- [x] Invalidate in-flight local-rule responses and close open rule modals on access loss or failed polling. Poll in the modal event-loop mode. Synthetic panel 289/289, including a running modal closed by a failed poll. Installed with backup `rule-scope-panel-20261029T032258Z`; panel hash matches and process runs. Python source unchanged since 921/921.
+- [x] Close editable rule dialogs on strict dialogue-lease loss even when local history is visible; final bundled panel 290/290, installed binary matches, backup `rule-scope-panel-v4-20261029T032433Z`.
+
+# Playback generation — review 2026-10-28
+
+- [x] Added synthetic close/reopen races for capture and dialogue gates during playback conversion; generation change denies the result even after permission returns. Source and installed recordings suites 47/47; no runtime install required.
+- [x] Full ambient suite 922/922 with generation-race coverage.
+
+# Stop during snapshot — review 2026-10-28
+
+- [x] A red/green synthetic regression covers stop starting while a panel snapshot is assembled; suppress preview and report recording disabled before returning. Source and installed recordings tests 48/48; backup `stop-snapshot-20261029T033023Z`.
+
+# Stop during playback — review 2026-10-28
+
+- [x] Red/green synthetic conversion test covers stop before gate invalidation; strict raw access now checks stop_event. Source and installed recordings tests 49/49, backup `stop-playback-20261029T033214Z`.
+- [x] Final full ambient suite 924/924; panel unchanged since its 290/290 verification.
+
+# Preserve Recordings during raw lease loss — review 2026-10-28
+
+- [x] Red/green panel test verifies that raw-only access loss retains rows, expanded session and selected transcript without waiting for a reload, while stopping playback, removing paths and invalidating pending media replies. Hard closes and failed polls still clear. Panel 291/291, installed tested binary, backup `history-preserve-panel-20261029T033850Z`; Python unchanged since 924/924.
+
+# Dictation late endpointer — review 2026-10-28
+
+- [x] Red/green synthetic race prevents a pre-start Smart Turn callback from restoring old audio into a new dictation. Source and installed dictation 31/31, listening 37/37. Installed only listening.py; backup `dictation-endpoint-20261029T034156Z`.
+- [ ] Owner live dictation verification remains open; UI command latency and capture timestamp jitter limit the physical click boundary.
+- [x] Final full ambient suite 925/925; panel unchanged from 291/291 verification.
+
+# Owner-local permission audit — review 2026-10-28
+
+- [x] Audited history, raw/playback, local navigation/speech, feedback/rules, protected actions and transmission boundaries against DEC-097; see VERIFICATION. No identity success is forged, and strict checks remain for media and operations with privileged or external effects. Current installed hashes match; final Python 925/925 and panel 291/291.
+- [ ] Separate owner-reported dictation still requires live user confirmation; UI command and sample timestamp latency remain a limitation.
+
+# Open recordings content — review 2026-10-28
+
+- [x] Recorded owner screenshot/report as MarkView BUG-012; reproduced changing session anchors with synthetic tests and kept prior media permission and session controls.
+- [x] Show actual results first with an all-recordings toggle; open the first child on one click, keep it on refresh, report pending analysis and errors. Source and installed recordings 53/53; bundled panel 297/297; scoped backup `recordings-open-20261029T041624Z`.
+- [ ] Owner verification of real panel content and separately reported dictation remains open.
+- [x] Final full ambient Python suite 929/929; installed recordings module and 297/297 panel match tested artifacts.
+
+# History selection and useful summaries — review 2026-10-28
+
+- [x] Owner reported that opening works but refresh loses selection. Synthetic panel regressions cover periodic polls and raw-permission recovery; installed panel backup `selection-fix-panel-20261029T042435Z`.
+- [x] Owner reported long records lack a summary and conclusions; recorded as MarkView BUG-013. On-demand local session and day summaries use bounded stored facts/text, disclose partial coverage, and cancel on hard scope loss; no external transmission or stored summary.
+- [x] Scoped installation backup `local-summaries-20261029T043138Z`; source and installed summary tests 13/13, panel 300/300, complete ambient suite 942/942. Synthetic local model and empty-date live command passed.
+- [ ] Verify the installed controls and usefulness with the owner on real history; no private history content was inspected by the agent.
+
+# Summary progress and missing images — review 2026-10-28
+
+- [x] Owner reports no useful summary and no images. Real storage metadata shows 109 preserved camera/screen media rows; current raw-file permission is false. Image contents were not inspected.
+- [x] A synthetic 8,000-character local-model request took 9.7 seconds for one chunk; a long day may take many chunks before final output. First-fragment progress is now displayed in the detail pane with a clear incomplete label; hard-close cancellation hides it. Source and installed focused tests 15/15; bundled panel 302/302. Installed only summary module and panel, backup `summary-progress-20261029T044644Z`.
+- [x] Owner explicitly chose local viewing of saved camera/screen frames without automatic identity confirmation; recorded as MarkView DEC-098. Installed local_ui.py, history_summary.py and panel, backup `stored-frames-20261029T045354Z`; metadata-only live check shows 109 camera stills available, history visible, strict raw access false. Source and installed frame tests 6/6, summary tests 16/16, bundled panel 306/306.
+- [x] Full ambient suite 951/951; summary focused tests rerun after the defensive metadata change, 16/16.
+- [ ] Owner verification of visible images and useful summaries on real records remains open; actual contents were not inspected.
