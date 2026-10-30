@@ -881,15 +881,33 @@ class Service:
                 token = self.archive.token if archive else self.analysis_token
             else:
                 candidate = None
-        if candidate and not token.is_set() and not self.meeting.snapshot()["quiet"]:
+        if candidate and not token.is_set() and not self.meeting.snapshot()["quiet"] and not quiet(now) and not quiet(now+45):
             from .conversation import Tokens
+            from .daily_report import advice_report
             token=Tokens(token,self.schedules.tokens["advice"],run_token) if run_token is not None else Tokens(token,self.schedules.tokens["advice"])
-            self.schedules.manual["advice"]="running"
-            try:
-                self.delivery.send(candidate["key"], "advice", candidate["text"], now,
-                                   topic=candidate["topic"], created_at=candidate["created_at"], token=token,
-                                   transport=self.display_transport)
-            finally:self.schedules.manual["advice"]="done"
+            day=dt.datetime.fromtimestamp(now,ZONE).date().isoformat()
+            with self.lock:
+                if self.schedules.manual.get("advice")=="running" or self.store.get("muted",False):return
+                last_attempt=getattr(self,"last_advice_attempt",None)
+                if last_attempt is not None and now-last_attempt<900:return
+                if self.store.execute("SELECT 1 FROM deliveries WHERE id=?",(candidate["key"],)):return
+                rows=self.store.execute("SELECT COUNT(*) AS count, MAX(at) AS last FROM deliveries WHERE kind='advice' AND day=?",(day,))
+                last=self.store.execute("SELECT MAX(at) AS last FROM deliveries WHERE kind='advice'")[0]["last"]
+                if rows[0]["count"]>=3 or (last is not None and now-last<3600):return
+                self.last_advice_attempt=now
+                self.schedules.manual["advice"]="running"
+            def generate():
+                try:
+                    text,topic=advice_report(self,now,token,with_topic=True)
+                    if text and not token.is_set() and not self.meeting.snapshot()["quiet"]:
+                        self.delivery.send(candidate["key"], "advice", text, self.clock(),
+                                           topic=topic, created_at=candidate["created_at"], token=token,
+                                           transport=self.display_transport)
+                except Exception:
+                    self.schedules.manual["advice"]="failed"
+                    return
+                self.schedules.manual["advice"]="done"
+            threading.Thread(target=generate,daemon=True,name='butler-advice').start()
 
     def maintenance(self):
         now = self.clock()
@@ -921,12 +939,13 @@ class Service:
             key = "daily:" + local.date().isoformat()
             if self.store.execute("SELECT id FROM deliveries WHERE id=?", (key,)):
                 return
-            start = dt.datetime.combine(local.date(), dt.time(), ZONE).timestamp()
-            report = summarize(self.store, start, now)
             from .conversation import Tokens
+            from .daily_report import daily_report
             self.schedules.manual["daily"]="running"
-            try:self.delivery.send(key, "daily", summary_text(report), now, token=Tokens(token,self.schedules.tokens["daily"]),
-                                   transport=self.display_transport)
+            try:
+                daily_token = Tokens(token,self.schedules.tokens["daily"])
+                text = daily_report(self,now,daily_token)
+                self.delivery.send(key, "daily", text, self.clock(), token=daily_token, transport=self.display_transport)
             finally:self.schedules.manual["daily"]="done"
 
     def _maintenance_loop(self):

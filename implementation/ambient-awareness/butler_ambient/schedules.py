@@ -14,29 +14,6 @@ from .components import command, running_dispatches, WORKSPACE
 from .delivery import ZONE, core_client
 
 
-def manual_advice(store, now):
-    """Use the most recent eligible historical evidence, without claiming it is current."""
-    from .delivery import advice_candidate
-    disabled = store.get("disabled_topics", [])
-    for day in range(30):
-        end = now - day * 86400
-        rows = store.history(end - 86400, end, expire=False)
-        for row in reversed(rows):
-            if not any(f.get("confidence", 0) >= .65 and
-                       (f.get("kind") == "book" or (f.get("kind") == "activity" and
-                        f.get("activity") in {"work", "reading", "rest", "entertainment", "youtube"}))
-                       for f in row["facts"]):
-                continue
-            observed = min(row["end"], now)
-            context = [r for r in rows if r["end"] >= observed - 7200 and r["start"] <= observed]
-            candidate = advice_candidate(context, observed)
-            if candidate and candidate["topic"] not in disabled:
-                stamp = dt.datetime.fromtimestamp(observed, ZONE).strftime("%d.%m.%Y %H:%M")
-                candidate["text"] += "\nВремя наблюдений: " + stamp + " (America/Chicago); ситуация могла измениться."
-                return candidate
-    return None
-
-
 class Schedules:
     def __init__(self,service,workspace=WORKSPACE):
         self.service,self.workspace = service,workspace
@@ -274,22 +251,18 @@ class Schedules:
                 return {"ok":True,"message":"Локальный анализ поставлен в очередь."}
             from .conversation import Tokens
             from .delivery import quiet
-            from .summaries import summarize,summary_text
+            from .daily_report import daily_report, advice_report
             token=threading.Event();self.tokens[key]=token;self.manual[key]="running"
             policy_token = s.analysis_token if s.gate.permits(s.clock()) else s.archive.token
             def run():
                 try:
                     now=s.clock();local=dt.datetime.fromtimestamp(now,ZONE)
                     if key=="daily":
-                        start=dt.datetime.combine(local.date(),dt.time(),ZONE).timestamp()
-                        text=summary_text(summarize(s.store,start,now))
-                        candidate=None
+                        text=daily_report(s,now,Tokens(token,policy_token))
                     else:
-                        s.store.expire(now)
-                        candidate=manual_advice(s.store,now)
-                        text=candidate["text"] if candidate else "В доступной истории за последние 30 дней нет подходящих наблюдений для совета."
+                        text=advice_report(s,now,Tokens(token,policy_token))
                     s.display_transport.send(text,token=Tokens(token,policy_token),key="manual:"+uuid.uuid4().hex,
-                                             kind=key,allow_telegram=not quiet(now) and (key=="daily" or candidate is not None),
+                                             kind=key,allow_telegram=not quiet(s.clock()),
                                              require_local_history=True)
                     self.manual[key]="done"
                 except Exception:self.manual[key]="failed"

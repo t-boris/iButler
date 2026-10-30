@@ -524,8 +524,8 @@ class ServiceTests(Fixture):
         self.assertEqual(len(cards), 1)
         self.assertEqual(cards[0]['title'], 'Дневная сводка')
         self.assertEqual(cards[0]['kind'], 'text')
-        self.assertIn('Дневная сводка Butler', cards[0]['markdown'])
-        self.assertIn('Охват наблюдений:', cards[0]['markdown'])
+        self.assertIn('нет достаточно содержательных', cards[0]['markdown'])
+        self.assertNotIn('Наблюдения:', cards[0]['markdown'])
         self.service.delivery.transport.send.assert_not_called()
         self.assertEqual(len(self.store.execute("SELECT id FROM deliveries WHERE kind='daily'")), 1)
 

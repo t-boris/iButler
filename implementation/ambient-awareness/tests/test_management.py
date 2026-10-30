@@ -351,31 +351,16 @@ class ManagementTests(unittest.TestCase):
 
     def test_manual_advice_displays_candidate_and_no_evidence(self):
         self.permit()
-        row = {'id':'synthetic', 'start':self.now-86460, 'end':self.now-86400,
-               'facts':[{'kind':'activity', 'activity':'reading', 'confidence':.9}]}
-        with patch.object(self.store, 'history', side_effect=lambda start,end,**kw: [row] if start <= row['end'] < end else []):
+        with patch('butler_ambient.daily_report.advice_report', return_value='synthetic advice'):
             self.manager.control({'id':'builtin:advice','action':'run'})
             self.wait_manual('advice')
-        with patch.object(self.store, 'history', return_value=[]):
+        with patch('butler_ambient.daily_report.advice_report', return_value='no evidence'):
             self.manager.control({'id':'builtin:advice','action':'run'})
             self.wait_manual('advice')
         cards = self.service.display.snapshot()['cards']
         self.assertEqual(len(cards), 2)
         self.assertTrue(all(card['title'] == 'Инициативный совет' for card in cards))
         self.service.delivery.transport.send.assert_not_called()
-
-    def test_manual_advice_uses_old_observations_and_labels_their_time(self):
-        from butler_ambient.schedules import manual_advice
-        observed = self.now - 3 * 86400
-        row = {'id':'synthetic', 'start':observed-60, 'end':observed,
-               'facts':[{'kind':'activity', 'activity':'reading', 'confidence':.9}]}
-        store = Mock()
-        store.get.return_value = []
-        store.history.side_effect = lambda start, end, **kw: [row] if start <= observed < end else []
-        candidate = manual_advice(store, self.now)
-        self.assertEqual(candidate['topic'], 'reading')
-        self.assertIn('19.10.2026', candidate['text'])
-        self.assertIn('ситуация могла измениться', candidate['text'])
 
     def test_manual_daily_respects_telegram_opt_in(self):
         self.permit()
@@ -391,7 +376,7 @@ class ManagementTests(unittest.TestCase):
         self.store.set('single_user_local', True)
         self.service.gate.enable(True, self.now)
         self.assertFalse(self.service.gate.permits(self.now))
-        with patch('butler_ambient.schedules.manual_advice', return_value={'topic':'work','text':'synthetic'}):
+        with patch('butler_ambient.daily_report.advice_report', return_value='synthetic'):
             self.manager.control({'id':'builtin:advice','action':'run'})
             self.wait_manual('advice')
         self.assertEqual(self.service.display.snapshot()['cards'][0]['title'], 'Инициативный совет')

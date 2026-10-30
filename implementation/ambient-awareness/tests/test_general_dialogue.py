@@ -351,10 +351,15 @@ class GeneralDialogueTests(unittest.TestCase):
     def test_advice_during_a_routed_general_turn_is_not_given_to_the_voice(self):
         candidate = {'key': 'k', 'text': 'Совет.', 'topic': 'work', 'created_at': self.now}
         self.s.delivery.send = Mock(return_value='sent'); self.v.model.generate_json.return_value = CHAT
-        with patch('butler_ambient.service.advice_candidate', return_value=candidate):
+        with patch('butler_ambient.service.advice_candidate', return_value=candidate), \
+             patch('butler_ambient.service.quiet', return_value=False), \
+             patch('butler_ambient.daily_report.advice_report', return_value=('Совет.','work')):
             self.hear('Батлер, привет!')
             self.v.state = 'ready'
             self.s.analysis_tick(self.s.archive.generation, archive=True)
+            deadline=time.monotonic()+2
+            while self.s.schedules.manual.get('advice')=='running' and time.monotonic()<deadline:
+                time.sleep(.01)
             self.assertIs(self.s.delivery.send.call_args.kwargs['transport'], self.s.display_transport)
             self.run_routed()
             self.s.analysis_tick(self.s.archive.generation, archive=True)

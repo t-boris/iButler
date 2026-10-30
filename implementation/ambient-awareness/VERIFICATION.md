@@ -1,5 +1,11 @@
 # Current verification — 440 tests; public hearing repair installed
 
+## 0.12.2 — narrative summaries and grounded advice (2026-10-30)
+
+Daily summaries now use a bounded, time-distributed sample of inferred observation facts and a local model, rather than a duration table with internal identifiers. Manual and automatic advice use local model output grounded in dated facts from up to 30 days. The model is instructed to report uncertainty and insufficient evidence; disabled topics, cancellation, meeting quiet, autonomous quotas and quiet hours are retained. Automatic generation runs on a background thread and failed or unproductive attempts are throttled. These outputs are model-generated and cannot guarantee that every suggestion is useful or correct. Transcripts and raw media are not inputs to these reports.
+
+`PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=. .venv/bin/python -m unittest discover -s tests` passed 975 tests; a subsequent cancellation regression also passed independently. The installed wheel passed 149 focused tests (`test_daily_report test_archive test_management test_feature test_display`); the source focused run including `test_general_dialogue` passed 180 before the extra cancellation check. A synthetic local-model smoke test produced a narrative and a fact-based suggestion. The changed wheel modules match source, the versioned app signature verifies, and installed service and app report 0.12.2. Both built-in schedules report enabled and Telegram disabled. No live summary, live advice or Telegram delivery was triggered for verification. The service restart also restarted the panel, after checking that no video card was selected. Backup: `~/.local/share/butler-ambient/release-backups/narrative-schedules-20261030T120319Z`.
+
 ## 0.12.1 — manual Display schedules (2026-10-30)
 
 Manual daily and advice runs use the permission-gated local Display, including during quiet hours and independently of autonomous delivery quotas. Advice uses eligible observations from the last 30 days and labels their time; disabled topics remain excluded. Optional Telegram still requires the owner gate and is suppressed during quiet hours. Automatic delivery is unchanged. Manual failures are visible in schedule status.

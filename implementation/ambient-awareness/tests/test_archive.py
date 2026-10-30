@@ -1,6 +1,7 @@
 """New passive recording scope does not authorize privileged owner actions."""
 import tempfile
 import threading
+import time
 import sqlite3
 import io
 import wave
@@ -32,6 +33,11 @@ class ArchiveTests(unittest.TestCase):
         self.now+=1
         return Batch(self.now-1,self.now,kwargs.get('frames',[b'controlled jpeg']),kwargs.get('pcm',b'\0'*32000),frame_at=self.now,gaps=kwargs.get('gaps',()))
 
+    def wait_advice(self):
+        deadline=time.monotonic()+2
+        while self.s.schedules.manual.get('advice') == 'running' and time.monotonic()<deadline:
+            time.sleep(.01)
+
     def test_advice_is_evaluated_after_a_successful_source_when_another_fails(self):
         self.store.media('camera', self.now-2, self.now-1, b'jpeg', 'mjpeg')
         self.store.media('microphone', self.now-2, self.now-1, b'wave', 'wav')
@@ -40,8 +46,11 @@ class ArchiveTests(unittest.TestCase):
         self.s.delivery.send = Mock(return_value='sent')
         candidate = {'key': 'synthetic', 'topic': 'work', 'created_at': self.now, 'text': 'synthetic advice'}
         with patch.object(self.s, 'analyze_group', side_effect=[False, True]), \
-             patch('butler_ambient.service.advice_candidate', return_value=candidate):
+             patch('butler_ambient.service.advice_candidate', return_value=candidate), \
+             patch('butler_ambient.service.quiet', return_value=False), \
+             patch('butler_ambient.daily_report.advice_report', return_value=('synthetic advice','work')):
             self.s.analysis_tick(self.a.generation, archive=True)
+            self.wait_advice()
         self.assertEqual(self.s.delivery.send.call_count, 1)
         self.assertEqual(self.s.analysis_error, 'synthetic-source-failure')
 
@@ -53,12 +62,30 @@ class ArchiveTests(unittest.TestCase):
         candidate = {'key': 'synthetic', 'topic': 'work', 'created_at': self.now, 'text': 'synthetic advice'}
         with patch.object(self.s, 'analyze_group', side_effect=[False, True]), \
              patch('butler_ambient.service.advice_candidate', return_value=candidate), \
-             patch('butler_ambient.delivery.quiet', return_value=False):
+             patch('butler_ambient.delivery.quiet', return_value=False), \
+             patch('butler_ambient.service.quiet', return_value=False), \
+             patch('butler_ambient.daily_report.advice_report', return_value=('synthetic advice','work')):
             self.s.analysis_tick(self.a.generation, archive=True)
+            self.wait_advice()
         cards = self.s.display.snapshot()['cards']
         self.assertEqual([card['title'] for card in cards], ['Инициативный совет'])
         self.s.delivery.transport.send.assert_not_called()
         self.assertEqual(self.s.analysis_error, 'synthetic-source-failure')
+
+    def test_cancel_during_generated_advice_prevents_delivery(self):
+        entered, release, token = threading.Event(), threading.Event(), threading.Event()
+        candidate = {'key':'synthetic-cancel', 'topic':'work', 'created_at':self.now, 'text':'unused'}
+        def generate(*args, **kwargs):
+            entered.set(); release.wait(2)
+            return ('synthetic advice','work')
+        with patch('butler_ambient.service.advice_candidate',return_value=candidate), \
+             patch('butler_ambient.service.quiet',return_value=False), \
+             patch('butler_ambient.daily_report.advice_report',side_effect=generate):
+            self.s._offer_advice(self.a,self.a.generation,True,token)
+            self.assertTrue(entered.wait(2))
+            token.set(); release.set(); self.wait_advice()
+        self.assertEqual(self.s.display.snapshot()['cards'], [])
+        self.assertEqual(self.store.execute("SELECT id FROM deliveries"), [])
 
     def test_stopped_analysis_does_not_publish_advice_after_a_source_failure(self):
         self.store.media('camera', self.now-2, self.now-1, b'jpeg', 'mjpeg')
@@ -86,9 +113,12 @@ class ArchiveTests(unittest.TestCase):
         self.s.delivery.transport.send.return_value = 'core:synthetic'
         candidate = {'key': 'synthetic-telegram', 'topic': 'work', 'created_at': self.now, 'text': 'synthetic advice'}
         with patch('butler_ambient.service.advice_candidate', return_value=candidate), \
-             patch('butler_ambient.delivery.quiet', return_value=False):
+             patch('butler_ambient.delivery.quiet', return_value=False), \
+             patch('butler_ambient.service.quiet', return_value=False), \
+             patch('butler_ambient.daily_report.advice_report', return_value=('synthetic advice','work')):
             self.s.analysis_tick(self.a.generation, archive=True)
             self.s.analysis_tick(self.a.generation, archive=True)
+            self.wait_advice()
         cards = self.s.display.snapshot()['cards']
         self.assertEqual([card['title'] for card in cards], ['Инициативный совет'])
         self.assertEqual(cards[0]['status'], 'Передано в очередь Telegram.')
@@ -224,8 +254,11 @@ class ArchiveTests(unittest.TestCase):
         def candidate(rows, now):
             return {'key': 'synthetic-yield', 'topic': 'work', 'created_at': now, 'text': 'synthetic advice'}
         with patch('butler_ambient.service.advice_candidate', side_effect=candidate), \
-             patch('butler_ambient.delivery.quiet', return_value=False):
+             patch('butler_ambient.delivery.quiet', return_value=False), \
+             patch('butler_ambient.service.quiet', return_value=False), \
+             patch('butler_ambient.daily_report.advice_report', return_value=('synthetic advice','work')):
             self.s.analysis_tick(self.a.generation, archive=True)
+            self.wait_advice()
         self.assertEqual([card['title'] for card in self.s.display.snapshot()['cards']], ['Инициативный совет'])
         self.s.delivery.transport.send.assert_not_called()
         self.assertEqual(self.s.pending.get_nowait(), ('archive', self.a.generation))

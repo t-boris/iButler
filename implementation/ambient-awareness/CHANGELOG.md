@@ -7,6 +7,11 @@
 - Show a clearly labelled first-fragment preview while a long summary is still running; explain when the current raw-file permission hides images.
 - Under owner decision DEC-098, show already-preserved camera/screen stills in the local Images gallery in single-user mode even without automatic identity confirmation. Hard history closes still clear them; this does not unlock raw audio/video, capture, deletion, Finder access or delivery.
 
+## 0.12.2 — 2026-10-30 (useful summaries and advice)
+
+- Replace the activity-counter daily card and template advice with locally generated narratives based on sampled, dated observation facts. Make uncertainty and incomplete samples explicit; do not expose internal observation identifiers. Manual advice examines up to 30 days; automatic advice keeps fresh-evidence, quota, meeting and quiet-hour checks.
+- Generate automatic advice in the background and throttle unsuccessful attempts. Missing evidence yields an explicit message on manual request and no autonomous message.
+
 ## 0.12.1 — 2026-10-30 (manual Display summaries and advice)
 
 - Allow an explicit button press to show a daily summary or advice in Display even during quiet hours and after earlier automatic delivery. Automatic schedules keep their existing quotas and quiet hours; optional Telegram remains subject to quiet hours and owner verification.
