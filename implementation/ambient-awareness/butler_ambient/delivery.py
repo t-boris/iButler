@@ -25,20 +25,23 @@ class DisplayTransport:
     def __init__(self, service):
         self.service = service
 
-    def send(self, text, token=None, *, key=None, kind="status"):
+    def send(self, text, token=None, *, key=None, kind="status", allow_telegram=True, require_local_history=False):
         titles = {"daily": "Дневная сводка", "advice": "Инициативный совет"}
         if kind not in titles:
             raise NothingSent("unsupported Display notice")
         with self.service.lock:
             if token is not None and token.is_set():
                 raise NothingSent("delivery canceled by observation policy")
-            if kind == "daily" and not self.service.gate.permits(self.service.clock()):
+            if (kind == "daily" or require_local_history) and not self.service.gate.permits(self.service.clock()):
                 from .recordings import history_visible
                 if not history_visible(self.service):
                     raise NothingSent("local history unavailable")
             card = self.service.display.present(
                 {"kind": "text", "title": titles[kind], "markdown": text}, origin="ambient")
-            send_telegram = self.service.store.get("schedule_telegram_" + kind, False) is True
+            configured_telegram = self.service.store.get("schedule_telegram_" + kind, False) is True
+            send_telegram = configured_telegram and allow_telegram
+        if configured_telegram and not allow_telegram:
+            self.service.display.delivery_status(card["id"], "Telegram: ручной результат оставлен в Display.")
         if send_telegram:
             try:
                 with self.service.lock:

@@ -7,6 +7,11 @@
 - Show a clearly labelled first-fragment preview while a long summary is still running; explain when the current raw-file permission hides images.
 - Under owner decision DEC-098, show already-preserved camera/screen stills in the local Images gallery in single-user mode even without automatic identity confirmation. Hard history closes still clear them; this does not unlock raw audio/video, capture, deletion, Finder access or delivery.
 
+## 0.12.1 — 2026-10-30 (manual Display summaries and advice)
+
+- Allow an explicit button press to show a daily summary or advice in Display even during quiet hours and after earlier automatic delivery. Automatic schedules keep their existing quotas and quiet hours; optional Telegram remains subject to quiet hours and owner verification.
+- Base manual advice on the latest eligible observation in the previous 30 days and label its time; report when none is available. Show a generic error when manual preparation or Display delivery fails.
+
 ## 0.12.0 — 2026-10-30 (Display delivery for local schedules)
 
 - Show built-in daily summaries and proactive advice as Russian-language Display cards, with a separate opt-in Telegram setting for each; neither is spoken. Local single-user history permits the summary without biometric confirmation, while optional Telegram delivery still requires the owner gate. The settings can also be requested through the existing confirmed schedule command. External OpenClaw schedules keep their existing delivery behavior.

@@ -324,13 +324,95 @@ class ManagementTests(unittest.TestCase):
         self.manager.control({'id':'builtin:analysis','action':'resume'})
         self.assertFalse(self.store.get('analysis_paused'))
 
-    def test_manual_run_is_gated_and_advice_does_not_bypass_limits(self):
+    def test_manual_analysis_is_gated(self):
         with self.assertRaises(ValueError):self.manager.control({'id':'builtin:analysis','action':'run'})
         self.permit()
         self.manager.control({'id':'builtin:analysis','action':'run'})
         self.assertEqual(self.service.pending.get_nowait(),('owner-request',self.service.gate.generation))
-        with self.assertRaises(ValueError):self.manager.control({'id':'builtin:advice','action':'run'})
         self.service.delivery.transport.send.assert_not_called()
+
+    def wait_manual(self, key):
+        deadline = time.monotonic() + 2
+        while self.manager.manual.get(key) == 'running' and time.monotonic() < deadline:
+            time.sleep(.01)
+        self.assertEqual(self.manager.manual.get(key), 'done')
+
+    def test_manual_daily_repeats_during_quiet_hours_without_telegram(self):
+        self.permit()
+        self.now = dt.datetime(2026,10,22,6,tzinfo=ZONE).timestamp()
+        self.service.gate.permits = Mock(return_value=True)
+        self.store.set('schedule_telegram_daily', True)
+        for _ in range(2):
+            self.manager.control({'id':'builtin:daily','action':'run'})
+            self.wait_manual('daily')
+        self.assertEqual(len(self.service.display.snapshot()['cards']), 2)
+        self.assertEqual(self.store.execute("SELECT id FROM deliveries WHERE kind='daily'"), [])
+        self.service.delivery.transport.send.assert_not_called()
+
+    def test_manual_advice_displays_candidate_and_no_evidence(self):
+        self.permit()
+        row = {'id':'synthetic', 'start':self.now-86460, 'end':self.now-86400,
+               'facts':[{'kind':'activity', 'activity':'reading', 'confidence':.9}]}
+        with patch.object(self.store, 'history', side_effect=lambda start,end,**kw: [row] if start <= row['end'] < end else []):
+            self.manager.control({'id':'builtin:advice','action':'run'})
+            self.wait_manual('advice')
+        with patch.object(self.store, 'history', return_value=[]):
+            self.manager.control({'id':'builtin:advice','action':'run'})
+            self.wait_manual('advice')
+        cards = self.service.display.snapshot()['cards']
+        self.assertEqual(len(cards), 2)
+        self.assertTrue(all(card['title'] == 'Инициативный совет' for card in cards))
+        self.service.delivery.transport.send.assert_not_called()
+
+    def test_manual_advice_uses_old_observations_and_labels_their_time(self):
+        from butler_ambient.schedules import manual_advice
+        observed = self.now - 3 * 86400
+        row = {'id':'synthetic', 'start':observed-60, 'end':observed,
+               'facts':[{'kind':'activity', 'activity':'reading', 'confidence':.9}]}
+        store = Mock()
+        store.get.return_value = []
+        store.history.side_effect = lambda start, end, **kw: [row] if start <= observed < end else []
+        candidate = manual_advice(store, self.now)
+        self.assertEqual(candidate['topic'], 'reading')
+        self.assertIn('19.10.2026', candidate['text'])
+        self.assertIn('ситуация могла измениться', candidate['text'])
+
+    def test_manual_daily_respects_telegram_opt_in(self):
+        self.permit()
+        self.store.set('schedule_telegram_daily', True)
+        self.service.delivery.transport.send.return_value = 'synthetic-receipt'
+        self.manager.control({'id':'builtin:daily','action':'run'})
+        self.wait_manual('daily')
+        self.service.delivery.transport.send.assert_called_once()
+
+    def test_manual_advice_with_single_user_history_permission(self):
+        self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
+        self.store.set('continuous_archive', True)
+        self.store.set('single_user_local', True)
+        self.service.gate.enable(True, self.now)
+        self.assertFalse(self.service.gate.permits(self.now))
+        with patch('butler_ambient.schedules.manual_advice', return_value={'topic':'work','text':'synthetic'}):
+            self.manager.control({'id':'builtin:advice','action':'run'})
+            self.wait_manual('advice')
+        self.assertEqual(self.service.display.snapshot()['cards'][0]['title'], 'Инициативный совет')
+        self.service.delivery.transport.send.assert_not_called()
+
+    def test_manual_advice_requires_permission(self):
+        with self.assertRaises(ValueError):
+            self.manager.control({'id':'builtin:advice','action':'run'})
+
+    def test_manual_failure_is_visible(self):
+        self.permit()
+        with patch.object(self.service.display_transport, 'send', side_effect=RuntimeError('private detail')):
+            self.manager.control({'id':'builtin:daily','action':'run'})
+            deadline = time.monotonic() + 2
+            while self.manager.manual.get('daily') == 'running' and time.monotonic() < deadline:
+                time.sleep(.01)
+        with patch.object(self.manager,'cron_jobs',return_value=[]):
+            row = next(r for r in self.manager.snapshot()['jobs'] if r['id']=='builtin:daily')
+        self.assertEqual(row['status'], 'error')
+        self.assertTrue(row['error'])
+        self.assertNotIn('private detail', row['error'])
 
     def test_manual_daily_display_works_with_single_user_history_permission(self):
         self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
