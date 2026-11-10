@@ -2,7 +2,7 @@
 
 Semantic versioning per package (DEC-040). Each entry names the migration wave and the decisions it implements.
 
-## Unreleased
+## 0.19.0 — 2026-11-10 (channel watchdog)
 
 - BUG-016: channel watchdog (`channels.py`, scheduler entry `channel-watchdog`, every 120 s). An enabled, configured account that is not running for 10 minutes (`channelAccounts` of `openclaw channels status --json`, Telegram and WhatsApp) is reported to the owner (`alert` delivery, keys `channel-watchdog:*`, core alarm `channel:<channel>:<account>`) and the gateway is restarted with `openclaw gateway restart` — only while no cron job has `runningAtMs` set in `~/.openclaw/cron/jobs-state.json`, and at most once per 60 minutes. A postponed restart says why in the alert and happens on the first poll after the obstacle is gone; an unreadable cron state blocks it. If the channel is still stopped after a restart the owner is told once per restart; a recovery is reported with its downtime; a blip shorter than the grace period is never mentioned. A gateway that does not answer for 10 minutes is reported, not restarted (launchd owns that). State is kept in `meta` (`channel_watchdog`) and survives a restart of the core.
 - BUG-016: new optional config section `channel_watchdog` (`restart` bool, `grace_minutes` 1..1440, `cooldown_minutes` 5..1440); defaults true / 10 / 60. `restart: false` keeps the alerts and disables the automatic restart.
