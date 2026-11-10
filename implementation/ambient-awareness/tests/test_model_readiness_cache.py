@@ -72,6 +72,17 @@ class ModelReadinessCacheTests(unittest.TestCase):
         components.local_model_ready("gemma3:4b", True, False)
         self.assertEqual(len(self.probes), 2)
 
+    def test_backburner_list_does_not_invalidate_readiness_but_control_does(self):
+        with patch.object(components, '_run', return_value='{}'):
+            for _ in range(10):
+                components.local_model_ready('dialogue', dialogue=True)
+                components.command('/workspace/bin/butler-backburner', 'list', '--json')
+                self.now += 15
+            self.assertEqual(len(self.probes), 1)
+            components.command('/workspace/bin/butler-backburner', 'pause', 'job')
+            components.local_model_ready('dialogue', dialogue=True)
+            self.assertEqual(len(self.probes), 2)
+
     def test_an_error_other_than_unavailable_is_not_hidden(self):
         with patch.object(LocalAnalyzer, "check_local", side_effect=KeyError("bug")):
             with self.assertRaises(KeyError): components.local_model_ready("gemma3:4b")
