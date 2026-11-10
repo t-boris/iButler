@@ -2424,3 +2424,28 @@ Branch `fix/ops-log-audit-2026-11-10` (from `chore/pending-work-2026-11-10`). No
 - Still not exercised live: the BUG-018 worker end, the 03:30 reindex (BUG-019), Todoist comments (BUG-026), the approval resend (BUG-022).
 - Finding: the BUG-027 probe noise is only partly gone. Cold `ui-components` = 2 probes, repeats = 0, but `/api/show` on :11435 still arrives ~180-240/h in the background. In an isolated service run `ui-state`, `ui-schedules` and `status` made no probe. Next step is to find the other periodic caller (not done).
 - MarkView lifecycle: bugs are `fixing` (set by the owner at 14:54 UTC). The process (standard bug) needs a merged pull request and a published GitHub release before `fixed` can be requested; none exists, so no status was moved. BUG-024 is `open`.
+
+## PLAN — BUG-016 / BUG-017 (2026-11-10, branch fix/gateway-security-and-channel-watchdog)
+
+Owner answers are in each report's Clarifications. Order: BUG-017 first (config + tunnel), then BUG-016 (watchdog job).
+
+BUG-017 — gateway exposure
+- [ ] Reproduce: unauthenticated GET on the public URL (done: `/` 200 page, `/health` 200, `/v1/models` 401).
+- [ ] `implementation/gateway-hardening/`: `ngrok-policy.yml` (allow only `POST /plugins/webhooks/tetyana-dyck-ci`, else 404), `verify_exposure.py` (live probe, stdlib), README (exposure model, install, rollback, accepted risk approve-all), test that parses the policy.
+- [ ] Live, with backups: copy the policy next to the ngrok launch agent, add `--traffic-policy-file`, reload `ai.openclaw.ngrok`; webhook path must still reach the gateway (POST without secret -> gateway 401/403, not an edge 404), all other paths 404.
+- [ ] Live, with backup + `openclaw config patch --dry-run`: `gateway.controlUi.allowInsecureAuth=false`, `plugins.allow` = the 15 plugins the gateway loads + `openai` (enabled entry). Restart the gateway only when no cron job is running; compare the "listening (N plugins ...)" line and check Telegram, WhatsApp, a model probe.
+- [ ] One commit "BUG-017: ..."; add `branch:` to the report afterwards.
+
+BUG-016 — channel watchdog (butler-core scheduler job, every 120 s)
+- [ ] Reproduce on the current build: the health monitor cannot start a stopped channel (documented in the report and memory; a live stop is NOT staged on the owner's bot).
+- [ ] Pure decision module + tests first: per-channel unhealthy-since, alert once after 10 min, restart only if gateway idle (no `runningAtMs` job) and not within 60 min of the last restart, recovery message, gateway-unreachable alert; state survives a core restart.
+- [ ] Wire into `Core.start` next to `approval-expiry`; alerts through the existing delivery path; restart via `openclaw gateway restart` with an absolute path and a timeout; diagnostics for every decision.
+- [ ] Full butler-core suite, CHANGELOG; one commit "BUG-016: ...". Deploy only on the owner's word.
+
+### Review — BUG-016 / BUG-017 (2026-11-10, branch fix/gateway-security-and-channel-watchdog)
+
+- BUG-017 fixed (653afc0): ngrok Traffic Policy lets only `POST /plugins/webhooks/tetyana-dyck-ci` through (probe: 6 of 7 checks red before, 7 of 7 green after); `allowInsecureAuth=false`; `plugins.allow` pinned to 16 plugins; gateway restarted at a quiet moment, channels back, same 15 plugins, 0 allowlist warnings. approve-all kept and documented. Backups: `ai.openclaw.ngrok.plist.bak-bug017-2026-11-10`, `~/.openclaw/openclaw.json.bak-bug017-2026-11-10`.
+- BUG-016 fixed in the repo (5d0f685): channel watchdog in the butler-core scheduler. 485 tests OK. NOT deployed: needs a butler-core deploy (no config activation needed, the new section is optional).
+- Lessons applied from the status reminder: reports got Clarifications and Fix sections as each commit landed; `markview_issue_context` read one id at a time.
+- Not verified live: a real stuck channel, a real CI callback through the tunnel, a model call under the pinned `plugins.allow`.
+
