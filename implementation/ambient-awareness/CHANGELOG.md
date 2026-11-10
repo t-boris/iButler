@@ -1,5 +1,10 @@
 # Changelog — butler-ambient
 
+## 0.12.6 — 2026-11-10 (ambient maintenance)
+
+- BUG-020: Index media expiry and retained-file queries, fetch the latest capture per source through an index, and gradually prune old fileless metadata while retaining referenced media and the latest capture.
+- BUG-029: Keep local-model readiness cached when the schedule panel reads the Back Burner list; control actions still invalidate the cache.
+
 ## 0.12.5 — 2026-11-10 (ops log audit fixes)
 
 - BUG-023: the Butler panel polled `openclaw cron list` and `openclaw models status` every 11-16 s, about 6,700 CLI starts a day, each logging a line in the gateway log. `components.command` now serves these two listings from a short cache (120 s and 300 s); any other command run through it (pause, run, edit, model change) drops the cache first and again afterwards, a read that was running when a write landed is not kept, and a failed read is never cached. Nothing else about the panel changes.
