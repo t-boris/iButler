@@ -2,7 +2,7 @@
 
 Semantic versioning per package (DEC-040). Each entry names the migration wave and the decisions it implements.
 
-## Unreleased
+## 0.18.0 — 2026-11-10 (ops log audit fixes)
 
 - BUG-025: the bridge plugin is dormant outside the gateway process. OpenClaw loads every plugin into every `openclaw` command, and in those short-lived CLI processes the bridge said hello to the core, was refused (`bridge.hello is not available to local callers`) or timed out, and logged a warning that looked like an outage (29 in two days). `index.js` now registers nothing unless the process is `openclaw gateway [--port N]` or `gateway run` (`bridge/lib/process.js`). Bridge version unchanged (0.1.0).
 - BUG-025: the bridge logs a core outage once when it begins, once every ten minutes while it lasts, and once when the core answers again (with the number of failed calls), instead of one warning per failed call; `stats.unreachable` still counts every call.

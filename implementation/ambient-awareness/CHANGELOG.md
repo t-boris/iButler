@@ -1,6 +1,6 @@
 # Changelog — butler-ambient
 
-## Unreleased
+## 0.12.5 — 2026-11-10 (ops log audit fixes)
 
 - BUG-023: the Butler panel polled `openclaw cron list` and `openclaw models status` every 11-16 s, about 6,700 CLI starts a day, each logging a line in the gateway log. `components.command` now serves these two listings from a short cache (120 s and 300 s); any other command run through it (pause, run, edit, model change) drops the cache first and again afterwards, a read that was running when a write landed is not kept, and a failed read is never cached. Nothing else about the panel changes.
 - BUG-027: the panel reloaded the component list about every 10 s and each reload asked Ollama about every local model (an `/api/show` request), about 360 an hour: 99 % of the lines of `dialogue-ollama.log`. `components.local_model_ready` now reuses a ready answer for 5 minutes and a failure for 15 s (so a model that just finished downloading shows up within a poll or two); a control action drops it like the BUG-023 listings. Display state only: the `LocalAnalyzer.check_local` gate that runs before an observation is sent to a model is not cached.
