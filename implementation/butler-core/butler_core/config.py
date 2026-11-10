@@ -127,6 +127,7 @@ def validate_content(content, adapters=None):
     if system1.get("mode") == "active" and not system1.get("criteria_evidence"):
         raise ConfigError("routing.system1.mode: active requires agreed evaluation criteria evidence")
     _number(content.get("approval", {}).get("ttl", 900), "approval.ttl", 30, 7 * 86400)
+    _number(content.get("approval", {}).get("expire_days", 7), "approval.expire_days", 1, 90)
     mail = content.get("mail", {})
     if not isinstance(mail, dict):
         raise ConfigError("mail: object required")

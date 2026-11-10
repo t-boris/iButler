@@ -51,6 +51,7 @@ def parser():
     ops.add_argument("--state", action="append")
     ops.add_argument("--limit", type=int, default=30)
 
+    sub.add_parser("pending", help="operations waiting for approval, oldest first, with the commands that answer them")
     approve = sub.add_parser("approve", help="approve an operation (owner terminal only)")
     approve.add_argument("operation")
     approve.add_argument("code")
@@ -225,6 +226,8 @@ def dispatch(client, args):
             return client.call("lessons.answer", lesson=args.lesson, text=args.text or "")
         status = {"confirm": "confirmed", "retire": "retired", "delete": "deleted", "correct": "confirmed"}[args.action]
         return client.call("lessons.set_status", lesson=args.lesson, status=status, text=args.text)
+    if command == "pending":
+        return client.call("approval.pending")
     if command == "deliveries":
         return client.call("delivery.list", states=args.state, limit=args.limit)
     if command == "config":

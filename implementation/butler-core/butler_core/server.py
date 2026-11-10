@@ -107,6 +107,7 @@ class Server:
             "operation.get": (lambda p, c: self.operation(p), ALL),
             "operation.list": (lambda p, c: core.operations.list(p.get("states"), int(p.get("limit", 50)),
                                                                  p.get("persona")), ALL),
+            "approval.pending": (lambda p, c: core.attention.pending(), ALL),
             "task.get": (lambda p, c: core.status(p["task"]), ALL),
             "task.list": (lambda p, c: core.status(limit=int(p.get("limit", 20)), persona=p.get("persona")), ALL),
             "cancel": (lambda p, c: core.cancel(p["operation"], c), ALL),

@@ -84,6 +84,7 @@ class Core:
         self.scheduler.every(60, "mail", self.schedule_mail_readings)
         self.scheduler.every(60, "backburner", self.schedule_backburner)
         self.scheduler.every(600, "system3", self.lessons.maybe_run)
+        self.scheduler.every(600, "approval-expiry", self.expire_stale_approvals)
         self.scheduler.every(600, "attention", self.attention.maybe_send)
         if workers:
             self.scheduler.start()
@@ -117,6 +118,15 @@ class Core:
         self.diagnostics.record("core.recovered", {k: len(v) if isinstance(v, (list, dict)) else v
                                                    for k, v in found.items()})
         return found
+
+    def approval_expire_days(self):
+        _, content = self.config.active()
+        return (content or {}).get("approval", {}).get("expire_days", 7)
+
+    def expire_stale_approvals(self):
+        """End the wait of operations nobody approved within ``approval.expire_days`` (default 7); they are not executed."""
+        days = self.approval_expire_days()
+        return {"expired": self.operations.expire_waiting(days * 86400, days)}
 
     def track_running(self):
         for row in self.store.query("SELECT id FROM operations WHERE state='running'"):

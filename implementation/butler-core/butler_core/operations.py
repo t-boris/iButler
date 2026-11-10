@@ -391,6 +391,23 @@ class Operations:
             self.on_change(op_id, state)
         return self.get(op_id)["state"]
 
+    def expire_waiting(self, older_than, days):
+        """BUG-021: end the wait of operations that nobody approved in ``days`` days. They are cancelled, never executed."""
+        cutoff = self.clock() - older_than
+        expired = 0
+        for row in self.store.query("SELECT id, correlation FROM operations WHERE state='awaiting_approval'"
+                                    " AND created_at<=? ORDER BY created_at", (cutoff,)):
+            with self.store.transaction(guard=False) as db:
+                changed = self._finish(db, row["id"], "cancelled",
+                                       f"expired: no approval within {days} days", when=("awaiting_approval",))
+                if changed:
+                    self.diagnostics.record("approval.expired", {"operation": row["id"], "days": days},
+                                            row["correlation"], db=db)
+            if changed:
+                expired += 1
+                self.on_change(row["id"], "cancelled")
+        return expired
+
     def cancel(self, op_id, actor):
         """Distinguish stopping a wait, stopping an executor and an effect that already happened."""
         row = self.get(op_id)
