@@ -37,6 +37,28 @@ def forget_cached_reads():
         _cache.clear()
 
 
+# BUG-027: the same poll also asked Ollama about every local model (an `/api/show` request, two per poll, about 360 an hour,
+# 99 % of the dialogue Ollama log). The list only displays whether a model is installed, local and capable, so the answer is
+# reused for minutes. A failure is looked at again within one or two polls, so a model that just finished downloading or an
+# Ollama that just started shows up quickly. This is display state only: the check that runs before an observation is
+# included in a model request (`LocalAnalyzer.check_local` in `generate_json`) is not cached and still runs on every request.
+READY_TTL = 300
+NOT_READY_TTL = 15
+
+
+def local_model_ready(name, vision=False, dialogue=False):
+    # The dialogue model is served on its own port (DEC-073); probing the background port would misreport it.
+    key,now = ("local-ready",name,vision,dialogue),CLOCK()
+    with _lock:
+        hit,generation = _cache.get(key),_generation
+    if hit and now-hit[0] < (READY_TTL if hit[1] else NOT_READY_TTL): return hit[1]
+    try: LocalAnalyzer(name,dialogue=dialogue).check_local(require_vision=vision);ready = True
+    except (RuntimeError,OSError,ValueError): ready = False
+    with _lock:
+        if generation == _generation: _cache[key] = (now,ready)       # not if a control action landed while this probe was running
+    return ready
+
+
 def _read_lifetime(args):
     """Seconds an answer may be reused; 0 for anything that is not one of the two listings."""
     if args[:2] == ("cron","list"): return CRON_LIST_TTL
@@ -135,13 +157,6 @@ def snapshot(service, workspace=WORKSPACE):
         rows.append({"id":key,"title":title,"model":str(model),"executable":str(executable),
             "model_key":model_key,"cli_key":cli_key,"ready":bool(ready),"running":bool(running),**extra})
     def file(key): return bool(config.get(key) and Path(config[key]).is_file())
-    readiness = {}
-    def local_ready(name,vision=False,dialogue=False):
-        # The dialogue model is served on its own port (DEC-073); probing the background port would misreport it.
-        if (name,vision,dialogue) not in readiness:
-            try: LocalAnalyzer(name,dialogue=dialogue).check_local(require_vision=vision);readiness[name,vision,dialogue]=True
-            except (RuntimeError,OSError,ValueError):readiness[name,vision,dialogue]=False
-        return readiness[name,vision,dialogue]
     for key,title in [("face_detector","Поиск лиц · YuNet"),("face_recognizer","Проверка владельца · SFace"),
                       ("person_detector","Присутствие людей · локальная ONNX модель")]:
         row(key,title,config.get(key,"не настроено"),core_python,key,ready=file(key) and not getattr(service.verifier,"unavailable",False),running=service.input_running,
@@ -156,7 +171,7 @@ def snapshot(service, workspace=WORKSPACE):
     for key,title in [("conversation_model","Диалог и намерение"),("vision_model","Зрение и фоновый анализ")]:
         name = config.get(key,DEFAULT_DIALOGUE_MODEL if key=='conversation_model' else 'gemma3:4b')
         row(key,title,name,"HTTP 127.0.0.1:11435 · Ollama" if key=="conversation_model" else "HTTP 127.0.0.1:11434 · Ollama",key,
-            ready=local_ready(name,key=="vision_model",key=="conversation_model"),
+            ready=local_model_ready(name,key=="vision_model",key=="conversation_model"),
             running=bool(getattr(service.voice,"busy",False)) if key=="conversation_model" else bool(service.analyzer.operations),
             note="Только проверенная локальная модель; внешний резерв запрещён.")
     voice_path = Path(config.get("voice_model_path",root/"voice/base-model"))

@@ -20,6 +20,7 @@ import wave
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import logfiles
 from .display import CardRefused
 from .analysis import export_observations, analysis_inference_status
 from .delivery import Delivery, DisplayTransport, Telegram, ZONE, advice_candidate, quiet
@@ -949,12 +950,17 @@ class Service:
             finally:self.schedules.manual["daily"]="done"
 
     def _maintenance_loop(self):
+        next_log_check = 0.
         while not self.stop_event.is_set():
             try:
                 if getattr(self,"catalog",None) is not None: self.catalog.refresh()
                 self.maintenance()
             except Exception:
                 self.store.event("service", "maintenance-failed", self.clock(), self.clock())
+            if time.monotonic() >= next_log_check:
+                next_log_check = time.monotonic() + logfiles.CHECK_SECONDS
+                try: logfiles.rotate_all(self.store.root / "logs")        # BUG-027: the launchd-held dialogue Ollama logs
+                except OSError: self.store.event("service", "log-rotation-failed", self.clock(), self.clock())
             self.stop_event.wait(1)
 
     def delivery_transport(self):

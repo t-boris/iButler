@@ -3,6 +3,8 @@
 ## Unreleased
 
 - BUG-023: the Butler panel polled `openclaw cron list` and `openclaw models status` every 11-16 s, about 6,700 CLI starts a day, each logging a line in the gateway log. `components.command` now serves these two listings from a short cache (120 s and 300 s); any other command run through it (pause, run, edit, model change) drops the cache first and again afterwards, a read that was running when a write landed is not kept, and a failed read is never cached. Nothing else about the panel changes.
+- BUG-027: the panel reloaded the component list about every 10 s and each reload asked Ollama about every local model (an `/api/show` request), about 360 an hour: 99 % of the lines of `dialogue-ollama.log`. `components.local_model_ready` now reuses a ready answer for 5 minutes and a failure for 15 s (so a model that just finished downloading shows up within a poll or two); a control action drops it like the BUG-023 listings. Display state only: the `LocalAnalyzer.check_local` gate that runs before an observation is sent to a model is not cached.
+- BUG-027: `dialogue-ollama.log` and `dialogue-ollama-error.log`, written by the launchd job `com.boris.butler-dialogue-ollama`, had no size limit (9.4 MB and 4 MB in 16 days). The maintenance loop now checks them every 10 minutes and, over 4 MiB, copies the file to `.1` (`.2` is the one before) and empties it in place (`logfiles.py`). A rename is not possible because launchd keeps the file open; launchd opens it for appending, so the job writes on at the start of the emptied file. The few lines written between the copy and the emptying are lost. A failure is recorded as the service event `log-rotation-failed`.
 
 ## 0.12.4 — 2026-11-09 (dictation works during Pause)
 
