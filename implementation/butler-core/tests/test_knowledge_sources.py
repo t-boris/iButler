@@ -249,10 +249,14 @@ class QuietWaitTest(SourcesTest):
         with self.assertRaisesRegex(RuntimeError, "background-analysis-status-unavailable"): sources.wait_for_quiet()
         self.assertLess(time.monotonic() - started, 12)        # bounded: a few tries, not the 120-step busy loop
 
-    def test_a_paused_service_and_a_busy_one_keep_their_meaning(self):
-        self.serve([{"enabled": False}])
+    def test_a_paused_service_is_quiet_and_a_busy_one_still_waits(self):
+        """BUG-019: the owner's pause of observation stopped the nightly reindex every night. The quiet-wait exists to yield to
+        live hearing; with observation paused there is nothing to yield to, and reindexing notes is not capture."""
+        seen = self.serve([{"enabled": False}])
         sources = importlib.import_module("lib.knowledge_sources")
-        with self.assertRaisesRegex(RuntimeError, "background-analysis-paused"): sources.wait_for_quiet()
+        started = time.monotonic(); sources.wait_for_quiet()                   # returns, does not raise
+        self.assertEqual(len(seen), 1)                                          # one status request, no polling loop
+        self.assertLess(time.monotonic() - started, 2)
         for key in list(sys.modules):
             if key.startswith("lib."): sys.modules.pop(key)
         self.serve([{"enabled": True, "analysis_busy": True}, None, {"enabled": True, "analysis_busy": False}])

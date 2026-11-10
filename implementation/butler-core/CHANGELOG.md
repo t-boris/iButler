@@ -4,6 +4,7 @@ Semantic versioning per package (DEC-040). Each entry names the migration wave a
 
 ## Unreleased
 
+- Workspace only, no core release (BUG-019): `wait_for_quiet` treats an ambient service that the owner has paused (`enabled` false) as quiet and returns, instead of raising `background-analysis-paused`. The nightly semantic reindex failed every night while observation was paused although reindexing notes is not capture and there is no live hearing to yield to.
 - Prepare the workspace semantic reindexer to publish a rebuild in one SQLite transaction, preserving the previous index if a file is skipped or an embedding fails. Concurrent index writers may wait while a rebuild runs.
 
 ## 0.17.1 — 2026-10-27 (conversation learning report)

@@ -46,8 +46,10 @@ def wait_for_quiet():
                 client.sendall(b'{"command":"status"}\n')
                 result = json.loads(client.makefile("rb").readline())
             result = result.get("result", result)
-            if result.get("enabled") is False: raise RuntimeError("background-analysis-paused")
-            if result.get("analysis_busy") is not True: return
+            # BUG-019: an owner pause (enabled false) means nothing is listening or analysing, so there is no live hearing to
+            # yield to. It is quiet, not an error: reindexing notes is not capture, and failing here stopped the nightly
+            # reindex every night while observation was paused.
+            if result.get("enabled") is False or result.get("analysis_busy") is not True: return
             misses = 0
         except (OSError, ValueError):
             misses += 1
