@@ -55,7 +55,7 @@ Butler сегодня — это один большой LLM-ход на каж�
 | B6 | Codex remote compaction 404 (`/codex/responses/compact`) — длинные сессии Butler не сжимаются | upstream Codex backend | мониторинг; апгрейд OpenClaw |
 | B7 | `mcporter` выключен → Butler не может вызвать ambient MCP; ambient работает отдельным мозгом | конфиг | план, Phase 5 |
 | B8 | `HEALTH.json` от 27.05, `health.py` ждёт модели, которых нет; `cost.py` считает все текущие модели по $0 | устарело | план, Phase 0/1 |
-| B9 | ngrok открывает весь gateway (`allowInsecureAuth: true`) ради одного CI-вебхука; ACP Codex доверяет `/`; `acpx.permissionMode: approve-all` | безопасность | план, Phase 8 |
+| B9 | ngrok открывал весь gateway (`allowInsecureAuth: true`) ради одного CI-вебхука; `acpx.permissionMode: approve-all` | безопасность | исправлено 2026-11-10 (BUG-017): ngrok Traffic Policy пропускает только `POST /plugins/webhooks/tetyana-dyck-ci`, `allowInsecureAuth: false`, `plugins.allow` закреплён; `approve-all` оставлен осознанно, см. `implementation/gateway-hardening/README.md` |
 | B10 | Рост без ротации: сессии Butler 697 МБ / 8 470 файлов, `runs/` 8,9 ГБ, `.openclaw-cli-images` Тани 1,4 ГБ, raw ambient 4,8 ГБ в сутки, dead-letters доставки не разбираются | нет janitor | план, Phase 0 |
 
 ### 1.3 Структурные разрывы относительно цели
@@ -566,7 +566,7 @@ sequenceDiagram
 - Приёмка: ≤ N проактивных сообщений в день, все релевантные (Борис оценивает неделю); доля событий до System 2 ≤ 20 %.
 
 ### Phase 8 — Безопасность (2–3 дня)
-- [ ] ngrok → Tailscale Funnel / Cloudflare Tunnel только для webhooks; `allowInsecureAuth: false`
+- [x] webhooks-only: решено ngrok Traffic Policy, а не Tailscale/Cloudflare (2026-11-10, BUG-017); `allowInsecureAuth: false` применён
 - [ ] ACP trust по реестру; Perplexity-ключ в env; аудит `exec-approvals`
 - Приёмка: внешний сканер видит только путь вебхука; `butler-doctor --security` зелёный.
 

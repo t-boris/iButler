@@ -1,0 +1,20 @@
+# ngrok Traffic Policy for the OpenClaw gateway tunnel (BUG-017).
+#
+# The tunnel exists for one reason: the CI deploy callback of the Tetyana site posts to
+# /plugins/webhooks/tetyana-dyck-ci. Everything else on the gateway port (Control UI page,
+# /health, /v1/*, the websocket) must not be reachable from the internet. The policy runs at
+# ngrok's edge, so a rejected request never reaches the gateway.
+#
+# Adding a webhook route: add its exact path to ALLOWED_PATHS in tests/test_policy.py and to
+# the expression below, then reinstall (see README.md).
+on_http_request:
+  - name: only-the-ci-webhook
+    expressions:
+      - "!(req.method == 'POST' && req.url.path == '/plugins/webhooks/tetyana-dyck-ci')"
+    actions:
+      - type: custom-response
+        config:
+          status_code: 404
+          content: "Not found"
+          headers:
+            content-type: text/plain
