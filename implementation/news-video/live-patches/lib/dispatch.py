@@ -127,6 +127,14 @@ ROUTES: dict[str, dict] = {
 
 DEFAULT_TIMEOUT = 1800
 
+# BUG-018: the Claude CLI writes its final stream-json "result" and then may not exit (a background task of its own keeps
+# it alive). 8 of 18 video dispatches since 2026-11-02 were recorded as failed by the one-hour timeout although that result
+# was a success. A worker whose last record is a "result" and that stayed silent this long is finished and is ended; output
+# after a result (a new turn started by a finished background task) resets the wait.
+RESULT_IDLE_GRACE = 300
+MONITOR_POLL = 5
+TERMINATE_GRACE = 15
+
 
 # BUTLER_OWNER_AI_SETTINGS — local Settings; existing cost guards remain below.
 def _owner_ai_settings():
@@ -680,6 +688,43 @@ def _log_wake_failure(fail_log: Path, msg: str) -> None:
         pass
 
 
+def _final_result(log: Path) -> Optional[dict]:
+    """The last stream-json record of ``log`` when it is a ``result`` and the worker has written nothing since.
+
+    A record that is still being written does not parse and so counts as "not a result yet"."""
+    try:
+        if time.time() - log.stat().st_mtime < RESULT_IDLE_GRACE:
+            return None
+        with open(log, "rb") as f:
+            f.seek(0, os.SEEK_END)
+            f.seek(max(0, f.tell() - 262144))
+            lines = f.read().splitlines()
+    except OSError:
+        return None
+    while lines and not lines[-1].strip():
+        lines.pop()
+    if not lines:
+        return None
+    try:
+        record = json.loads(lines[-1])
+    except ValueError:
+        return None
+    return record if isinstance(record, dict) and record.get("type") == "result" else None
+
+
+def _end_worker(proc: subprocess.Popen, *, politely: bool) -> None:
+    """Stop a worker the monitor gave up on. ``politely``: SIGTERM first, SIGKILL if it ignores it."""
+    if politely:
+        proc.terminate()
+        try:
+            proc.wait(timeout=TERMINATE_GRACE)
+            return
+        except subprocess.TimeoutExpired:
+            pass
+    proc.kill()
+    proc.wait()
+
+
 def _monitor(dispatch_id: str) -> int:
     """Run inside the detached process. Executes the backend, streams to output.log,
     writes result.json on completion. Updates meta.json status. Notifies TG at boundaries."""
@@ -718,16 +763,29 @@ def _monitor(dispatch_id: str) -> int:
 
     try:
         with open(d / "output.log", "w") as fout, open(d / "stderr.log", "w") as ferr:
-            try:
-                proc = subprocess.run(
-                    cmd, cwd=meta["project_path"], stdout=fout, stderr=ferr,
-                    timeout=meta.get("timeout", 1800),
-                )
-                exit_code = proc.returncode
-            except subprocess.TimeoutExpired:
-                ferr.write(f"\n[monitor] timeout after {meta.get('timeout',1800)}s\n")
-                exit_code = -1
-                say(f"⏱ {meta['task_kind']} ({dispatch_id[-6:]}) — TIMEOUT after {meta.get('timeout',1800)}s")
+            proc = subprocess.Popen(cmd, cwd=meta["project_path"], stdout=fout, stderr=ferr)
+            limit = meta.get("timeout", 1800)
+            deadline = time.monotonic() + limit
+            while True:
+                try:
+                    exit_code = proc.wait(timeout=MONITOR_POLL)
+                    break
+                except subprocess.TimeoutExpired:
+                    pass
+                if time.monotonic() >= deadline:
+                    _end_worker(proc, politely=False)
+                    ferr.write(f"\n[monitor] timeout after {limit}s\n")
+                    exit_code = -1
+                    say(f"⏱ {meta['task_kind']} ({dispatch_id[-6:]}) — TIMEOUT after {limit}s")
+                    break
+                final = _final_result(d / "output.log")
+                if final is not None:
+                    _end_worker(proc, politely=True)
+                    finished = final.get("subtype") == "success" and not final.get("is_error")
+                    exit_code = 0 if finished else 1
+                    ferr.write(f"\n[monitor] the worker wrote its final result ({final.get('subtype')}) and stayed silent for "
+                               f"{RESULT_IDLE_GRACE}s without exiting; ended by the monitor, outcome taken from the result\n")
+                    break
     except Exception as e:
         (d / "stderr.log").write_text(f"[monitor] crash: {e}")
         exit_code = -2
@@ -736,6 +794,7 @@ def _monitor(dispatch_id: str) -> int:
     duration = time.time() - started
     # Try to extract usage if backend=claude & last event in stream-json has usage
     usage = {}
+    reported_cost = None
     if backend == "claude":
         try:
             for line in reversed((d / "output.log").read_text().splitlines()):
@@ -745,12 +804,17 @@ def _monitor(dispatch_id: str) -> int:
                     continue
                 if e.get("type") == "result" and "usage" in e:
                     usage = e["usage"]
+                    reported_cost = e.get("total_cost_usd")
                     break
         except Exception:
             pass
     est = cost_mod.estimate(backend, _model_key(backend, model),
                             usage.get("input_tokens", 0) + usage.get("cache_creation_input_tokens", 0),
                             usage.get("output_tokens", 0))
+    # The price table lags the model lineup (Sonnet 5 and Opus 4.8 are not in it, so every run read $0.00): the CLI's own
+    # figure for the run is the better number when it reports one.
+    if isinstance(reported_cost, (int, float)) and reported_cost > 0:
+        est = dataclasses.replace(est, estimated_usd=round(float(reported_cost), 6))
     if usage:
         cost_mod.log(est, job_kind=f"dispatch:{meta['task_kind']}",
                      project_id=Path(meta["project_path"]).name,

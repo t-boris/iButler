@@ -43,11 +43,12 @@ def substitute(text, old, new):
     return text.replace(old, new)
 
 
-def fake_workspace(root):
+def fake_workspace(root, dispatcher=None):
+    """``dispatcher``: a dispatch.py to run instead of the installed one (BUG-018 tests the repository copy)."""
     ws = (root / "ws").resolve()
     (ws / "lib").mkdir(parents=True)
     (ws / "projects/demo").mkdir(parents=True)
-    source = (INSTALLED / "lib/dispatch.py").read_text()
+    source = (dispatcher or INSTALLED / "lib/dispatch.py").read_text()
     source = substitute(source, 'WORKSPACE  = Path("/Users/boris/.openclaw/workspace-butler")', f'WORKSPACE  = Path("{ws}")')
     source = substitute(source, 'CLAUDE_BIN = "/Users/boris/.local/bin/claude"', f'CLAUDE_BIN = "{ws}/fake-backend"')
     source = substitute(source, 'OPENCLAW_BIN = "/opt/homebrew/bin/openclaw"', 'OPENCLAW_BIN = "/usr/bin/true"')
