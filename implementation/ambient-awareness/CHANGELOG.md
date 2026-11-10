@@ -1,5 +1,9 @@
 # Changelog — butler-ambient
 
+## Unreleased
+
+- BUG-023: the Butler panel polled `openclaw cron list` and `openclaw models status` every 11-16 s, about 6,700 CLI starts a day, each logging a line in the gateway log. `components.command` now serves these two listings from a short cache (120 s and 300 s); any other command run through it (pause, run, edit, model change) drops the cache first and again afterwards, a read that was running when a write landed is not kept, and a failed read is never cached. Nothing else about the panel changes.
+
 ## 0.12.4 — 2026-11-09 (dictation works during Pause)
 
 - Owner decision DEC-049 (butler-conversational-display), 2026-11-09: «Причём тут наблюдение? Я хочу просто подиктовать». While observation is paused, «Диктовать» opens its own short microphone session instead of being refused with «Наблюдение на паузе: нажмите «Продолжить»». Only the microphone is opened (new `sensing.MicrophoneInputs`: the native audio helper, no camera, no screen, no system audio, no identity checks); speech is cut into phrases at the quiet moments and recognised by the resident local Whisper with its usual phantom and confidence filters (`dictation_capture.py`); the text goes to the panel's message field only. Nothing is stored: no media row, transcript, feedback episode, event text, archive or analysis, and no log line.

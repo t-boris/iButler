@@ -10,6 +10,8 @@ import re
 import shutil
 from . import processes as subprocess
 import sys
+import threading
+import time
 from pathlib import Path
 
 from . import local_settings, catalog
@@ -19,7 +21,47 @@ WORKSPACE = Path.home()/".openclaw/workspace-butler"
 ROUTING_FILE = "config/ai-settings.json"
 
 
+# BUG-023: the panel polls these two listings every 11-16 s. Each poll started an OpenClaw CLI (about 6,700 a day), and each
+# start logged a line in the gateway log. They change rarely and every control action below drops them, so a short cache is
+# invisible to the owner.
+CRON_LIST_TTL = 120
+MODELS_STATUS_TTL = 300
+CLOCK = time.monotonic
+_cache, _lock, _generation = {}, threading.Lock(), 0
+
+
+def forget_cached_reads():
+    global _generation
+    with _lock:
+        _generation += 1
+        _cache.clear()
+
+
+def _read_lifetime(args):
+    """Seconds an answer may be reused; 0 for anything that is not one of the two listings."""
+    if args[:2] == ("cron","list"): return CRON_LIST_TTL
+    if args[:1] == ("models",) and "status" in args: return MODELS_STATUS_TTL
+    return 0
+
+
 def command(cli, *args):
+    lifetime = _read_lifetime(args)
+    if not lifetime:
+        # A pause, a run, a model change: whatever it was, the listings may now differ.
+        forget_cached_reads()
+        try: return _run(cli,*args)
+        finally: forget_cached_reads()
+    key,now = (cli,args),CLOCK()
+    with _lock:
+        hit,generation = _cache.get(key),_generation
+        if hit and now-hit[0] < lifetime: return hit[1]
+    text = _run(cli,*args)
+    with _lock:
+        if generation == _generation: _cache[key] = (now,text)       # not if a write landed while this read was running
+    return text
+
+
+def _run(cli, *args):
     try:result = subprocess.run([cli,*args],stdout=subprocess.PIPE,stderr=subprocess.DEVNULL,timeout=12)
     except subprocess.TimeoutExpired:
         raise ValueError("Butler CLI did not confirm the result in time; refresh the job state before retrying") from None
