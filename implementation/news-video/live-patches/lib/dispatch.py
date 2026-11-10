@@ -8,6 +8,7 @@ Routing table (per Boris's choice 2026-05-26):
     documentation → codex
     tests         → claude sonnet 5
     video         → claude sonnet 5 (evidence-linked storyboard + local renderer)
+    backburner    → claude opus 5.5, CONFINED (no shell, staging folder only) and SILENT
 
 Two execution modes:
 
@@ -37,6 +38,7 @@ import datetime as dt
 import fcntl
 import json
 import os
+import re
 import shutil
 import signal
 import subprocess
@@ -48,12 +50,20 @@ from typing import Literal, Optional
 
 from lib import cost as cost_mod
 
-TaskKind = Literal["architecture", "code", "review", "research", "documentation", "tests", "curate", "classify", "news", "video"]
+TaskKind = Literal["architecture", "code", "review", "research", "documentation", "tests", "curate", "classify", "news", "video", "backburner"]
 
 CLAUDE_BIN = "/Users/boris/.local/bin/claude"
-CODEX_BIN  = "/opt/homebrew/bin/codex"
+CODEX_BIN_CANDIDATES = [
+    "/opt/homebrew/bin/codex",
+    "/Users/boris/.nvm/versions/node/v22.22.3/bin/codex",
+    "/Applications/ChatGPT.app/Contents/Resources/codex",
+]
 OPENCLAW_BIN = "/opt/homebrew/bin/openclaw"
-NODE24_BIN = "/opt/homebrew/opt/node@24/bin"  # openclaw needs Node 22.19+; prepend to PATH
+# Node runtime for the openclaw CLI. Must match the Node the gateway itself runs on
+# (launchd: ~/.nvm/versions/node/v22.22.3/bin/node). Do NOT use Homebrew node@24:
+# it is linked against libsimdjson.33 and died on the 2026-10 simdjson upgrade
+# (every dispatch wake exited -6 from 2026-10-10 to 2026-10-23).
+NODE_BIN = "/Users/boris/.nvm/versions/node/v22.22.3/bin"
 WORKSPACE  = Path("/Users/boris/.openclaw/workspace-butler")
 DISPATCH_ROOT = WORKSPACE / "state" / "dispatches"
 
@@ -106,9 +116,81 @@ ROUTES: dict[str, dict] = {
     # and calls the deterministic local renderer. Paid TTS/Veo remain separately
     # approval-gated inside butler-news-video.
     "video":         {"backend": "claude", "model": "claude-sonnet-5",  "timeout": 3600},
+    # Back Burner researcher (feature butler-back-burner-researcher, owner 2026-10-27): improves a STAGING
+    # COPY of one vault folder overnight (lib/backburner.py applies the checked result). CONFINED: no Bash,
+    # only the listed tools, file tools limited to the working directory, no MCP, no permission prompt.
+    # SILENT: the harness reports to Boris, so no status line or butler wake. Opus 5.5.
+    # ai-settings.json may change the model of this route, never `tools` or `silent`.
+    "backburner":    {"backend": "claude", "model": "claude-opus-5-5",  "timeout": 2700, "silent": True,
+                      "tools": ["Read", "Edit", "Write", "Glob", "Grep", "WebSearch", "WebFetch"]},
 }
 
 DEFAULT_TIMEOUT = 1800
+
+
+# BUTLER_OWNER_AI_SETTINGS — local Settings; existing cost guards remain below.
+def _owner_ai_settings():
+    path = WORKSPACE / "config/ai-settings.json"
+    if not path.exists():
+        return
+    try:
+        if path.is_symlink() or path.stat().st_size > 65536:
+            raise ValueError()
+        data = json.loads(path.read_text())
+        approved = {(v["backend"], v["model"]) for v in ROUTES.values()}
+        catalog_path = WORKSPACE / "config/model-catalog.json"
+        if catalog_path.exists():
+            import time as _owner_time
+            import re as _owner_re
+            if catalog_path.is_symlink() or catalog_path.stat().st_size > 1000000:
+                raise ValueError()
+            catalog = json.loads(catalog_path.read_text())
+            if catalog.get("version") != 1:
+                raise ValueError()
+            legacy_approved = approved
+            approved = set()
+            for backend, provider in catalog.get("providers", {}).items():
+                if backend not in {"claude", "codex"}:
+                    continue
+                if not provider.get("fetched_at"):
+                    approved.update(pair for pair in legacy_approved if pair[0] == backend)
+                    continue
+                if not 0 <= _owner_time.time() - provider.get("fetched_at", 0) <= 604800:
+                    continue
+                for model in provider.get("models", []):
+                    for name in [model.get("id"), *model.get("aliases", [])]:
+                        if isinstance(name, str) and _owner_re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._/\[\]-]{0,149}", name):
+                            approved.add((backend, name))
+        routes = data.get("routes", {})
+        for kind, value in routes.items():
+            if kind not in ROUTES or set(value) != {"backend", "model"} or (value["backend"], value["model"]) not in approved:
+                raise ValueError()
+        executables = data.get("executables", {})
+        for backend, binary in executables.items():
+            if backend not in {"claude", "codex"} or not isinstance(binary, str) or Path(binary).name != backend or not shutil.which(binary):
+                raise ValueError()
+        for kind, value in routes.items():
+            ROUTES[kind] = {**ROUTES[kind], **value}
+        global CLAUDE_BIN, CODEX_BIN_CANDIDATES
+        CLAUDE_BIN = executables.get("claude", CLAUDE_BIN)
+        if "codex" in executables:
+            CODEX_BIN_CANDIDATES = [executables["codex"]]
+    except (OSError, ValueError, TypeError, KeyError, AttributeError):
+        raise RuntimeError("Invalid owner Butler AI Settings; fix local configuration") from None
+
+_owner_ai_settings()
+# END BUTLER_OWNER_AI_SETTINGS
+
+
+
+def _codex_bin() -> str:
+    for candidate in CODEX_BIN_CANDIDATES:
+        if shutil.which(candidate):
+            return candidate
+    found = shutil.which("codex")
+    if found:
+        return found
+    raise RuntimeError(f"codex CLI not found; tried: {', '.join(CODEX_BIN_CANDIDATES)}")
 
 ALLOWED_PROJECT_ROOTS = [
     "/Users/boris/Projects",
@@ -174,6 +256,16 @@ def _wrap_prompt(prompt: str) -> str:
     return NOTIFY_PREAMBLE + prompt
 
 
+# Every butler-* CLI a worker calls (recall, people, task, daily, notify, ...) talks to butler-core over the Unix socket
+# ~/.local/share/butler-core/core.sock. Codex's `workspace-write` seatbelt denies that connect(): PermissionError
+# [Errno 1], so from 2026-10-28 on every Codex worker (classify, curate, news, research) could write nothing and left its
+# inbox/queue untouched. A socket-only allowance (`permissions.*.network.unix_sockets`) is accepted by codex 0.167.0 but
+# never reaches the macOS policy (openai/codex#25416); `network_access` is the switch that does (verified 2026-11-07 with a
+# live `codex exec`: connect() fails without it, succeeds with it). The filesystem sandbox stays `workspace-write`.
+# Owner approved this trade-off 2026-11-07: Claude workers already run unsandboxed (`bypassPermissions`).
+CODEX_CORE_SOCKET_OVERRIDE = "sandbox_workspace_write.network_access=true"
+
+
 def _build_command(backend: str, model: str, prompt: str, *, streaming: bool) -> list[str]:
     """Build the subprocess argv for a backend invocation."""
     prompt = _wrap_prompt(prompt)
@@ -189,11 +281,52 @@ def _build_command(backend: str, model: str, prompt: str, *, streaming: bool) ->
             cmd += ["--include-partial-messages", "--verbose"]
         return cmd
     elif backend == "codex":
-        if not shutil.which(CODEX_BIN):
-            raise RuntimeError(f"codex CLI not found at {CODEX_BIN}")
-        return [CODEX_BIN, "exec", "-m", model, prompt]
+        return [
+            _codex_bin(),
+            "exec",
+            "--skip-git-repo-check",
+            "--sandbox",
+            "workspace-write",
+            "-c",
+            CODEX_CORE_SOCKET_OVERRIDE,
+            "-m",
+            model,
+            prompt,
+        ]
     else:
         raise ValueError(f"unknown backend: {backend}")
+
+
+def _check_confined(task_kind: Optional[str], backend: str) -> None:
+    """A route with `tools` is confined by claude's own flags; no other backend can honour that."""
+    if ROUTES.get(task_kind or "", {}).get("tools") and backend != "claude":
+        raise ValueError(f"route {task_kind} is confined and runs only on claude, not {backend}")
+
+
+def _confined_command(task_kind: str, backend: str, model: str, prompt: str, *, streaming: bool) -> list[str]:
+    """argv for a CONFINED route: claude --restricted (no Bash or other code-running tool, file tools limited
+    to the working directory, user/project settings ignored), exactly the listed tools, no MCP servers, and
+    nothing may prompt. The prompt is passed bare: the worker has no shell to call butler-notify from."""
+    _check_confined(task_kind, backend)
+    if not shutil.which(CLAUDE_BIN):
+        raise RuntimeError(f"claude CLI not found at {CLAUDE_BIN}")
+    tools = ",".join(ROUTES[task_kind]["tools"])
+    out_fmt = "stream-json" if streaming else "json"
+    cmd = [CLAUDE_BIN, "-p", prompt, "--model", model,
+           "--output-format", out_fmt,
+           "--restricted", "--tools", tools, "--allowedTools", tools,
+           "--strict-mcp-config", "--permission-mode", "acceptEdits", "--permission-prompts", "none"]
+    if streaming:
+        cmd += ["--include-partial-messages", "--verbose"]
+    return cmd
+
+
+def _command(task_kind: Optional[str], backend: str, model: str, prompt: str, *, streaming: bool) -> list[str]:
+    """argv for a task. Only a route with `tools` is built differently; every other route goes through
+    `_build_command` with exactly the arguments it always had."""
+    if ROUTES.get(task_kind or "", {}).get("tools"):
+        return _confined_command(task_kind, backend, model, prompt, streaming=streaming)
+    return _build_command(backend, model, prompt, streaming=streaming)
 
 
 def _model_key(backend: str, model: str) -> str:
@@ -227,7 +360,7 @@ def dispatch(
     model   = model_override   or route["model"]
 
     started = time.time()
-    cmd = _build_command(backend, model, prompt, streaming=False)
+    cmd = _command(task_kind, backend, model, prompt, streaming=False)
     # Backend auth hygiene (mirror of start_dispatch): force codex onto Boris's
     # logged-in ChatGPT subscription at ~/.codex and drop any stale OPENAI_API_KEY
     # inherited from the login shell, so a dispatched `codex exec` never falls back
@@ -253,7 +386,7 @@ def dispatch(
         if fb and not backend_override:
             backend, model = fb
             sys.stderr.write(f"{e}; falling back to {backend}/{model}\n")
-            cmd = _build_command(backend, model, prompt, streaming=False)
+            cmd = _command(task_kind, backend, model, prompt, streaming=False)
             proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout, env=run_env)
             exit_code, stdout, stderr = proc.returncode, proc.stdout, proc.stderr
         else:
@@ -289,6 +422,31 @@ def _dispatch_dir(dispatch_id: str) -> Path:
     return DISPATCH_ROOT / dispatch_id
 
 
+DISPATCH_ID_RE = re.compile(r"[0-9]{8}-[0-9]{6}-[a-f0-9]{6}")
+# A monitor that has not recorded its pid this long after start is treated as gone.
+START_GRACE_SECONDS = 120
+CANCELLED_EXIT = -15
+
+
+def new_dispatch_id() -> str:
+    return dt.datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
+
+
+def _derived_status(meta: dict, result: Optional[dict], alive: bool) -> str:
+    """What the job really is: a monitor that died without a result is `interrupted`,
+    never `running` forever."""
+    if result is not None:
+        code = result.get("exit_code")
+        return "done" if code == 0 else "cancelled" if code == CANCELLED_EXIT else "failed"
+    if alive:
+        return "running"
+    if meta.get("status") != "running":
+        return meta.get("status") or "unknown"
+    if not meta.get("monitor_pid") and time.time() - meta.get("started_at_ts", 0) < START_GRACE_SECONDS:
+        return "running"
+    return "interrupted"
+
+
 def start_dispatch(
     task_kind: str,
     project_path: str,
@@ -297,9 +455,11 @@ def start_dispatch(
     backend_override: Optional[str] = None,
     model_override: Optional[str] = None,
     timeout: Optional[int] = None,
+    dispatch_id: Optional[str] = None,
 ) -> str:
     """Spawn dispatch detached. Returns dispatch_id immediately. State at state/dispatches/<id>/.
-    timeout=None → use the per-kind default from ROUTES (e.g. code=7200s, review=1800s)."""
+    timeout=None → use the per-kind default from ROUTES (e.g. code=7200s, review=1800s).
+    dispatch_id is given by butler-core, which records the operation before it starts."""
     if task_kind not in ROUTES:
         raise ValueError(f"unknown task_kind: {task_kind}. Valid: {sorted(ROUTES.keys())}")
     cwd = _resolve_project_path(project_path)
@@ -308,9 +468,15 @@ def start_dispatch(
         timeout = route.get("timeout", DEFAULT_TIMEOUT)
     backend = backend_override or route["backend"]
     model   = model_override   or route["model"]
+    _check_confined(task_kind, backend)
 
-    dispatch_id = dt.datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:6]
+    if dispatch_id is None:
+        dispatch_id = new_dispatch_id()
+    elif not DISPATCH_ID_RE.fullmatch(dispatch_id):
+        raise ValueError("invalid dispatch id")
     d = _dispatch_dir(dispatch_id)
+    if d.exists():
+        raise ValueError(f"dispatch {dispatch_id} already exists")
     d.mkdir(parents=True, exist_ok=True)
     (d / "output.log").touch()
     (d / "stderr.log").touch()
@@ -453,7 +619,7 @@ def _wake_butler(dispatch_id: str, meta: dict, exit_code: int, chain_depth: int)
         cmd.append("--deliver")
 
     env = os.environ.copy()
-    env["PATH"] = f"{NODE24_BIN}:" + env.get("PATH", "")
+    env["PATH"] = f"{NODE_BIN}:" + env.get("PATH", "")
     fail_log = Path.home() / ".openclaw" / "wrappers" / "locks" / "notify-failures.log"
 
     # Single global wake lock — NON-BLOCKING. If another wake is already running
@@ -520,12 +686,35 @@ def _monitor(dispatch_id: str) -> int:
     d = _dispatch_dir(dispatch_id)
     meta = json.loads((d / "meta.json").read_text())
     backend, model = meta["backend"], meta["model"]
-    cmd = _build_command(backend, model, meta["prompt"], streaming=True)
+    # A silent route (Back Burner) leaves reporting to its harness: no status lines, no butler wake.
+    silent = bool(ROUTES.get(meta["task_kind"], {}).get("silent"))
+    say = (lambda _message: None) if silent else _notify
+    wake = (lambda *_args: None) if silent else _wake_butler
+    try:
+        cmd = _command(meta["task_kind"], backend, model, meta["prompt"], streaming=True)
+    except Exception as e:
+        (d / "stderr.log").write_text(f"[monitor] command setup failed: {e}\n")
+        result = {
+            "exit_code": -2,
+            "duration_sec": 0,
+            "finished_at": dt.datetime.now().isoformat(timespec="seconds"),
+            "finished_at_ts": int(time.time()),
+            "estimated_cost_usd": 0.0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+        }
+        (d / "result.json").write_text(json.dumps(result, indent=2))
+        meta["status"] = "failed"
+        meta["finished_at"] = result["finished_at"]
+        (d / "meta.json").write_text(json.dumps(meta, indent=2))
+        say(f"❌ {meta['task_kind']} ({dispatch_id[-6:]}) — setup failed: {e}")
+        wake(dispatch_id, meta, -2, int(meta.get("chain_depth", 0)))
+        return 0
     started = time.time()
 
     # Initial notification — user knows worker is running
     proj_name = Path(meta["project_path"]).name
-    _notify(f"▶ {meta['task_kind']} on {proj_name} ({backend}/{model}) — id {dispatch_id[-6:]}")
+    say(f"▶ {meta['task_kind']} on {proj_name} ({backend}/{model}) — id {dispatch_id[-6:]}")
 
     try:
         with open(d / "output.log", "w") as fout, open(d / "stderr.log", "w") as ferr:
@@ -538,11 +727,11 @@ def _monitor(dispatch_id: str) -> int:
             except subprocess.TimeoutExpired:
                 ferr.write(f"\n[monitor] timeout after {meta.get('timeout',1800)}s\n")
                 exit_code = -1
-                _notify(f"⏱ {meta['task_kind']} ({dispatch_id[-6:]}) — TIMEOUT after {meta.get('timeout',1800)}s")
+                say(f"⏱ {meta['task_kind']} ({dispatch_id[-6:]}) — TIMEOUT after {meta.get('timeout',1800)}s")
     except Exception as e:
         (d / "stderr.log").write_text(f"[monitor] crash: {e}")
         exit_code = -2
-        _notify(f"❌ {meta['task_kind']} ({dispatch_id[-6:]}) — crashed: {e}")
+        say(f"❌ {meta['task_kind']} ({dispatch_id[-6:]}) — crashed: {e}")
 
     duration = time.time() - started
     # Try to extract usage if backend=claude & last event in stream-json has usage
@@ -585,12 +774,12 @@ def _monitor(dispatch_id: str) -> int:
     # Final notification with summary (factual line to Boris — always silent)
     icon = "✅" if exit_code == 0 else "❌"
     cost_str = f" ~${est.estimated_usd:.2f}" if est.estimated_usd else ""
-    _notify(f"{icon} {meta['task_kind']} ({dispatch_id[-6:]}) done in {duration:.0f}s{cost_str}")
+    say(f"{icon} {meta['task_kind']} ({dispatch_id[-6:]}) done in {duration:.0f}s{cost_str}")
 
     # Wake the butler agent so it reacts / continues the goal autonomously.
     # Best-effort, bounded by CHAIN_DEPTH_CAP. Never affects the worker's exit.
     chain_depth = int(meta.get("chain_depth", 0))
-    _wake_butler(dispatch_id, meta, exit_code, chain_depth)
+    wake(dispatch_id, meta, exit_code, chain_depth)
     return 0
 
 
@@ -617,9 +806,7 @@ def status(dispatch_id: str) -> dict:
             alive = False
 
     result = json.loads(result_file.read_text()) if result_file.exists() else None
-    if result and meta["status"] == "running":
-        # Process finished but meta not yet updated (race); rely on result.json
-        meta["status"] = "done" if result["exit_code"] == 0 else "failed"
+    meta["status"] = _derived_status(meta, result, alive)
 
     elapsed = (result["finished_at_ts"] - meta["started_at_ts"]) if result else (int(time.time()) - meta["started_at_ts"])
     return {
@@ -628,7 +815,7 @@ def status(dispatch_id: str) -> dict:
         "backend": meta["backend"],
         "model": meta["model"],
         "project_path": meta["project_path"],
-        "status": meta["status"] if not (alive and not result) else "running",
+        "status": meta["status"],
         "alive": alive,
         "elapsed_sec": elapsed,
         "output_lines": out_lines,
@@ -651,7 +838,7 @@ def wait(dispatch_id: str, timeout: int = 600, poll_interval: float = 2.0) -> di
     deadline = time.time() + timeout
     while time.time() < deadline:
         s = status(dispatch_id)
-        if s["status"] in ("done", "failed"):
+        if s["status"] in ("done", "failed", "cancelled", "interrupted"):
             return s
         time.sleep(poll_interval)
     s = status(dispatch_id)
@@ -670,6 +857,8 @@ def list_recent(n: int = 10) -> list[dict]:
             meta = json.loads((d / "meta.json").read_text())
             result_file = d / "result.json"
             result = json.loads(result_file.read_text()) if result_file.exists() else None
+            if result is None and meta.get("status") == "running":
+                meta["status"] = _derived_status(meta, None, _pid_alive(meta.get("monitor_pid")))
             out.append({
                 "dispatch_id": d.name,
                 "task_kind": meta.get("task_kind"),
@@ -686,6 +875,16 @@ def list_recent(n: int = 10) -> list[dict]:
     return out
 
 
+def _pid_alive(pid) -> bool:
+    if not pid:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except (ProcessLookupError, PermissionError):
+        return False
+
+
 def kill(dispatch_id: str) -> bool:
     """Best-effort terminate a running dispatch's monitor (and its children)."""
     d = _dispatch_dir(dispatch_id)
@@ -700,6 +899,99 @@ def kill(dispatch_id: str) -> bool:
         return True
     except (ProcessLookupError, PermissionError):
         return False
+
+
+# ───────────────────────────────────────────────────────────────────
+# butler-core path (switch `dispatch` in the active core ConfigVersion)
+# ───────────────────────────────────────────────────────────────────
+class CoreRefused(RuntimeError):
+    """butler-core denied, failed or could not record the dispatch; nothing was started."""
+
+
+def _core():
+    """The deployed core client, or None when the core was never installed."""
+    try:
+        from lib import butler_core_client
+    except ImportError:
+        return None
+    return butler_core_client
+
+
+def core_switched() -> bool:
+    core = _core()
+    return bool(core and core.switched("dispatch"))
+
+
+def core_start(task_kind: str, project_path: str, prompt: str, *, backend_override: Optional[str] = None,
+               model_override: Optional[str] = None, timeout: Optional[int] = None) -> str:
+    """Record the dispatch as a butler-core operation; the core starts and follows the worker.
+
+    Validation happens here first so errors read exactly as on the legacy path.
+    The core waits up to 30 s for a restarting daemon, then refuses (DEC-061)."""
+    if task_kind not in ROUTES:
+        raise ValueError(f"unknown task_kind: {task_kind}. Valid: {sorted(ROUTES.keys())}")
+    cwd = _resolve_project_path(project_path)
+    route = ROUTES[task_kind]
+    backend = backend_override or route["backend"]
+    if backend not in ("codex", "claude"):
+        raise ValueError(f"unknown backend: {backend}")
+    _check_confined(task_kind, backend)
+    try:
+        chain_depth = max(0, int(os.environ.get("BUTLER_CHAIN_DEPTH", "0")))
+    except ValueError:
+        chain_depth = 0
+    dispatch_id = new_dispatch_id()
+    params = {"dispatch_id": dispatch_id, "task_kind": task_kind, "project": str(cwd), "prompt": prompt,
+              "backend": backend, "model": model_override or route["model"],
+              "timeout": timeout or route.get("timeout", DEFAULT_TIMEOUT), "chain_depth": chain_depth}
+    core = _core()
+    client = core.Client()
+    try:
+        op = client.execute(f"dispatch.{backend}", "butler", f"project:{cwd}", params, f"dispatch:{dispatch_id}",
+                            principal="agent:butler", timeout=90)
+    except core.CoreUnavailable:
+        raise CoreRefused("butler-core is unavailable; the dispatch was not started. Retry in a minute.") from None
+    except core.CoreError as error:
+        raise CoreRefused(f"butler-core refused the dispatch: {error.message or error.code}") from None
+    state = op.get("state")
+    if state == "running":
+        return dispatch_id
+    if state in ("requested", "dispatching"):
+        sys.stderr.write(f"butler-core accepted the dispatch ({op.get('id')}); the worker is starting.\n")
+        return dispatch_id
+    reason = op.get("reason") or state
+    raise CoreRefused(f"butler-core did not start the dispatch ({state}): {reason}")
+
+
+def core_cancel(dispatch_id: str) -> Optional[dict]:
+    """Stop a core-tracked dispatch through the core; None when the core does not know it."""
+    core = _core()
+    client = core.Client()
+    try:
+        op = client.call_waiting("operation.get", idempotency_key=f"dispatch:{dispatch_id}")
+    except core.CoreError as error:
+        if error.code == "not_found":
+            return None
+        raise CoreRefused(f"butler-core refused: {error.message or error.code}") from None
+    except core.CoreUnavailable:
+        raise CoreRefused("butler-core is unavailable; nothing was stopped. Retry in a minute.") from None
+    return client.call("cancel", operation=op["id"])
+
+
+def final_output(dispatch_id: str) -> str:
+    """The worker's final answer: the claude `result` text, else the whole output log."""
+    d = _dispatch_dir(dispatch_id)
+    meta = json.loads((d / "meta.json").read_text())
+    text = (d / "output.log").read_text() if (d / "output.log").exists() else ""
+    if meta.get("backend") == "claude":
+        for line in reversed(text.splitlines()):
+            try:
+                event = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if event.get("type") == "result" and isinstance(event.get("result"), str):
+                return event["result"]
+    return text
 
 
 # ───────────────────────────────────────────────────────────────────
@@ -724,7 +1016,7 @@ def _print_routes_help():
 
 def _parse_kwargs(args: list[str]) -> dict:
     out = {"project": None, "prompt": None, "backend": None, "model": None,
-           "timeout": None, "as_json": False}
+           "timeout": None, "as_json": False, "id": None}
     rest = list(args)
     while rest:
         a = rest.pop(0)
@@ -734,6 +1026,7 @@ def _parse_kwargs(args: list[str]) -> dict:
         elif a == "--model":    out["model"]   = rest.pop(0)
         elif a == "--timeout":  out["timeout"] = int(rest.pop(0))
         elif a == "--json":     out["as_json"] = True
+        elif a == "--id":       out["id"]      = rest.pop(0)  # internal: set by butler-core
         else:
             raise ValueError(f"unknown flag: {a}")
     return out
@@ -763,9 +1056,16 @@ def _main(argv: list[str]) -> int:
         if not kw["project"] or not kw["prompt"]:
             sys.stderr.write("--project and --prompt are required\n"); return 2
         try:
-            did = start_dispatch(task_kind, kw["project"], kw["prompt"],
+            if kw["id"] is None and core_switched():
+                did = core_start(task_kind, kw["project"], kw["prompt"],
                                  backend_override=kw["backend"], model_override=kw["model"],
                                  timeout=kw["timeout"])
+            else:
+                did = start_dispatch(task_kind, kw["project"], kw["prompt"],
+                                     backend_override=kw["backend"], model_override=kw["model"],
+                                     timeout=kw["timeout"], dispatch_id=kw["id"])
+        except CoreRefused as e:
+            sys.stderr.write(f"ERROR: {e}\n"); return 3
         except (ValueError, RuntimeError) as e:
             sys.stderr.write(f"ERROR: {e}\n"); return 1
         print(did)  # stdout: just the id
@@ -837,7 +1137,13 @@ def _main(argv: list[str]) -> int:
     if sub == "kill":
         if len(argv) < 2: sys.stderr.write("usage: kill <id>\n"); return 2
         try:
+            stopped = core_cancel(argv[1]) if core_switched() else None
+            if stopped is not None:
+                print(f"stopped: {stopped.get('state')} ({stopped.get('mode')})")
+                return 0
             ok = kill(argv[1])
+        except CoreRefused as e:
+            sys.stderr.write(f"ERROR: {e}\n"); return 3
         except FileNotFoundError as e:
             sys.stderr.write(f"{e}\n"); return 1
         print(f"killed: {ok}")
@@ -851,6 +1157,30 @@ def _main(argv: list[str]) -> int:
             sys.stderr.write(f"{e}\n"); return 2
         if not kw["project"] or not kw["prompt"]:
             sys.stderr.write("--project and --prompt are required\n"); return 2
+        if core_switched():
+            try:
+                did = core_start(sub, kw["project"], kw["prompt"], backend_override=kw["backend"],
+                                 model_override=kw["model"], timeout=kw["timeout"])
+            except CoreRefused as e:
+                sys.stderr.write(f"ERROR: {e}\n"); return 3
+            except (ValueError, RuntimeError) as e:
+                sys.stderr.write(f"ERROR: {e}\n"); return 1
+            limit = (kw["timeout"] or ROUTES[sub].get("timeout", DEFAULT_TIMEOUT)) + 120
+            deadline = time.time() + 60
+            while not (_dispatch_dir(did) / "meta.json").exists() and time.time() < deadline:
+                time.sleep(1)
+            if not (_dispatch_dir(did) / "meta.json").exists():
+                sys.stderr.write(f"ERROR: butler-core has not started dispatch {did} within 60 s; "
+                                 f"check `butler-dispatch status {did}` later\n")
+                return 3
+            s = wait(did, timeout=limit)
+            if kw["as_json"]:
+                print(json.dumps(s, indent=2))
+            else:
+                sys.stdout.write(final_output(did))
+                sys.stderr.write(f"\n--- dispatched via butler-core: {sub} → {s['backend']}/{s['model']} "
+                                 f"({s['elapsed_sec']}s, status={s['status']}, id={did}) ---\n")
+            return 0 if s["status"] == "done" else 1
         try:
             r = dispatch(sub, kw["project"], kw["prompt"],
                          backend_override=kw["backend"], model_override=kw["model"],
