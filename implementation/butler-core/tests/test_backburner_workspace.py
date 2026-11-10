@@ -1247,6 +1247,33 @@ class IgnoreTest(Base):
         self.assertEqual(self.bb.read_brief(self.env.folder("One", files={}, brief="status: active\nignore: tasks\n")).ignore, ("tasks",))
         self.assertEqual(self.bb.read_brief(self.env.folder("Null", files={}, brief="status: active\nignore:\n")).ignore, ())
 
+    def test_a_transient_read_failure_is_retried_and_a_lasting_one_is_unreadable_not_a_missing_status(self):
+        """2026-11-02: the panel showed an active folder as paused. A brief that could not be read (iCloud, a save in progress)
+        was turned into an empty status, indistinguishable from a brief that has none."""
+        path = self.env.folder("Flaky", files={}, brief="status: active\npriority: 2\n")
+        real = Path.read_text
+        calls = []
+
+        def flaky(self_, *args, **kwargs):
+            if self_.name == "_brief.md" and len(calls) < 2:
+                calls.append(1)
+                raise OSError(11, "Resource deadlock avoided")
+            return real(self_, *args, **kwargs)
+        with mock.patch.object(Path, "read_text", flaky), mock.patch.object(self.bb.time, "sleep"):
+            brief = self.bb.read_brief(path)
+        self.assertEqual((brief.status, brief.priority, len(calls)), ("active", 2, 2))
+
+        def broken(self_, *args, **kwargs):
+            if self_.name == "_brief.md":
+                raise OSError(60, "Operation timed out")
+            return real(self_, *args, **kwargs)
+        with mock.patch.object(Path, "read_text", broken), mock.patch.object(self.bb.time, "sleep"):
+            brief = self.bb.read_brief(path)
+            folder = self.bb.Folder("Flaky", path, "flaky", brief, {})
+            self.assertEqual(brief.status, "unreadable")
+            self.assertEqual(self.bb.waiting_reason(folder, NOW), "status is unreadable")
+        self.assertEqual(self.bb.read_brief(self.env.folder("None", files={}, brief="priority: 3\n")).status, "")   # no status stays "missing"
+
     def test_matching_is_by_path_component_or_glob_never_by_name_prefix(self):
         ignored = self.bb._ignored
         self.assertTrue(ignored("tasks", ("tasks",)))

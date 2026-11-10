@@ -4,8 +4,14 @@ import re
 from pathlib import Path
 
 
+# Generated, dependency and cache folders are never notes. 2026-11-02: 575 of 2660 indexed files were node_modules
+# documentation. Only unambiguous tooling names: a folder an owner may name freely (Build, Dist, target) stays in.
+GENERATED_DIRECTORIES = frozenset({"node_modules", ".git", ".venv", "venv", "__pycache__", ".next", ".nuxt", ".cache",
+                                   ".pytest_cache", ".mypy_cache", ".tox", "site-packages", "bower_components"})
+
+
 def excluded_directory(name):
-    return (name.casefold() in {".trash", ".obsidian", ".history"}
+    return (name.casefold() in {".trash", ".obsidian", ".history"} | GENERATED_DIRECTORIES
             or re.fullmatch(r"(?:\d+\s*[-_]\s*)?archives?", name, re.I) is not None)
 
 
@@ -20,6 +26,11 @@ def authorized():
     except Exception: return False
 
 
+# The ambient service answers a status request in about 1 s (up to 1.5 s measured) while it analyses on a loaded
+# machine. A timeout shorter than its normal latency turns every poll into a "miss" and fails the nightly reindex.
+STATUS_TIMEOUT = 4.0
+
+
 def wait_for_quiet():
     """Cooperate with live hearing between embedding batches, never inspect text."""
     import json
@@ -27,11 +38,11 @@ def wait_for_quiet():
     import time
     endpoint = Path.home() / ".local/share/butler-ambient/ambient.sock"
     if not endpoint.exists(): return
-    misses = 0  # a busy service can answer late (>0.5 s under speech analysis); a few misses are not an outage
+    misses = 0  # a few genuine misses in a row (no answer within STATUS_TIMEOUT) are weather, not an outage
     for _ in range(120):
         try:
             with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
-                client.settimeout(.5); client.connect(str(endpoint))
+                client.settimeout(STATUS_TIMEOUT); client.connect(str(endpoint))
                 client.sendall(b'{"command":"status"}\n')
                 result = json.loads(client.makefile("rb").readline())
             result = result.get("result", result)
@@ -45,7 +56,9 @@ def wait_for_quiet():
     raise RuntimeError("background-analysis-deferred-for-speech")
 
 
-def eligible(path, root):
+def eligible(path, root, keep_evicted=False):
+    """keep_evicted: count a note that macOS evicted to iCloud (UF_DATALESS) as still in the vault. Reading it would download it,
+    so indexing never does, but pruning must not treat "not downloaded right now" as "deleted"."""
     path, root = Path(path), Path(root)
     try:
         relative = path.relative_to(root)
@@ -53,7 +66,8 @@ def eligible(path, root):
         if path.name.casefold() == "secrets.md" or path.is_symlink(): return False
         if not path.resolve().is_relative_to(root.resolve()): return False
         stat = path.stat()
-        if getattr(stat, "st_flags", 0) & 0x40000000: return False  # UF_DATALESS: do not download
+        if getattr(stat, "st_flags", 0) & 0x40000000:  # UF_DATALESS: do not download
+            return keep_evicted and path.suffix.casefold() == ".md"
         if relative.parts[:2] == ("Butler", "Rules") and path.suffix.casefold() == ".md":
             import json
             try:
