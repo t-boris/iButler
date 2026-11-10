@@ -2392,3 +2392,34 @@ Steps:
 - Disagreement between agents resolved by measurement: data volume is 94% full with 55 GiB free (not a trend claim).
 - Nothing was fixed in this pass; every bug waits for the owner's approval of a fix plan (global rule: no quick fixes).
 
+
+## Review — fix batch BUG-018…027 (2026-11-10)
+
+Branch `fix/ops-log-audit-2026-11-10` (from `chore/pending-work-2026-11-10`). Nothing pushed or merged. butler-core 0.18.0 and ambient 0.12.5 were deployed on 2026-11-10 (section "Deployment" below). One commit per fixed bug; reports have `branch:` and a "Fix" or "AI fix attempt" section; no status was changed except BUG-024 back to `open`.
+
+| Bug | Outcome | Commit |
+| --- | --- | --- |
+| BUG-019 nightly reindex vs. paused observation | fixed; cron message edited live (backup) | f0d4700 |
+| BUG-022 uncertain deliveries | fixed: approvals resent once, others listed in the daily digest | 9a29058 |
+| BUG-021 approvals never answered | fixed: daily reminder + expiry after 7 days (89 operations end on first run after deploy) | 5378a01 |
+| BUG-018 worker finished but never exits | fixed in the repo copy of `dispatch.py` (resynced first, 249b2a2); not installed live | d9f5c57 |
+| BUG-023 panel polled the OpenClaw CLI | fixed: cached listings; stray `memory-core` config removed live (backup) | c2a2e41 |
+| BUG-025 bridge noise | partly: dormant in CLI processes, outage logged once; backup-window slowness unconfirmed, `rpc.slow` diagnostic added | d4a8974 |
+| BUG-027 log growth | partly: readiness cache (designed 360 → ~12 probes/h; live after deploy still ~180-240/h, a second source is not found) and copy-truncate rotation; `AVPlayerView` noise not reproduced, no Swift change | fab768f |
+| BUG-026 isolated failures | partly: (6) fixed — Todoist `note_add` was refused every time, comments now use `POST /comments`; (1) cron failure alerts enabled live (backup); (2)-(5) not fixed | 0b51a0e |
+| BUG-024 WhatsApp watchdog | not fixed: thresholds are hard-coded in OpenClaw's extension, no config key; status `open` | — |
+
+- To take effect: butler-core deploy (BUG-021/022/025/026), butler-ambient deploy (BUG-023/027), install the repo `dispatch.py` into the workspace (BUG-018), gateway plugin reload (BUG-025).
+- Live edits outside git, all with backups and recorded in the reports: cron job `semantic-reindex-nightly` message, `~/.openclaw/openclaw.json` (`plugins.entries.memory-core.config` removed; `cron.failureAlert` + `cron.failureDestination` added).
+- Unverified: a real cron failure alert arriving on Telegram; whether the three unexplained bridge timeouts (two fell in backup windows) come from the `/bin/ps` caller lookup (BUG-025); whether messages are lost on WhatsApp reconnects (BUG-024).
+- Process notes: (a) a test double that is more permissive than the service hides bugs — the Todoist fake accepted `note_add` for weeks; measure the service, then pin the fake to it. (b) "Isolated" failures should be counted over the whole history before being called isolated: 4 of 4 comments had failed, not 4 of many. (c) Two reports contained numbers I corrected after checking (BUG-018: 9 of 20, BUG-027: 360/h measured vs 330/h reported).
+- Open owner decisions: BUG-026(4) replay of dropped wakes (nothing reads `pending-wakes.jsonl`); BUG-024 options (accept, extension patch like the ghost patch, or an upstream request); `continuous_archive=false` from the earlier dictation work.
+
+### Deployment (2026-11-10, owner: «делай деплой butler-core и ambient»)
+
+- Release commit ff24a1d (versions 0.18.0 / 0.12.5, `lib/process.js` added to `BRIDGE_FILES` with `tests/test_bridge_staging.py`). Tests before deploy: core 462 OK, bridge JS 16 pass, ambient 1059 OK.
+- butler-core: backup of the installed runtime in the scratchpad; `deploy.py --no-restart` (no config activation, no failed-queue import), then `launchctl kickstart -k`. Daemon answers 0.18.0 in 14 s, active config v14, Back Burner still enabled. The scheduler expired 89 approvals older than 7 days (85 vault.write_confirmed, 4 youtube.publish); 35 remain (0.8-6.8 days old). Digest `attention:2026-11-10` delivered at 10:50.
+- ambient: narrow install of `__init__.py`, `components.py`, `service.py`, `logfiles.py` with backup; `settings.enabled` was false before and after; restart answers 0.12.5 with `owner-paused`; no camera/screen/FFmpeg process. `dialogue-ollama.log` 9.49 MB rotated to `.1` (live file 459 B).
+- NOT done: gateway restart (the new bridge, BUG-025, is staged but not loaded); `dispatch.py` (BUG-018) and `knowledge_sources.py` (BUG-019) are not installed into `~/.openclaw/workspace-butler/lib`; no push, PR, merge or release.
+- Finding: the BUG-027 probe noise is only partly gone. Cold `ui-components` = 2 probes, repeats = 0, but `/api/show` on :11435 still arrives ~180-240/h in the background. In an isolated service run `ui-state`, `ui-schedules` and `status` made no probe. Next step is to find the other periodic caller (not done).
+- MarkView lifecycle: bugs are `fixing` (set by the owner at 14:54 UTC). The process (standard bug) needs a merged pull request and a published GitHub release before `fixed` can be requested; none exists, so no status was moved. BUG-024 is `open`.

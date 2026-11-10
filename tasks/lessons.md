@@ -712,3 +712,8 @@ The owner does not want a spoken dialogue at all: do not propose name- or sessio
 - Rule: before a live check that starts something visible or audible on the owner's machine (microphone, camera, speech, a panel state), say so first, or run it on an isolated instance; when the owner may be on the same surface, treat every result as contaminated unless an independent signal (log line, process list, row counts) attributes it. Report in VERIFICATION exactly which cases were proven by the run and which only by unit tests.
 - Also: print lengths and states, never the recognised words, from a check that can hear a room.
 
+## L-2026-11-10-01 — A deploy is not finished until the trackers say so: update each bug's report and status, one id at a time
+- Mistake: after the butler-core / ambient deploy I went on to verify live effects and did not update the bug reports or check their MarkView status. The owner had to remind me («Не забудьте обновить статус багов»). My first lookup also failed because I passed nine ids in one call.
+- Rule: the deploy checklist ends with (1) one "Deployment" section per affected report with live evidence and what is NOT verified, (2) removing stale "Not deployed" lines, (3) `markview_issue_context` for each id separately, to read which transition is allowed, (4) requesting only what the evidence supports; never claim `fixed` without a merged PR / release when the process asks for them.
+- Also: a design estimate (360 → 12 probes/h) is not a result. Measure after the deploy and write the measured number; here it was 180-240/h, so the report says the bug is only partly fixed.
+
