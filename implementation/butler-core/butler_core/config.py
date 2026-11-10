@@ -43,7 +43,7 @@ def validate_content(content, adapters=None):
     if not isinstance(content, dict) or content.get("schema") != 1:
         raise ConfigError("schema: version 1 required")
     allowed = {"schema", "owner", "personas", "grants", "exports", "operations", "scenarios", "delivery", "limits",
-               "bridge", "routing", "approval", "backup", "cron", "mail", "backburner", "system3"}
+               "bridge", "routing", "approval", "backup", "cron", "mail", "backburner", "system3", "channel_watchdog"}
     unknown = sorted(set(content) - allowed)
     if unknown:
         raise ConfigError(f"{unknown[0]}: unknown section")
@@ -128,6 +128,13 @@ def validate_content(content, adapters=None):
         raise ConfigError("routing.system1.mode: active requires agreed evaluation criteria evidence")
     _number(content.get("approval", {}).get("ttl", 900), "approval.ttl", 30, 7 * 86400)
     _number(content.get("approval", {}).get("expire_days", 7), "approval.expire_days", 1, 90)
+    watchdog = content.get("channel_watchdog", {})
+    if not isinstance(watchdog, dict):
+        raise ConfigError("channel_watchdog: object required")
+    if "restart" in watchdog and type(watchdog["restart"]) is not bool:
+        raise ConfigError("channel_watchdog.restart: true or false required")
+    _number(watchdog.get("grace_minutes", 10), "channel_watchdog.grace_minutes", 1, 1440)
+    _number(watchdog.get("cooldown_minutes", 60), "channel_watchdog.cooldown_minutes", 5, 1440)
     mail = content.get("mail", {})
     if not isinstance(mail, dict):
         raise ConfigError("mail: object required")

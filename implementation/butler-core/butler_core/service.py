@@ -17,7 +17,9 @@ from pathlib import Path
 
 from . import __version__
 from .approvals import Approvals, review_code
+from .adapters.gateway import GatewayControl
 from .attention import Attention
+from .channels import ChannelWatchdog
 from .config import Config
 from .cron import agent_of
 from .delivery import Delivery
@@ -39,7 +41,7 @@ REJECTED_TEXT = "⚠️ Не могу принять сообщение: хра�
 
 class Core:
     def __init__(self, root, *, adapters=None, transports=None, clock=time.time, model=None, reserve=None,
-                 interval=0.25):
+                 interval=0.25, gateway=None):
         self.root = Path(root)
         self.clock = clock
         kwargs = {} if reserve is None else {"reserve": reserve}
@@ -63,6 +65,7 @@ class Core:
                                  on_change=lambda *_: self.wake())
         self.feedback = Feedback(self.store, clock)
         self.attention = Attention(self)
+        self.channels = ChannelWatchdog(self, control=gateway or GatewayControl())
         self.rules = Rules(self)
         self.shadow = Shadow(self.store, self.config, model, clock)
         self.scheduler = Scheduler(self, interval=interval, clock=clock)
@@ -86,6 +89,7 @@ class Core:
         self.scheduler.every(600, "system3", self.lessons.maybe_run)
         self.scheduler.every(600, "approval-expiry", self.expire_stale_approvals)
         self.scheduler.every(600, "attention", self.attention.maybe_send)
+        self.scheduler.every(120, "channel-watchdog", self.channels.tick, delay=60)
         if workers:
             self.scheduler.start()
         self.ready_at = self.clock()
