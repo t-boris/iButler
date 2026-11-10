@@ -164,6 +164,7 @@ class IntegrationTests(unittest.TestCase):
         self.voice.model = Mock(); self.voice.vision_model = Mock()
         self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
         self.store.set("face_wake_dialogue", True)
+        self.store.set("voice_commands", True)   # the command path under test; off by default since 2026-11-02
         self.service.gate.enable(True, self.now)
         for _ in range(3):
             self.now += .1

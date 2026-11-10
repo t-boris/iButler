@@ -63,6 +63,60 @@ class DeliveryTest(CoreCase):
         self.assertEqual(self.core.delivery.send(delivery["id"]), "uncertain")
         self.assertEqual(len(self.transport.sent), 1)
 
+    def approvals(self):
+        # The test clock is frozen, so order by key: a resend's key is the original's plus a suffix.
+        return self.core.store.query("SELECT * FROM deliveries WHERE kind='approval' ORDER BY idempotency_key")
+
+    def test_an_uncertain_approval_request_is_resent_once_as_a_possible_duplicate(self):
+        """BUG-022 (owner decision 2026-11-10): an approval request nobody saw blocks the operation for good, so it is the
+        one kind that is resent, once, and says that it may be a duplicate."""
+        self.transport.script = ["ambiguous"]
+        first = self.enqueue("approval:op-1:abc123", kind="approval")
+        self.assertEqual(self.core.delivery.send(first["id"]), "uncertain")
+        rows = self.approvals()
+        self.assertEqual([r["state"] for r in rows], ["uncertain", "pending"])
+        resend = rows[1]
+        self.assertEqual(resend["idempotency_key"], "approval:op-1:abc123:resend")
+        self.assertIn("повтор", resend["content"].lower())              # the owner is told it may be a duplicate
+        self.assertTrue(resend["content"].endswith("готово"))           # the original text, including its commands, is kept
+        self.assertEqual(self.core.delivery.send(resend["id"]), "delivered")
+        self.assertEqual(len(self.transport.sent), 2)
+
+    def test_a_resent_approval_that_is_uncertain_again_is_not_resent_again(self):
+        self.transport.script = ["ambiguous", "ambiguous"]
+        first = self.enqueue("approval:op-1:abc123", kind="approval")
+        self.core.delivery.send(first["id"])
+        second = self.approvals()[1]
+        self.assertEqual(self.core.delivery.send(second["id"]), "uncertain")
+        self.assertEqual([r["state"] for r in self.approvals()], ["uncertain", "uncertain"])
+        self.assertEqual(self.core.delivery.send(second["id"]), "uncertain")   # still no third message
+        self.assertEqual(len(self.transport.sent), 2)
+
+    def test_other_uncertain_kinds_are_never_resent(self):
+        for kind in ("result", "status", "advice", "digest", "research"):
+            self.transport.script = ["ambiguous"]
+            delivery = self.enqueue(f"k-{kind}", kind=kind)
+            self.assertEqual(self.core.delivery.send(delivery["id"]), "uncertain")
+        self.assertEqual(self.core.store.one("SELECT COUNT(*) FROM deliveries")[0], 5)
+        self.assertEqual(self.core.delivery.ready(), [])
+
+    def test_an_approval_for_an_operation_that_is_no_longer_waiting_is_not_resent(self):
+        op = self.core.submit(self.request(kind="test.gated", key="needs-approval"), "system2")
+        self.assertEqual(op["state"], "awaiting_approval")
+        self.core.cancel(op["id"], "owner")
+        self.transport.script = ["ambiguous"]
+        first = self.enqueue("approval:late", kind="approval", operation=op["id"])
+        self.assertEqual(self.core.delivery.send(first["id"]), "uncertain")
+        self.assertEqual(len([r for r in self.approvals() if r["idempotency_key"] == "approval:late:resend"]), 0)
+
+    def test_a_restart_during_an_approval_send_resends_it_once(self):
+        first = self.enqueue("approval:op-2:def456", kind="approval")
+        with self.core.store.transaction(guard=False) as db:                     # the state an interrupted send leaves
+            db.execute("UPDATE deliveries SET state='sending', attempts=1, first_attempt_at=?, gateway='gw-1' WHERE id=?",
+                       (self.clock(), first["id"]))
+        self.assertEqual(self.core.delivery.recover(), {first["id"]: "uncertain"})
+        self.assertEqual([r["state"] for r in self.approvals()], ["uncertain", "pending"])
+
     def test_deduplicating_transport_may_retry_only_on_the_same_gateway(self):
         transport = FakeTransport(deduplicates=True)
         self.core.delivery.transports["telegram:butler"] = transport

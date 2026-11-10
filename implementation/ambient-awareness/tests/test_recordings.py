@@ -37,6 +37,7 @@ class RecordingsTest(unittest.TestCase):
     def authorize(self):
         self.store.execute("INSERT OR REPLACE INTO agreements VALUES ('owner','Owner',1,'{}')")
         self.s.gate.enable(True, self.now)
+        self.store.set('voice_commands', True)   # voice navigation/summaries under test; off by default since 2026-11-02
         for _ in range(3):
             self.now += .01
             evidence = Evidence(self.now, True, True, frozenset({'owner'}), True,

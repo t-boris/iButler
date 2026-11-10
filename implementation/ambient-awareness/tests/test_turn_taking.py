@@ -28,6 +28,7 @@ class TurnTakingTests(unittest.TestCase):
         self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
         self.store.set("face_wake_dialogue", True)
         self.service.gate.enable(True, self.now)
+        self.store.set('voice_commands', True)   # the command path under test; off by default since 2026-11-02
         for _ in range(3):
             self.now += .1
             self.service.dialogue_gate.check(self.evidence(), self.now, True)

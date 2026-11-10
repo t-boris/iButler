@@ -28,6 +28,7 @@ ALLOWED = {
     "workers": set(),
     "backup": {"diagnostics", "store", "rules"},
     "cron": set(),
+    "attention": {"approvals", "routing"},   # builds the commands the router parses; the rest goes through the core
     "feedback": {"store"},
     "server": {"approvals", "config", "diagnostics", "feedback", "operations", "store", "tasks"},
     "client": set(),

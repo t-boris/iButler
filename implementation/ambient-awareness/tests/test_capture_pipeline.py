@@ -27,6 +27,7 @@ class CapturePipelineTests(unittest.TestCase):
         self.s.listening.model = Mock()
         self.s.capture_screen = Mock(return_value=None)
         self.store.set('continuous_archive', True)
+        self.store.set('voice_commands', True)   # the command path under test; off by default since 2026-11-02
         self.store.set('face_wake_dialogue', True)
         self.store.set('voice_enabled', True)
         self.store.set('voice_profile', 'baritone')

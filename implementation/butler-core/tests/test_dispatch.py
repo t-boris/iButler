@@ -31,6 +31,7 @@ AMBIENT_PYTHON = workspace_adapters.AMBIENT_PYTHON
 CLIENT = Path(__file__).resolve().parents[1] / "butler_core/client.py"
 
 FAKE_BACKEND = """#!/bin/sh
+printf '%s\\n' "$@" >> '{root}/fake-args'
 sleep "$(cat '{root}/fake-sleep' 2>/dev/null || echo 0)"
 echo '{{"type":"result","result":"fake result"}}'
 """
@@ -42,11 +43,12 @@ def substitute(text, old, new):
     return text.replace(old, new)
 
 
-def fake_workspace(root):
+def fake_workspace(root, dispatcher=None):
+    """``dispatcher``: a dispatch.py to run instead of the installed one (BUG-018 tests the repository copy)."""
     ws = (root / "ws").resolve()
     (ws / "lib").mkdir(parents=True)
     (ws / "projects/demo").mkdir(parents=True)
-    source = (INSTALLED / "lib/dispatch.py").read_text()
+    source = (dispatcher or INSTALLED / "lib/dispatch.py").read_text()
     source = substitute(source, 'WORKSPACE  = Path("/Users/boris/.openclaw/workspace-butler")', f'WORKSPACE  = Path("{ws}")')
     source = substitute(source, 'CLAUDE_BIN = "/Users/boris/.local/bin/claude"', f'CLAUDE_BIN = "{ws}/fake-backend"')
     source = substitute(source, 'OPENCLAW_BIN = "/opt/homebrew/bin/openclaw"', 'OPENCLAW_BIN = "/usr/bin/true"')
@@ -213,6 +215,26 @@ class DispatchAdapterTest(DispatchCase):
         self.assertTrue(set(env) <= {"HOME", "USER", "LOGNAME", "LANG", "TMPDIR", "PATH", "PYTHONPATH",
                                      "BUTLER_CORE_OPERATION", "BUTLER_CHAIN_DEPTH", "NODE_EXTRA_CA_CERTS",
                                      "NODE_USE_SYSTEM_CA"})
+
+    def backend_args(self):
+        return (self.ws / "fake-args").read_text().splitlines()
+
+    def test_codex_workers_may_connect_to_the_core_socket(self):
+        # 2026-11-07: Codex's workspace-write seatbelt denies connect() to core.sock (PermissionError [Errno 1]), so every
+        # codex worker (classify, curate, news, research) failed its first butler-* call. A socket-only allowance does not
+        # reach the macOS policy in codex 0.167.0 (openai/codex#25416); `network_access` is the switch that does.
+        op = self.submit(backend="codex", task_kind="classify")
+        self.assertEqual(self.core.operations.run(op), "running")
+        self.assertEqual(self.track_until(op)["state"], "succeeded")
+        args = self.backend_args()
+        self.assertIn("workspace-write", args)
+        self.assertEqual(args[args.index("-c") + 1], "sandbox_workspace_write.network_access=true")
+
+    def test_claude_workers_get_no_codex_sandbox_override(self):
+        op = self.submit(backend="claude", task_kind="classify")
+        self.assertEqual(self.core.operations.run(op), "running")
+        self.assertEqual(self.track_until(op)["state"], "succeeded")
+        self.assertNotIn("sandbox_workspace_write.network_access=true", self.backend_args())
 
     def test_identity_check_never_trusts_a_reused_pid(self):
         self.assertFalse(self.dispatcher.alive(os.getpid(), "20261024-100000-abc123"))

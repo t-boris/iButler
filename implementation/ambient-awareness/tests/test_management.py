@@ -108,6 +108,8 @@ class ManagementTests(unittest.TestCase):
         cases=[({"status":"paused","waiting":"status is paused","next_run_at":None},"paused",False,""),
                ({"status":"done","waiting":"status is done","next_run_at":None},"paused",False,"Исследование отмечено завершённым."),
                ({"status":"","waiting":"status is missing in the brief","next_run_at":None},"paused",False,"В брифе не указан status: папка не запускается."),
+               ({"status":"unreadable","waiting":"status is unreadable","next_run_at":None},"unknown",False,
+                "Бриф сейчас не читается: папка пропущена, а не поставлена на паузу."),
                ({"waiting":"3 runs without progress; waiting for your edits","next_run_at":None,"runs_total":3},"scheduled",True,
                 "Папка ждёт ваших правок: несколько прогонов подряд без прогресса."),
                ({"last_status":"failed","failures":2,"runs_total":1,"last_reason":"worker timed out"},"error",True,"Последний запуск: worker timed out"),
@@ -218,6 +220,14 @@ class ManagementTests(unittest.TestCase):
         with patch("butler_ambient.schedules.core_client",return_value=core):
             result=self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"run"})
         self.assertEqual(result["ok"],False);self.assertIn("не запустило прогон: category and recipient",result["message"]);self.assertLess(len(result["message"]),200)
+
+    def test_an_unreadable_brief_is_refused_as_a_read_problem_not_a_pause(self):
+        self.burner.return_value=[self.folder(status="unreadable")]
+        core,client=self.core()
+        with patch("butler_ambient.schedules.core_client",return_value=core):
+            result=self.manager.control({"id":"backburner:sirius-art-c09dd7","action":"run"})
+        self.assertEqual(result["ok"],False);self.assertIn("не читается",result["message"]);self.assertIn("не пауза",result["message"])
+        self.assertNotIn("«Продолжить»",result["message"])
 
     def test_back_burner_run_is_refused_for_a_folder_that_is_not_active_and_the_core_is_not_asked(self):
         for status,said in (("paused","Папка на паузе"),("done","отмечена завершённой"),("","без статуса в брифе")):

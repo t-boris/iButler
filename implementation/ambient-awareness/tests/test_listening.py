@@ -16,7 +16,7 @@ from butler_ambient.service import Service
 from butler_ambient.store import Store
 
 
-class ListeningTests(unittest.TestCase):
+class ListeningFixture:
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.store=Store(Path(self.temp.name));self.now=100.
         self.inputs=Mock(audio_status={},playback={'state':'idle'})
@@ -26,6 +26,7 @@ class ListeningTests(unittest.TestCase):
         self.store.set('continuous_archive',True);self.store.set('face_wake_dialogue',True)
         self.store.set('voice_enabled',True);self.store.set('voice_profile','baritone')
         self.s.gate.enable(True,self.now)
+        self.store.set('voice_commands',True)   # the command path under test; off by default since 2026-11-02
 
     def tearDown(self):
         self.s.stop();self.store.close();self.temp.cleanup()
@@ -34,6 +35,8 @@ class ListeningTests(unittest.TestCase):
         self.l.model.transcribe.return_value=text
         self.l.process(b'\0'*32000,self.l.token,self.now,owner,time.monotonic())
 
+
+class ListeningTests(ListeningFixture, unittest.TestCase):
     def test_speech_that_recognizes_to_nothing_is_shown_when_it_lasted_a_second(self):
         self.process('')
         self.assertEqual(self.l.counts.get('asr-empty'),1)
@@ -482,3 +485,56 @@ class ListeningTests(unittest.TestCase):
 
 
 if __name__=='__main__':unittest.main()
+
+
+class HeardOnlyTests(ListeningFixture, unittest.TestCase):
+    """Owner decision 2026-11-02: the microphone is observation, never a command. ``voice_commands`` is off unless set."""
+
+    def setUp(self):
+        super().setUp()
+        self.store.execute("DELETE FROM settings WHERE key='voice_commands'")   # the real default: the key is absent
+
+    def admit(self):
+        self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")   # consent: the archive may keep the owner's words
+        for _ in range(3):
+            self.now += 1
+            evidence = Evidence(self.now, True, True, frozenset({'owner'}), True, camera_ids=frozenset({'owner'}),
+                camera_certain=True, voice_ids=frozenset({'owner'}), voice_certain=True, speech_detected=True)
+            self.s.gate.check(evidence, self.now)            # recording gate: the archive is allowed
+            self.s.dialogue_gate.check(evidence, self.now, True)
+
+    def test_verified_owner_request_is_archived_but_never_queued(self):
+        self.admit()
+        self.process('Почини это немедленно и открой проект в MarkView.', owner=True)
+        self.assertEqual(self.l.phase, 'heard')
+        self.assertEqual(self.l.counts.get('heard-only'), 1)
+        self.assertIsNone(self.l.counts.get('routed'))
+        self.assertTrue(self.s.voice.jobs.empty())
+        self.assertEqual(self.store.execute("SELECT count(*) AS n FROM recording_transcripts")[0]["n"], 1)
+
+    def test_name_does_not_turn_speech_into_a_command(self):
+        self.admit()
+        self.process('Батлер, запусти Codex на проекте.', owner=True)
+        self.assertEqual(self.l.counts.get('heard-only'), 1)
+        self.assertTrue(self.s.voice.jobs.empty())
+        self.assertFalse(self.s.voice.conversation_active())
+
+    def test_spoken_busy_cue_still_changes_availability_only(self):
+        self.admit()
+        self.process('Я на звонке.', owner=True)
+        self.assertEqual(self.l.counts.get('attention-cue'), 1)
+        self.assertIsNone(self.l.counts.get('heard-only'))
+        self.assertTrue(self.s.voice.jobs.empty())
+
+    def test_public_hearing_status_still_answers_without_a_command(self):
+        self.s.disclosures = Mock(); self.s.disclosures.play_fixed = Mock(return_value=True)
+        self.process('Батлер, ты меня слышишь?')
+        self.assertEqual(self.l.counts.get('hearing-replied'), 1)
+        self.assertTrue(self.s.voice.jobs.empty())
+
+    def test_switch_on_restores_the_command_path(self):
+        self.store.set('voice_commands', True)
+        self.admit()
+        self.process('Батлер, какая погода?', owner=True)
+        self.assertIsNone(self.l.counts.get('heard-only'))
+        self.assertEqual(self.s.voice.jobs.qsize(), 1)

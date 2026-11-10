@@ -338,15 +338,31 @@ class Brief:
     readonly: tuple[str, ...] = ()    # paths it may read but whose every change is refused (e.g. decisions, raw source notes)
 
 
+BRIEF_UNREADABLE = "unreadable"     # a brief that exists but could not be read; never an owner-written status
+BRIEF_READ_TRIES = 3
+BRIEF_READ_PAUSE = 0.3
+
+
 def read_brief(folder: Path) -> Optional[Brief]:
     """None when the folder has no `_brief.md` (it is not a research folder)."""
     path = folder / BRIEF
     if not path.is_file():
         return None
-    try:
-        fields = vault._frontmatter_fields(path.read_text(errors="replace"))
-    except OSError:
-        fields = {}
+    # The vault is iCloud-backed and the owner edits briefs in MarkView: a read can fail or catch a save half-way. That is
+    # not "no status" (which the panel shows as a pause); retry briefly, then say plainly that the brief is unreadable.
+    text = ""
+    for attempt in range(BRIEF_READ_TRIES):
+        try:
+            text = path.read_text(errors="replace")
+        except OSError:
+            text = ""
+        if text.strip():
+            break
+        if attempt + 1 < BRIEF_READ_TRIES:
+            time.sleep(BRIEF_READ_PAUSE)
+    if not text.strip():
+        return Brief(status=BRIEF_UNREADABLE)
+    fields = vault._frontmatter_fields(text)
     try:
         priority = min(5, max(1, int(fields.get("priority", 3))))
     except (TypeError, ValueError):

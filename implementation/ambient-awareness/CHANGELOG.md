@@ -1,7 +1,25 @@
 # Changelog — butler-ambient
 
-## Unreleased — owner-local history summaries and selection
+## 0.12.5 — 2026-11-10 (ops log audit fixes)
 
+- BUG-023: the Butler panel polled `openclaw cron list` and `openclaw models status` every 11-16 s, about 6,700 CLI starts a day, each logging a line in the gateway log. `components.command` now serves these two listings from a short cache (120 s and 300 s); any other command run through it (pause, run, edit, model change) drops the cache first and again afterwards, a read that was running when a write landed is not kept, and a failed read is never cached. Nothing else about the panel changes.
+- BUG-027: the panel reloaded the component list about every 10 s and each reload asked Ollama about every local model (an `/api/show` request), about 360 an hour: 99 % of the lines of `dialogue-ollama.log`. `components.local_model_ready` now reuses a ready answer for 5 minutes and a failure for 15 s (so a model that just finished downloading shows up within a poll or two); a control action drops it like the BUG-023 listings. Display state only: the `LocalAnalyzer.check_local` gate that runs before an observation is sent to a model is not cached.
+- BUG-027: `dialogue-ollama.log` and `dialogue-ollama-error.log`, written by the launchd job `com.boris.butler-dialogue-ollama`, had no size limit (9.4 MB and 4 MB in 16 days). The maintenance loop now checks them every 10 minutes and, over 4 MiB, copies the file to `.1` (`.2` is the one before) and empties it in place (`logfiles.py`). A rename is not possible because launchd keeps the file open; launchd opens it for appending, so the job writes on at the start of the emptied file. The few lines written between the copy and the emptying are lost. A failure is recorded as the service event `log-rotation-failed`.
+
+## 0.12.4 — 2026-11-09 (dictation works during Pause)
+
+- Owner decision DEC-049 (butler-conversational-display), 2026-11-09: «Причём тут наблюдение? Я хочу просто подиктовать». While observation is paused, «Диктовать» opens its own short microphone session instead of being refused with «Наблюдение на паузе: нажмите «Продолжить»». Only the microphone is opened (new `sensing.MicrophoneInputs`: the native audio helper, no camera, no screen, no system audio, no identity checks); speech is cut into phrases at the quiet moments and recognised by the resident local Whisper with its usual phantom and confidence filters (`dictation_capture.py`); the text goes to the panel's message field only. Nothing is stored: no media row, transcript, feedback episode, event text, archive or analysis, and no log line.
+- The microphone never stays open by accident: «Остановить» closes it at once and still delivers the last words (the unfinished second is kept, padded with silence); also after 120 s without recognised words, 15 s after the panel stops polling, at the 4000-character text limit, after 20 minutes in total, when observation is resumed, when the owner voice setup needs the microphone, when the service stops, and when the microphone is muted, at zero gain or silent for 8 s. Three failed recognitions in a row end the dictation with an explanation.
+- Unchanged: with observation on, dictation rides the hearing path exactly as before (no second microphone). Pause still stops every background source; the hearing path never claims words for an own session (`Dictation.listening()` is false for it).
+- Not in this release: draft text while a phrase is being spoken in the own session (the status line shows «Включаю микрофон…», «Слушаю…», «Распознаю…»); no Swift/panel change.
+- The earlier note that dictation has a 120-second limit was wrong: `TOTAL_LIMIT` was never enforced, and the hearing-path dictation still ends only with «Остановить». The limits above apply to the own session only.
+
+## 0.12.3 — 2026-11-02 (the microphone is never a command)
+
+- Owner decision 2026-11-02: speech heard by the microphone is observation only. After an utterance is checked and archived, the hearing path stops with the feed mark `heard-only`; voice navigation of recordings, local voice summaries, voice corrections and routing to the dialogue brain (private or general) run only when the store key `voice_commands` is true. It is off by default and has no panel control.
+- Unchanged: spoken busy/free cues still change availability only; the fixed «я вас слышу» status; dictation started from the panel; the panel chat and card buttons; recording, transcription and the archive.
+- Tests that exercise the voice command path set `voice_commands` explicitly; new tests cover the default.
+- Also in this release (owner-local history summaries and selection, unreleased since 2026-10-31):
 - Preserve an open recording selection across periodic refreshes and raw-access recovery; explicit refresh and hard permission loss still clear or reload as before.
 - Add on-demand local summaries for a recording session, a day of recordings, and a day of observations. Summaries distinguish key points, possible conclusions and limitations, warn when bounded input is incomplete, and are cancelled on hard history-scope loss. They do not transmit or persist summary text.
 - Show a clearly labelled first-fragment preview while a long summary is still running; explain when the current raw-file permission hides images.

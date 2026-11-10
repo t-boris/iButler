@@ -33,7 +33,8 @@ PYTHON = "/opt/miniconda3/bin/python"
 OPENCLAW = "/opt/homebrew/bin/openclaw"
 NODE_BIN = HOME / ".nvm/versions/node/v22.22.3/bin"
 BRIDGE = RUNTIME / "bridge"
-BRIDGE_FILES = ("index.js", "package.json", "openclaw.plugin.json", "lib/bridge.js", "lib/core.js", "lib/telegram.js")
+BRIDGE_FILES = ("index.js", "package.json", "openclaw.plugin.json", "lib/bridge.js", "lib/core.js", "lib/process.js",
+                "lib/telegram.js")
 DEBOUNCE_MS = 500
 WORKSPACE = HOME / ".openclaw/workspace-butler"
 WORKSPACE_BINS = [WORKSPACE / "bin"]

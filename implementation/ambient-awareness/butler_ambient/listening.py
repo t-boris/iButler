@@ -635,6 +635,32 @@ class Listening:
                 born = self.transcripts.rows.get(identifier, {}).get('born', at-len(pcm)/32000)
                 s.store.retain_transcript("owner:" + identifier, "microphone", born, at, text,
                     meeting_id=getattr(s.meeting, "recording_id", None), now=s.clock())
+            attention = getattr(s, 'attention', None)
+            if attention is not None:
+                from .attention import BUSY_CUE, FREE_CUE
+                if (not verified_owner or company) and (BUSY_CUE.search(text) or FREE_CUE.search(text)):
+                    self.phase = 'blocked'
+                    self.mark('attention-cue-denied', 'Изменение занятости требует подтверждения владельца.')
+                    return
+                # Only the owner may change an owner-selected availability
+                # override; another speaker's words are ordinary local speech.
+                cue = attention.spoken_cue(text, s.clock()) if verified_owner and not company else None
+                if cue is not None:
+                    self.phase = 'blocked'
+                    # Acknowledged in the feed only: a spoken «понял» would be exactly the interruption asked against.
+                    message = ('Занятость задана вручную и сохранится до вашего переключения.'
+                               if cue == 'busy' and attention.manual_mode == 'busy'
+                               else 'Понял: занят, молчу до «я свободен» или 10 минут.' if cue == 'busy'
+                               else 'Понял: свободен.')
+                    self.mark('attention-cue', message)
+                    return
+            # Owner decision 2026-11-02: what the microphone hears is observation, never a command. There is no
+            # spoken conversation; commands reach Butler only through the panel (chat, dictation, card buttons) and
+            # Telegram. The utterance is archived above; nothing below runs unless the owner turns voice commands on.
+            if s.store.get('voice_commands', False) is not True:
+                self.phase = 'heard'
+                self.mark('heard-only', 'Слова записаны. Голосовые команды выключены: команды только через панель и Telegram.')
+                return
             # Intercept before corrections, dialogue classification, feedback
             # joining or any cloud dispatch. A recordings request is local.
             from .recordings import history_visible, local_voice_history_allowed, navigate_voice
@@ -670,25 +696,7 @@ class Listening:
                 if correction is not None:
                     self.mark('correction', correction.get('message', 'Исправление принято.'))
                     return
-            attention = getattr(s, 'attention', None)
             if attention is not None:
-                from .attention import BUSY_CUE, FREE_CUE
-                if (not verified_owner or company) and (BUSY_CUE.search(text) or FREE_CUE.search(text)):
-                    self.phase = 'blocked'
-                    self.mark('attention-cue-denied', 'Изменение занятости требует подтверждения владельца.')
-                    return
-                # Only the owner may change an owner-selected availability
-                # override; another speaker's words are ordinary local speech.
-                cue = attention.spoken_cue(text, s.clock()) if verified_owner and not company else None
-                if cue is not None:
-                    self.phase = 'blocked'
-                    # Acknowledged in the feed only: a spoken «понял» would be exactly the interruption asked against.
-                    message = ('Занятость задана вручную и сохранится до вашего переключения.'
-                               if cue == 'busy' and attention.manual_mode == 'busy'
-                               else 'Понял: занят, молчу до «я свободен» или 10 минут.' if cue == 'busy'
-                               else 'Понял: свободен.')
-                    self.mark('attention-cue', message)
-                    return
                 if explicit_address(text, aliases):
                     attention.named(s.clock())
                 elif (attention.state(s.clock()) == BUSY and not voice.conversation_active()

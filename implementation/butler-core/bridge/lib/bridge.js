@@ -10,6 +10,7 @@
 const SEEN_TTL_MS = 10 * 60 * 1000;
 const WATCH_TTL_MS = 3 * 60 * 60 * 1000;
 const CONFIG_TTL_MS = 60 * 1000;
+const OUTAGE_REMINDER_MS = 10 * 60 * 1000;
 
 function milliseconds(value, fallback) {
   const number = Number(value);
@@ -27,6 +28,27 @@ export function createBridge({ call, react, instance, version, now = () => Date.
   let greeted = false;
   let pending = null;
   const stats = { unreachable: 0, admitted: 0, receipts: 0, receiptFailures: 0 };
+  // One line when the core becomes unreachable and one when it answers again: a bridge outage is news once, and the
+  // count of failed calls is kept in stats and in the closing line.
+  let outage = null;
+
+  function failed(error) {
+    stats.unreachable += 1;
+    if (!outage) {
+      outage = { since: now(), reminded: now(), failures: 0 };
+      log("warn", `butler-core unavailable (${error.message})`);
+    } else if (now() - outage.reminded >= OUTAGE_REMINDER_MS) {
+      outage.reminded = now();
+      log("warn", `butler-core still unavailable after ${Math.round((now() - outage.since) / 1000)} s (${outage.failures + 1} failed calls; ${error.message})`);
+    }
+    outage.failures += 1;
+  }
+
+  function reached() {
+    if (!outage) return;
+    log("info", `butler-core reachable again after ${Math.round((now() - outage.since) / 1000)} s (${outage.failures} failed calls)`);
+    outage = null;
+  }
 
   function prune() {
     const at = now();
@@ -40,14 +62,14 @@ export function createBridge({ call, react, instance, version, now = () => Date.
     const params = greeted ? {} : { instance: instance.id, version, host: "openclaw", started_at: instance.startedAt };
     pending = call(method, params, timeoutMs)
       .then((result) => {
+        reached();
         greeted = true;
         config = method === "bridge.hello" ? result.config : result;
         configAt = now();
         return config;
       })
       .catch((error) => {
-        stats.unreachable += 1;
-        log("warn", `butler-core unavailable (${error.message})`);
+        failed(error);
         return config;
       })
       .finally(() => {
@@ -63,7 +85,7 @@ export function createBridge({ call, react, instance, version, now = () => Date.
 
   function inOrder(session, fn) {
     const previous = queues.get(session) ?? Promise.resolve();
-    const next = previous.then(fn).catch((error) => log("warn", `butler-core lifecycle call failed (${error.message})`));
+    const next = previous.then(fn).then(reached, failed);
     queues.set(session, next);
     next.finally(() => {
       if (queues.get(session) === next) queues.delete(session);
@@ -106,10 +128,10 @@ export function createBridge({ call, react, instance, version, now = () => Date.
     try {
       result = await call("bridge.admit", params, rules.timeout_ms ?? timeoutMs);
     } catch (error) {
-      stats.unreachable += 1;
-      log("warn", `butler-core admission failed, message passes without receipt (${error.message})`);
+      failed(error);
       return undefined;
     }
+    reached();
     if (result?.admitted) {
       stats.admitted += 1;
       if (session) watched.set(session, now());
@@ -159,7 +181,7 @@ export function createBridge({ call, react, instance, version, now = () => Date.
       account: ctx.accountId,
       chat: String(event.to ?? ctx.conversationId ?? "").replace(/^telegram:/, ""),
       message_id: String(event.messageId),
-    }, timeoutMs).catch((error) => log("warn", `reply record failed (${error.message})`));
+    }, timeoutMs).then(reached, failed);
   }
 
   return { messageReceived, beforeDispatch, agentEvent, messageSent, refresh, stats };

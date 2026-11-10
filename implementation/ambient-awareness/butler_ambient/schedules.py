@@ -45,7 +45,8 @@ class Schedules:
 
     def _backburner_row(self,value,nightly):
         active=value["status"]=="active";stamp=lambda text:dt.datetime.fromisoformat(text).timestamp() if text else None
-        note={"paused":"","done":"Исследование отмечено завершённым."}.get(value["status"],"В брифе не указан status: папка не запускается.")
+        note={"paused":"","done":"Исследование отмечено завершённым.",
+              "unreadable":"Бриф сейчас не читается: папка пропущена, а не поставлена на паузу."}.get(value["status"],"В брифе не указан status: папка не запускается.")
         error=note if not active else "Папка ждёт ваших правок: несколько прогонов подряд без прогресса." if value["waiting"] else ""
         if not error and value["last_reason"]:error="Последний запуск: "+value["last_reason"][:300]
         enabled=nightly is not None and nightly["enabled"]
@@ -60,7 +61,7 @@ class Schedules:
         if active and not enabled:
             error=("Ночная автоматика выключена в ядре." if nightly is not None else "Состояние ночной автоматики не подтверждено: ядро недоступно.")+ (" "+error if error else "")
         return {"id":"backburner:"+value["slug"],"kind":"backburner","name":"Back Burner · "+value["name"],"enabled":active and enabled,"running":False,
-            "status":"paused" if not active else "unknown" if nightly is None else "disabled" if not enabled else "error" if value["last_status"]=="failed" else "scheduled",
+            "status":("unknown" if value["status"]=="unreadable" else "paused") if not active else "unknown" if nightly is None else "disabled" if not enabled else "error" if value["last_status"]=="failed" else "scheduled",
             "schedule":("план: каждую ночь " if enabled else "автоматика выключена · окно " if nightly is not None else "автоматика не подтверждена · окно ")+plan+" · приоритет "+str(value["priority"]),
             "next_run":next_run,"last_run":stamp(value["last_run_at"]),"last_result":value["last_status"] or "прогонов нет",
             "model":(value["model"] or "—")+" · подтверждённых прогонов: "+str(value["runs_total"]),"error":error}
@@ -193,6 +194,8 @@ class Schedules:
         """One folder now, as a tracked butler-core operation: the core starts the cycle and follows it to its result.
 
         A manual run ignores the folder's pause, so the button asks for an explicit «Продолжить» first (owner's choice)."""
+        if status=="unreadable":
+            return {"ok":False,"message":"Бриф папки сейчас не читается (облачная синхронизация или сохранение): это не пауза, повторите через минуту."}
         if status!="active":
             state={"paused":"на паузе","done":"отмечена завершённой"}.get(status,"без статуса в брифе")
             return {"ok":False,"message":"Папка "+state+": сначала нажмите «Продолжить» (папка снова станет активной). Тогда запуск и ночной цикл её возьмут."}

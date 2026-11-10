@@ -9,6 +9,7 @@ import { definePluginEntry } from "openclaw/plugin-sdk/plugin-entry";
 import { resolveTelegramAccount } from "openclaw/plugin-sdk/telegram-account";
 import { createBridge } from "./lib/bridge.js";
 import { callCore } from "./lib/core.js";
+import { isGatewayProcess } from "./lib/process.js";
 import { setReaction } from "./lib/telegram.js";
 
 const VERSION = "0.1.0";
@@ -26,6 +27,8 @@ export default definePluginEntry({
   name: "Butler Core Bridge",
   description: "Records managed Telegram messages in butler-core before dispatch and reports turn lifecycle.",
   register(api) {
+    // OpenClaw loads every plugin into every CLI command too; the bridge has nothing to do there (BUG-025).
+    if (!isGatewayProcess()) return;
     globalThis[SHARED] ??= { instance: processInstance() };
     const shared = globalThis[SHARED];
     shared.unsubscribe?.();

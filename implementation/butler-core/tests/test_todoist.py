@@ -98,6 +98,63 @@ class CreateTest(TodoistCase):
             TodoistAdapter(client).execute({"id": "op-x", "kind": "todoist.create", "params": {"content": "x"}}, None)
 
 
+class CommentTest(TodoistCase):
+    """BUG-026: every comment of 4 was refused (INVALID_ARGUMENT_VALUE) because Todoist no longer accepts the Sync
+    `note_add` command, with either argument name, on any task. A comment is added with POST /comments."""
+
+    def setUp(self):
+        super().setUp()
+        self.core.operations.run(self.submit("todoist.create", "seed", content="Задача")["id"])
+        self.todoist.requests.clear()
+
+    def comment(self, key="m1", **params):
+        return self.submit("todoist.comment", key, **{"task_id": "101", "content": "заметка", **params})
+
+    def test_a_comment_is_added_with_the_comments_endpoint_not_a_sync_command(self):
+        op = self.comment()
+        self.assertEqual(self.core.operations.run(op["id"]), "succeeded")
+        self.assertEqual(self.todoist.comments, [{"task_id": "101", "content": "заметка"}])
+        self.assertEqual([r[:2] for r in self.todoist.requests], [("POST", "/comments")])
+        record = self.core.operations.get(op["id"])
+        self.assertEqual(record["receipt"], f"todoist:comment:{command_uuid(op['id'])}")
+        self.assertEqual(json.loads(record["result"]), {"task_id": "101"})
+
+    def test_a_lost_reply_is_reconciled_without_a_second_comment(self):
+        self.todoist.fail = "timeout-after"
+        op = self.comment("m2")
+        self.assertEqual(self.core.operations.run(op["id"]), "succeeded")
+        self.assertEqual(self.core.operations.get(op["id"])["reason"], "reconciled: effect found")
+        self.assertEqual(len(self.todoist.comments), 1)
+
+    def test_a_failure_before_the_write_is_retried_to_exactly_one_comment(self):
+        self.todoist.fail = "http500"
+        op = self.comment("m3")
+        self.assertEqual(self.core.operations.run(op["id"]), "requested")      # reconciled not done, retry scheduled
+        self.assertEqual(self.todoist.comments, [])
+        self.assertEqual(self.core.operations.run(op["id"]), "succeeded")
+        self.assertEqual(len(self.todoist.comments), 1)
+
+    def test_a_comment_on_a_task_that_does_not_exist_is_refused_for_good(self):
+        op = self.comment("m4", task_id="999")
+        self.assertEqual(self.core.operations.run(op["id"]), "failed")
+        self.assertIn("todoist 400", self.core.operations.get(op["id"])["reason"])
+        self.assertEqual(self.todoist.comments, [])
+
+    def test_the_token_travels_only_in_the_header(self):
+        op = self.comment("m5")
+        self.core.operations.run(op["id"])
+        self.assertNotIn("tok-secret", json.dumps(dict(self.core.operations.get(op["id"]))))
+
+    def test_the_fake_refuses_the_sync_command_like_the_real_service(self):
+        """Pins the fake to the measured behaviour so the adapter cannot drift back to note_add unnoticed."""
+        from butler_core.adapters.base import Rejected
+        client = self.todoist_adapter.client
+        for args in ({"item_id": "101", "content": "x"}, {"task_id": "101", "content": "x"}):
+            with self.assertRaises(Rejected):
+                client.sync([{"type": "note_add", "uuid": "u-" + str(len(args)), "args": args}])
+        self.assertEqual(self.todoist.comments, [])
+
+
 class ChangeTest(TodoistCase):
     def setUp(self):
         super().setUp()

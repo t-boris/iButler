@@ -17,6 +17,7 @@ from pathlib import Path
 
 from . import __version__
 from .approvals import Approvals, review_code
+from .attention import Attention
 from .config import Config
 from .cron import agent_of
 from .delivery import Delivery
@@ -61,6 +62,7 @@ class Core:
         self.delivery = Delivery(self.store, self.config, self.policy, self.diagnostics, self.transports, clock,
                                  on_change=lambda *_: self.wake())
         self.feedback = Feedback(self.store, clock)
+        self.attention = Attention(self)
         self.rules = Rules(self)
         self.shadow = Shadow(self.store, self.config, model, clock)
         self.scheduler = Scheduler(self, interval=interval, clock=clock)
@@ -82,6 +84,8 @@ class Core:
         self.scheduler.every(60, "mail", self.schedule_mail_readings)
         self.scheduler.every(60, "backburner", self.schedule_backburner)
         self.scheduler.every(600, "system3", self.lessons.maybe_run)
+        self.scheduler.every(600, "approval-expiry", self.expire_stale_approvals)
+        self.scheduler.every(600, "attention", self.attention.maybe_send)
         if workers:
             self.scheduler.start()
         self.ready_at = self.clock()
@@ -114,6 +118,15 @@ class Core:
         self.diagnostics.record("core.recovered", {k: len(v) if isinstance(v, (list, dict)) else v
                                                    for k, v in found.items()})
         return found
+
+    def approval_expire_days(self):
+        _, content = self.config.active()
+        return (content or {}).get("approval", {}).get("expire_days", 7)
+
+    def expire_stale_approvals(self):
+        """End the wait of operations nobody approved within ``approval.expire_days`` (default 7); they are not executed."""
+        days = self.approval_expire_days()
+        return {"expired": self.operations.expire_waiting(days * 86400, days)}
 
     def track_running(self):
         for row in self.store.query("SELECT id FROM operations WHERE state='running'"):

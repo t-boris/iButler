@@ -39,6 +39,9 @@ REQUEST_LIMIT = 1024 * 1024
 GATEWAY = re.compile(r"/openclaw/dist/index\.js gateway\b")
 AMBIENT = re.compile(r"-m butler_ambient\.cli --state ")
 AGENT = re.compile(r"(/openclaw/|\bacpx\b|\bcodex\b|/claude\b|\bclaude-code\b|lib/dispatch\.py|\bbutler_ambient\.work_tasks\b)")
+# BUG-025: bridge calls have a 1.2 s budget in the gateway. A caller lookup (a /bin/ps start) or a bridge call that takes longer
+# than this is recorded as "rpc.slow", so a timeout seen by the gateway can be matched with what the core was doing.
+SLOW_RPC = 0.5
 TERMINAL_PRINCIPAL = "terminal:owner"
 VOICE_PRINCIPAL = "voice:owner"
 
@@ -91,6 +94,7 @@ class Server:
         self.core, self.path, self.classify = core, Path(path), classify
         self.backup, self.cron = backup, cron
         self.sock = None
+        self.slow = SLOW_RPC
         self.stopping = threading.Event()
         self.methods = {
             "ping": (self.ping, ALL),
@@ -107,6 +111,7 @@ class Server:
             "operation.get": (lambda p, c: self.operation(p), ALL),
             "operation.list": (lambda p, c: core.operations.list(p.get("states"), int(p.get("limit", 50)),
                                                                  p.get("persona")), ALL),
+            "approval.pending": (lambda p, c: core.attention.pending(), ALL),
             "task.get": (lambda p, c: core.status(p["task"]), ALL),
             "task.list": (lambda p, c: core.status(limit=int(p.get("limit", 20)), persona=p.get("persona")), ALL),
             "cancel": (lambda p, c: core.cancel(p["operation"], c), ALL),
@@ -270,20 +275,36 @@ class Server:
                 pid = connection.getsockopt(SOL_LOCAL, LOCAL_PEERPID)
             except OSError:
                 pid = None
+            began = time.monotonic()
             caller = self.classify(pid) if pid else "local"
+            looked_up = time.monotonic() - began
             connection.settimeout(120)
             stream = connection.makefile("rwb")
             while True:
                 line = stream.readline(REQUEST_LIMIT + 1)
                 if not line:
                     break
+                began = time.monotonic()
                 response = self.dispatch(line, caller)
+                self.note_slow(line, caller, looked_up, time.monotonic() - began)
+                looked_up = 0.0
                 stream.write((json.dumps(response, ensure_ascii=False) + "\n").encode())
                 stream.flush()
         except (OSError, ValueError):
             pass
         finally:
             connection.close()
+
+    def note_slow(self, line, caller, looked_up, handled):
+        """Record a request whose caller lookup was slow, or a bridge call that was slow to handle (never raises)."""
+        try:
+            method = json.loads(line).get("method")
+            if looked_up > self.slow or (str(method).startswith("bridge.") and handled > self.slow):
+                self.core.diagnostics.record("rpc.slow", {"method": method, "caller": caller,
+                                                          "classify_ms": round(looked_up * 1000),
+                                                          "handle_ms": round(handled * 1000)})
+        except Exception:
+            pass
 
     def dispatch(self, line, caller):
         request_id = None

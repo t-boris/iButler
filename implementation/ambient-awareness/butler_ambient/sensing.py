@@ -446,6 +446,99 @@ class Inputs:
         self.drain()
 
 
+class MicrophoneInputs(Inputs):
+    """Microphone only, for the panel's dictation (DEC-049): no camera, no screen, nothing retained.
+
+    The native audio helper (FFmpeg when there is none) runs only between start() and close(). It reuses everything
+    Inputs knows about that helper: health lines, restarts and the FFmpeg fallback. ``processes[0]`` stays an empty slot
+    because every recovery path addresses the microphone as ``processes[1]``.
+    """
+    QUEUE_SECONDS = 120          # recognition can take seconds meanwhile; blocks are one second and are not dropped
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.audio = queue.Queue(maxsize=self.QUEUE_SECONDS)
+        self.closing, self.ended = threading.Event(), threading.Event()
+        self.flush_tail = False
+        self.closed_at = None
+        self.reader = self.diagnostics = None
+        self.close_lock = threading.Lock()
+
+    def _microphone_command(self):
+        if self.audio_helper and self.voice_root:
+            return [str(self.audio_helper), self.expected_microphone, str(self.voice_root)]
+        return [self.ffmpeg_cli, "-hide_banner", "-loglevel", "error", "-nostdin", "-f", "avfoundation",
+                "-i", f"none:{self.microphone}", "-vn", "-ac", "1", "-ar", "16000", "-f", "s16le", "pipe:1"]
+
+    def start(self):
+        self.stopped.clear(); self.closing.clear(); self.ended.clear()
+        self.flush_tail, self.closed_at = False, None
+        self.drain()
+        self.audio_status = {"ready": False, "echo_cancellation": False}
+        self.audio_started_at = time.time()
+        native = bool(self.audio_helper and self.voice_root)
+        try:
+            process = subprocess.Popen(self._microphone_command(), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                       stdin=subprocess.PIPE if native else subprocess.DEVNULL, bufsize=0)
+        except Exception:
+            raise RuntimeError("local capture source unavailable") from None
+        self.processes[:] = [None, process]
+        self.diagnostics = threading.Thread(target=self._errors, args=("microphone", process), daemon=True)
+        self.diagnostics.start()
+        self.reader = threading.Thread(target=self._audio, args=(process,), daemon=True)
+        self.reader.start()
+
+    def _audio(self, proc):
+        self.audio_stream, self.audio_samples = uuid.uuid4().hex, 0
+        buffer = bytearray()
+        while True:
+            block = proc.stdout.read(32000 - len(buffer))
+            if not block:
+                if self.closing.is_set():
+                    # Closed by the owner's «Остановить»: the last words may sit in an unfinished second.
+                    if self.flush_tail and len(buffer) >= 3200:
+                        self._audio_frame(bytes(buffer).ljust(32000, b"\0"))
+                elif self.audio_helper and len(self.processes) > 1 and self.processes[1] is proc:
+                    self._native_audio_exited(proc)       # a helper that died on its own: restart it, then the FFmpeg fallback
+                return
+            buffer.extend(block)
+            if len(self.processes) < 2 or self.processes[1] is not proc: return
+            if len(buffer) == 32000:
+                self._audio_frame(bytes(buffer))
+                buffer.clear()
+
+    def close(self, flush=False):
+        """End the microphone. Safe from any thread and to repeat; with ``flush`` the unfinished last second is still
+        delivered (padded with silence) before ``ended`` is set."""
+        with self.close_lock:
+            if self.closing.is_set(): return
+            self.flush_tail = flush
+            self.closed_at = time.time()
+            self.closing.set()
+            self.stopped.set()      # from here recover_audio() and _fallback_audio() refuse to start another helper
+        with self.control_lock:     # a recovery already under way has finished, so its new helper is in `processes`
+            processes = [process for process in self.processes if process is not None]
+        for process in processes:
+            try: process.terminate()
+            except OSError: pass
+        for process in processes:
+            try: process.wait(timeout=2)
+            except subprocess.TimeoutExpired: process.kill(); process.wait()
+        for thread in (self.reader, self.diagnostics):
+            if thread is not None and thread is not threading.current_thread():
+                thread.join(timeout=2)
+        for process in processes:                      # both readers are done: release the pipes
+            for pipe in (process.stdin, process.stdout, process.stderr):
+                if pipe is not None:
+                    try: pipe.close()
+                    except (OSError, ValueError): pass
+        self.processes.clear()
+        self.audio_status = {"ready": False, "echo_cancellation": False}
+        self.input_signal = None
+        self.audio_started_at = None
+        self.ended.set()
+
+
 class Verifier:
     """YuNet/SFace faces and Resemblyzer/VAD voices, entirely on this machine.
 

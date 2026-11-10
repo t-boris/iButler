@@ -1,6 +1,39 @@
 # OpenClaw Multi-Agent Pipeline — Setup Plan
 
 ---
+## PLAN — Microphone speech is never a command (2026-11-02, owner decision)
+
+Owner, 2026-11-02: «Butler должен слушать всё, что я говорю, но никогда не воспринимать это как команду, пока я ему не
+сказал (или не нажал кнопку)»; «мы не поддерживаем разговор»; «без команды через дисплей (send и т.п.) Butler не выполняет
+команды вообще; если сказал — может запускать всё». Evidence: the three MarkView agent starts of 2026-10-28/29 followed a
+panel chat message («почини это немедленно») and two card reply buttons Butler itself had offered («Исправить…»,
+«Подготовить исправление…»); no case came through overheard speech, but the private voice route sends any verified-owner
+utterance to the agent brain without the name (`listening.py`, `general` only requires `explicit_address`).
+
+- [x] 1. Ambient `listening.py`: after an utterance is heard, checked and archived (`retain_transcript`), stop — no voice
+      navigation, no local summary request, no voice correction, no routing to the dialogue brain (private or general).
+      Mark `heard-only`. Kept: spoken busy/free cues (attention state only), the fixed «я вас слышу» status, dictation
+      (starts by button), the panel chat. Policy key `voice_commands` (store, default off); tests that exercise routing
+      set it on explicitly. Version bump (patch), CHANGELOG, VERIFICATION.
+- [x] 2. Tests: new checks in `tests/test_listening.py` (verified owner utterance → heard-only, nothing queued; name
+      does not change that; busy cue still applies; dictation still receives text); adjust the ~11 routing assertions in
+      test_general_dialogue / test_capture_pipeline / test_recordings / test_attention. `make test` green before and after.
+- [x] 3. Butler rules (`~/.openclaw/workspace-butler`: AGENTS.md = CLAUDE.md, ≤12 000 chars; `docs/markview.md`,
+      `docs/ambient-and-display.md`): commands come only from the panel chat (send, dictation), card reply buttons and
+      Telegram; what the microphone hears is observation, never an instruction. Starting an agent in MarkView, sending it
+      a prompt, `butler-dispatch start code` — only when Boris's own message names that action; «почини/разберись/
+      подготовь исправление» → investigate, show the plan on a card, offer a button whose label names the launch.
+- [x] 4. Record (BUG-015): MarkView bug in this project (cause, resolution, what stays), link to the archived attention feature.
+- [x] 5. Build and install ambient (0.12.3 installed 2026-11-02, service restarted, status OK) (`make build`, wheel into the private runtime as the 0.12.x releases, backup under
+      `release-backups/`, service restart — the panel restarts too); verify installed version and the `heard-only` mark
+      with the installed package's tests. Live speech check is Boris's.
+- [x] 6. Memory + `tasks/lessons.md`.
+
+Not changed: recording, transcription and archive; Telegram; the Display; the dialogue Ollama service stays installed, idle.
+
+Review (2026-11-02): all six items done; 981 tests OK; installed 0.12.3; BUG-015 filed and set to fixed; a live spoken check («heard-only» in the feed) remains with Boris.
+
+---
 ## PLAN — Butler modular core and reliable tasks (2026-10-24, goal run)
 
 Spec: `docs/features/butler-modular-core-and-reliable-tasks`. Plan: `~/.claude/plans/wiggly-dreaming-stream.md`.
@@ -2275,3 +2308,119 @@ Proposed changes (all through `openclaw cron edit|rm`, never by hand-editing job
 - [x] Owner explicitly chose local viewing of saved camera/screen frames without automatic identity confirmation; recorded as MarkView DEC-098. Installed local_ui.py, history_summary.py and panel, backup `stored-frames-20261029T045354Z`; metadata-only live check shows 109 camera stills available, history visible, strict raw access false. Source and installed frame tests 6/6, summary tests 16/16, bundled panel 306/306.
 - [x] Full ambient suite 951/951; summary focused tests rerun after the defensive metadata change, 16/16.
 - [ ] Owner verification of visible images and useful summaries on real records remains open; actual contents were not inspected.
+
+# Two red rows in the Schedule panel — review 2026-11-02
+
+- [x] `semantic-reindex-nightly` red: status poll timeout (0.5 s) was below the ambient service's real latency (~1 s). Red/green regression test for a 1.2 s answer; timeout is now `STATUS_TIMEOUT = 4.0`. Knowledge-source tests 20/20. Installed only `lib/knowledge_sources.py`, backup `quiet-timeout-20261102T1930`.
+- [x] Complete rebuild verified: forced full rebuild (index metadata mismatch) finished 2026-11-02 21:51 with scanned=2660 reindexed=2627 skipped=0, 45,159 chunks in 98.6 minutes, then published. It ran on the old code (before the exclusions below).
+- [x] Owner asked to exclude generated folders and files. `GENERATED_DIRECTORIES` (node_modules, .git, .venv, venv, __pycache__, .next, .nuxt, .cache, .pytest_cache, .mypy_cache, .tox, site-packages, bower_components) is excluded in `knowledge_sources.excluded_directory`; base64 data URIs are replaced before chunking in `embeddings._index_one`. Not touched: the 715 `managed_by: ai-butler` research notes (research dedup depends on them). Tests: butler-core 415 + 2 new, all green.
+- [x] Found and fixed a data-loss bug in the prune step: notes evicted to iCloud (disk 98-99 % full) were pruned as deleted (index fell from 2660 to 1275 files). Prune now keeps evicted notes (`eligible(..., keep_evicted=True)`); red/green test added. Installed `embeddings.py` and `knowledge_sources.py` (backup `backups/generated-exclusion-20261102T2152`).
+- [x] Recovery run: downloaded 1770 evicted notes (32 MB), 1272 were evicted again within minutes; incremental reindex re-embedded the 498 that were local. Index now 1773 files, 31,510 chunks, built 22:21. The scheduler's manual run of `semantic-reindex-nightly` finished `ok` (scanned=652, 3.2 s) and the panel row is `ok`.
+- [x] Index complete 2026-11-03 00:06: after the forced reboot the disk had 158 GiB free (12 before), all 1003 evicted notes downloaded in 166 s and stayed local, and an incremental run finished with scanned=3048 unchanged=1774 reindexed=1274 skipped=0 (49,456 chunks). The eviction will return if the disk fills up again; the prune fix keeps the index intact when it does.
+- [ ] A full rebuild (model change) would drop every evicted note from the index, because it cannot read them. Not changed; needs a design decision.
+- [x] `Back Burner · Sirius Art` shown as paused while active: an unreadable brief became an empty status. `read_brief` retries and returns `unreadable`; panel row shows `unknown` with its own message and run refusal. Back Burner tests 165/165, ambient management tests 40/40. Installed `lib/backburner.py` (backup `brief-unreadable-20261102T1932`) and `schedules.py` (backup in `~/.local/share/butler-ambient/backups/`).
+- [x] The ambient service was restarted at 20:11:52 and runs the new `schedules.py`; the live panel data shows `Back Burner · Sirius Art` as `scheduled` (checked 22:2x).
+- [ ] The trigger of the 19:24 pause label was not caught in the act (the same code computed `scheduled` two minutes later). Watch for `status is unreadable` in `logs/backburner.jsonl` and the panel.
+- [ ] The ambient service answering a status call in ~1 s is itself a symptom of CPU starvation (service at 360 % CPU, panel log shows repeated `ui-state failed: timeout`); not addressed here.
+- [x] Display stutter (BUG-014, reopened) — ROOT CAUSE FOUND AND FIXED 2026-11-02 23:45. Measured on the Jabra output (ScreenCaptureKit tap of the system audio, compared with the file's own decoded audio): dropouts start at the same media positions in every run (168.7 s, 172.8 s, 174.9 s, 177.1 s, 188.7 s ...), before and after a reboot with no swap and 87 % free RAM, so the cause is the file, not load. The episode is a stream-copy concat of scenes whose narration ends 0.1-0.46 s before the video; the concat demuxer stretches the last audio packet of each scene over that gap (45 stretched packets, 586.4 s of samples on a 596.1 s timeline). Apple's player accumulates the mismatch, drops audio from about the third minute and is fully silent from 360 s. A copy re-encoded with `aresample=async=1` played 10 minutes with zero dropouts (correlation 0.97-0.99 throughout).
+- [x] Fix in `~/.openclaw/workspace-butler/lib/news_video.py` (backup `backups/news-video-audio-pad-20261102T2333`): `SCENE_AUDIO_FILTER` pads every scene's narration to the scene length (`apad`, all 4 encoders); `_concat_scenes` copies video and re-encodes audio once with `CONCAT_AUDIO_FILTER = aresample=async=1:first_pts=0`; `_check_audio_timeline` refuses an episode with a stretched packet instead of publishing it. Tests: 3 new in `tests/test_news_video.py`, both mechanism tests proven red without their fix; file 28/28 green (the demo episode renders through the new concat).
+- [x] The published `~/.openclaw/media/daily-2026-11-02-evening.mp4` was replaced with the corrected copy (0 stretched packets; original in the backup folder's `media/`). Only one daily file existed in the media folder.
+- [x] Verified on the real path 2026-11-02 23:49-23:59: a video card with the corrected file was sent to the Display through `butler_display` (as `butler-show-news` does), Butler.app's AVPlayer played it on the Jabra, the system output was captured for the whole 596 s: zero dropouts, correlation 0.996-1.000 with the file's own audio in every 30 s window; the owner confirmed by ear («Кажется работает»). The evening run's `render/episode.mp4` (source for `butler-show-news`) was also replaced with the corrected copy (backup in the same backup folder, `runs/`). Still open: the pipeline fix itself is proven on the demo render and unit tests; the first real render with the new code is the next nightly episode. Every earlier episode copy under `media/butler-news/` (10-27 to 11-02 morning), `butler-news-2026-10-28-evening-hq.mp4` and `lecture-meic-20261030.mp4` carry the same defect (37-57 stretched packets) and were left as they are. If a YouTube copy of the evening episode was uploaded, it carries the defect too.
+- [ ] Earlier capture sessions (176 s, 157 s) were shorter than the onset, and the silent 10-minute probe measured the player clock, not the output: both missed the bug. Recipe that found it: play with sound, capture the system output, compare envelopes with the file's own audio per 30 s window.
+- [ ] Forced reboot 23:06 (black screen): cause not found in the logs (no panic, no jetsam lines; a shutdown-stall report only). Before it: swap 10.6 of 12 GB used, 12 GiB disk free, load 48. After it: 158 GiB free, Ollama.app autostarted and took :11434 (see memory note).
+
+# Codex workers could not reach butler-core — review 2026-11-07
+
+Report: «PermissionError: [Errno 1] Operation not permitted — worker не получил доступ к сокету butler-core. Нужна повторная обработка с доступом к core.» (inbox classifier, 944 messages pending).
+
+- [x] Root cause: `config/ai-settings.json` (owner Settings, 2026-10-30) routes classify, curate, news, research (and code/review/tests/video) to Codex. `dispatch.py` starts Codex with `--sandbox workspace-write`, whose macOS seatbelt denies `connect()` to `~/.local/share/butler-core/core.sock`; every `butler-*` CLI (recall, people, task, daily, notify) fails on its first call. Scope: every Codex-backed dispatch since at least 2026-10-28 (classify, curate, news, research all show `Operation not permitted`); Claude-backed retries (e.g. 20261106-220405) worked.
+- [x] Reproduced before changing anything: `codex exec --sandbox workspace-write` + a bare `connect()` probe → `PermissionError`; with `-c sandbox_workspace_write.network_access=true` → connect OK.
+- [x] Narrow alternative checked and rejected: `permissions.*.network.unix_sockets` is accepted by codex 0.167.0 but never reaches the macOS policy (openai/codex#25416). Options put to the owner; chosen: «Codex + network_access».
+- [x] Fix (installed `lib/dispatch.py`, backup `backups/codex-core-socket-20261107T1302`): `CODEX_CORE_SOCKET_OVERRIDE = "sandbox_workspace_write.network_access=true"` added to the Codex argv in `_build_command` only; Claude argv and the filesystem sandbox are unchanged.
+- [x] Tests: `tests/test_dispatch.py` — fake backend now records its argv; `test_codex_workers_may_connect_to_the_core_socket` was red (`'-c' is not in list`) and is green; `test_claude_workers_get_no_codex_sandbox_override` guards the other backend. File 17/17 (was 15).
+- [x] Verified on the real path: argv built by the installed dispatcher + a live `codex exec` → `CONNECT_OK` (was `PermissionError`).
+- [x] Re-processing: classifier started through the cron's own command, dispatch `20261107-130318-74062c` (Codex/gpt-6.1-sol). Result (2026-11-07 13:03-13:08, exit 0, 0 × `Operation not permitted`): 56 messages processed, pending 944 → 888 (the older-than-3-days backlog); core shows 9 × `knowledge.recall`, 8 × `vault.write` (People, Daily Digest, VIVAA, Tasks mirrors) and 1 × `todoist.create` succeeded; the files exist in the vault. Full butler-core suite 419 tests: 418 OK, 2 skipped, 1 error unrelated to this change (`markdown_it` is not installed in the system python3; `test_backburner_workspace.DisplayCardTest`).
+- [ ] Trade-off accepted by the owner: Codex workers that read untrusted content (inbox, news) now have outbound network inside the sandbox, as Claude workers (`bypassPermissions`) already did. Revisit when openai/codex#25416 is fixed: switch to a socket-only allowance.
+- [ ] Not changed: the repo copy `implementation/news-video/live-patches/lib/dispatch.py` is a stale partial (876 lines vs 1194 installed); the installed file is what `test_dispatch.py` exercises.
+- [ ] Not changed: 888 inbox messages older than the 3-day window stay unprocessed (outside the classifier's scope, noted by the 2026-11-06 22:04 run).
+- [ ] Open (not built, needs approval): nothing alerts when a dispatch ends `done` but its output says `Operation not permitted`/`Blocked`; this went unnoticed from 2026-10-28 to 2026-11-07.
+
+# Restore services, continuous monitoring stays off — review 2026-11-09
+
+Request: the owner had switched services off to save memory; bring everything back except continuous audio/video capture and its analysis.
+
+- [x] Audit first (nothing assumed): since the reboot of 2026-11-07 11:04 gateway, butler-core (all 16 scenario switches true), tg-userbot, ngrok, both Ollamas (:11434 embeddings, :11435 dialogue), 17 OpenClaw cron jobs, Telegram butler and WhatsApp were already running. The only thing down was the ambient service (`com.boris.butler-awareness`): `service-exit.json` exit 0 at 2026-11-09 10:33 local, the dialogue Ollama access log stops at 10:33:34. That service also hosts the panel, Display, schedules, local history and dictation.
+- [x] Trap found before starting: the stored settings had `enabled=true` + `continuous_archive=true`, and `service.py:48` restores `gate.enabled` from `enabled` at start, so a plain bootstrap would have resumed camera/microphone/screen capture and analysis (and a 616 661-row unanalysed backlog exists). `_capture_loop` opens no input while `gate.enabled` is false; `archive.enabled = gate.enabled and continuous_archive`; `analysis_tick` returns unless the policy permits.
+- [x] Done in this order: (1) settings backup `scratchpad/ambient-settings-before-2026-11-09.txt`, (2) with the service stopped, `UPDATE settings SET value='false' WHERE key='enabled'` (the row `butler-ambient pause` writes; `continuous_archive` preference left as the owner had it), (3) `launchctl bootstrap gui/501 …butler-awareness.plist`.
+- [x] Verified live: `status` → `enabled:false`, reason `owner-paused`, camera/microphone/screen/system-audio `paused`, `archive.enabled:false`; no `butler-audio`/`butler-screen`/ffmpeg process; 0 new files under `raw/` and `preserved/` in the first 4 minutes; CPU 0 % at idle. Panel (Butler.app), whisper-server (dictation) and the dialogue model are up. Cost of the restored workers: ≈ 6.9 GB llama-server (qwen3.5:9b) + 3.2 GB voice-python + 0.6 GB whisper; free+inactive ≈ 61 GB, swap 0.
+- [ ] Owner decision pending: Telegram account `tetyana-dyck` is `stopped / not-running` and the gateway health-monitor loops "restarting (reason: stopped)" (known stuck state, see memory `openclaw-channel-stuck-stopped`). Only `openclaw gateway restart` heals it; not run because it interrupts the live butler Telegram/WhatsApp sessions.
+- [ ] Note for the owner: the panel's «Возобновить» (resume) writes `enabled=true` again and, with `continuous_archive=true`, restarts full capture. To make monitoring impossible by accident, set `continuous_archive` to false in the panel settings (not done: his call).
+- [x] Gateway restarted 2026-11-09 21:38 on the owner's word, after waiting for two cron runs to finish (bamberg-news 21:00 and daily-analysis-evening 21:30, so nothing was killed mid-run). Result: Telegram butler and tetyana-dyck `running, connected`, WhatsApp `healthy`, no more `health-monitor: restarting (reason: stopped)` lines.
+
+# Dictation as its own microphone session — plan 2026-11-09 (DEC-049, approved by the owner)
+
+Problem: «Диктовать» is refused during Pause («Наблюдение на паузе: нажмите «Продолжить»…») because dictation borrows the hearing path, which is fed by `_capture_loop` (camera + microphone together) and gated by `gate.enabled`. Owner: «Я хочу просто подиктовать». Correction of my earlier offer: the "120 s limit" I named does not exist (`TOTAL_LIMIT` is only used by tests; dictation never auto-stops today), so this change adds explicit safeguards.
+
+Design (smallest change that keeps the hearing-path dictation untouched while observation is on):
+- `sensing.MicrophoneInputs(Inputs)`: opens only the audio helper (no camera/screen), 120-second queue, `close(flush)` delivers the last partial second; reuses helper health parsing, restarts and FFmpeg fallback.
+- `dictation_capture.DictationCapture`: reader/worker thread; VAD segmentation with the existing static helpers (`Listening.speech`, `Conversation._silence_tail`); resident Whisper `service.listening.model.transcribe(wav, token)` (phantom + confidence filters stay inside); text goes only to `Dictation.hear`. Nothing stored: no media row, transcript, feedback, event text.
+- `Dictation`: when `gate.enabled` is false `start()` opens the own session; `listening()` stays False for it (the hearing path must never claim its words); safeguards: 120 s without recognised words, panel stopped polling for 15 s, 20 min total, text limit, resume, owner voice setup, service stop; mic closes promptly on stop/abort.
+- Out of scope: Swift panel (no UI change), drafts while speaking in this mode, the hearing-path dictation when observation is on.
+
+Steps:
+- [x] Tests first (red): `tests/test_dictation_session.py` — Dictation own-session state machine with a fake capture, DictationCapture with a fake microphone (segmentation, flush on stop, muted/no-sound/ASR-failure paths, abort cancels recognition), MicrophoneInputs with a stub helper process (one process only, blocks, flushed tail); update `test_dictation.py` "paused" case (no longer a refusal). — done 2026-11-09: 48 tests in the new file (state machine, capture worker, microphone input, helper-restart race), the «paused» refusal case removed from `test_dictation.py`; confirmed red first (ImportError), and the race test red without the fix (mutation check).
+- [x] Implement `sensing.MicrophoneInputs`, `dictation_capture.py`, `dictation.py` changes; green: dictation tests, then the full ambient suite. — done: dictation tests 79 OK with ResourceWarning as error; full ambient suite 1030 OK.
+- [x] Docs: CHANGELOG, VERIFICATION, README paragraph, version 0.12.4; DEC-049 recorded in MarkView (butler-conversational-display) — done, VERIFICATION lists what is NOT proven live.
+- [x] Narrow install of the 4 Python files with backup, restart ambient service keeping `enabled=false`; verify `status` still paused, no camera/screen helper, then a live dictation while paused (`ui-dictate start` + a spoken test phrase) and confirm no media/transcript rows were created. — installed 2026-11-09 (backup in the session scratchpad `runtime-backup-0.12.3/`); `enabled=false` verified before/after; `status` 0.12.4 owner-paused; only `butler-audio` ran during dictation and nothing remained after; no new media rows/files. The live phrase test was contaminated by the owner using the same panel (see VERIFICATION), so recognition of an agent-spoken phrase and the live panel-gone safeguard are NOT proven.
+- [ ] Owner confirms with his own voice in the panel (cannot be proven by the agent).
+
+## Review — dictation during Pause (2026-11-09)
+
+- Result: «Диктовать» no longer depends on observation. Own microphone-only session while paused; hearing-path dictation unchanged when observation is on. Tests: 1030 OK; installed as ambient 0.12.4, observation still paused.
+- Found and fixed in my own review before install: a helper that dies on its own as «Остановить» is pressed could be restarted after `close()` and keep the microphone open (red test, then fix).
+- Not proven live: agent-spoken phrase recognition; live "panel gone" and 120 s / 20 min safeguards (covered by fake-clock tests only). The owner's own use (a 167-character dictation and a sent panel-chat message at 21:51:23) is consistent with the feature working, but only the owner can confirm.
+- Open owner decision: set `continuous_archive=false` so that «Возобновить» in the panel cannot silently bring back full capture (left true for now).
+- Process lesson: my live check shared the owner's running panel, so it started their microphone without warning and could not isolate the cases it was meant to prove (L-2026-11-09-02).
+
+## Review — log audit and bug filing (2026-11-10)
+
+- Request (dictated by the owner): check all logs, find the errors, create bugs for all problems.
+- Method: three read-only audit agents (gateway/channels, cron + butler-core, crashes + ambient + system) plus my own spot-checks of the claims that drive the severity: ambient CPU delta, media table size/indexes, disk, the reindex guard in `lib/knowledge_sources.py`, approvals/deliveries/dispatch tables, the video dispatch files, gateway security flags. Tokens and the tunnel address were not printed.
+- Filed in MarkView: BUG-016 (Telegram channel stuck, high), BUG-017 (relaxed gateway security behind a public tunnel, high, exposure NOT probed), BUG-018 (video worker false failure + cost 0), BUG-019 (nightly reindex fails while paused), BUG-020 (ambient CPU, media scans), BUG-021 (124 pending approvals), BUG-022 (uncertain Telegram deliveries), then low: BUG-023 (CLI-spawn log flood), BUG-024 (WhatsApp watchdog), BUG-025 (core-bridge warnings), BUG-026 (isolated agent failures), BUG-027 (log rotation/noise), BUG-028 (resource growth watch).
+- Not filed here: crashes of MarkViewProbe (NSInvalidArgumentException in FindAX, 2026-11-10 03:45 and 11-09 18:31) and of the `t`/`qabugs` QA binaries in /tmp (Swift traps in mappingChecks/filerChecks/diskChecks, duplicate dictionary key in `drafts`) belong to the MarkView project, not Butler. Apple's SFA-CloudServices diag and the Google Drive os_fault are system noise.
+- No Butler component crashed or restarted; ambient healthy since 21:50, observation still paused.
+- Disagreement between agents resolved by measurement: data volume is 94% full with 55 GiB free (not a trend claim).
+- Nothing was fixed in this pass; every bug waits for the owner's approval of a fix plan (global rule: no quick fixes).
+
+
+## Review — fix batch BUG-018…027 (2026-11-10)
+
+Branch `fix/ops-log-audit-2026-11-10` (from `chore/pending-work-2026-11-10`). Nothing pushed or merged. butler-core 0.18.0 and ambient 0.12.5 were deployed on 2026-11-10 (section "Deployment" below). One commit per fixed bug; reports have `branch:` and a "Fix" or "AI fix attempt" section; no status was changed except BUG-024 back to `open`.
+
+| Bug | Outcome | Commit |
+| --- | --- | --- |
+| BUG-019 nightly reindex vs. paused observation | fixed; cron message edited live (backup) | f0d4700 |
+| BUG-022 uncertain deliveries | fixed: approvals resent once, others listed in the daily digest | 9a29058 |
+| BUG-021 approvals never answered | fixed: daily reminder + expiry after 7 days (89 operations end on first run after deploy) | 5378a01 |
+| BUG-018 worker finished but never exits | fixed in the repo copy of `dispatch.py` (resynced first, 249b2a2); not installed live | d9f5c57 |
+| BUG-023 panel polled the OpenClaw CLI | fixed: cached listings; stray `memory-core` config removed live (backup) | c2a2e41 |
+| BUG-025 bridge noise | partly: dormant in CLI processes, outage logged once; backup-window slowness unconfirmed, `rpc.slow` diagnostic added | d4a8974 |
+| BUG-027 log growth | partly: readiness cache (designed 360 → ~12 probes/h; live after deploy still ~180-240/h, a second source is not found) and copy-truncate rotation; `AVPlayerView` noise not reproduced, no Swift change | fab768f |
+| BUG-026 isolated failures | partly: (6) fixed — Todoist `note_add` was refused every time, comments now use `POST /comments`; (1) cron failure alerts enabled live (backup); (2)-(5) not fixed | 0b51a0e |
+| BUG-024 WhatsApp watchdog | not fixed: thresholds are hard-coded in OpenClaw's extension, no config key; status `open` | — |
+
+- To take effect: butler-core deploy (BUG-021/022/025/026), butler-ambient deploy (BUG-023/027), install the repo `dispatch.py` into the workspace (BUG-018), gateway plugin reload (BUG-025).
+- Live edits outside git, all with backups and recorded in the reports: cron job `semantic-reindex-nightly` message, `~/.openclaw/openclaw.json` (`plugins.entries.memory-core.config` removed; `cron.failureAlert` + `cron.failureDestination` added).
+- Unverified: a real cron failure alert arriving on Telegram; whether the three unexplained bridge timeouts (two fell in backup windows) come from the `/bin/ps` caller lookup (BUG-025); whether messages are lost on WhatsApp reconnects (BUG-024).
+- Process notes: (a) a test double that is more permissive than the service hides bugs — the Todoist fake accepted `note_add` for weeks; measure the service, then pin the fake to it. (b) "Isolated" failures should be counted over the whole history before being called isolated: 4 of 4 comments had failed, not 4 of many. (c) Two reports contained numbers I corrected after checking (BUG-018: 9 of 20, BUG-027: 360/h measured vs 330/h reported).
+- Open owner decisions: BUG-026(4) replay of dropped wakes (nothing reads `pending-wakes.jsonl`); BUG-024 options (accept, extension patch like the ghost patch, or an upstream request); `continuous_archive=false` from the earlier dictation work.
+
+### Deployment (2026-11-10, owner: «делай деплой butler-core и ambient»)
+
+- Release commit ff24a1d (versions 0.18.0 / 0.12.5, `lib/process.js` added to `BRIDGE_FILES` with `tests/test_bridge_staging.py`). Tests before deploy: core 462 OK, bridge JS 16 pass, ambient 1059 OK.
+- butler-core: backup of the installed runtime in the scratchpad; `deploy.py --no-restart` (no config activation, no failed-queue import), then `launchctl kickstart -k`. Daemon answers 0.18.0 in 14 s, active config v14, Back Burner still enabled. The scheduler expired 89 approvals older than 7 days (85 vault.write_confirmed, 4 youtube.publish); 35 remain (0.8-6.8 days old). Digest `attention:2026-11-10` delivered at 10:50.
+- ambient: narrow install of `__init__.py`, `components.py`, `service.py`, `logfiles.py` with backup; `settings.enabled` was false before and after; restart answers 0.12.5 with `owner-paused`; no camera/screen/FFmpeg process. `dialogue-ollama.log` 9.49 MB rotated to `.1` (live file 459 B).
+- Later the same day, with the owner's answers: `dispatch.py` (BUG-018) and `knowledge_sources.py` (BUG-019) installed into `~/.openclaw/workspace-butler/lib` (backups in the scratchpad); OpenClaw gateway restarted (Telegram and WhatsApp back, no lastError) so the new bridge loaded: 0 bridge warnings in 5 CLI runs (BUG-025 verified).
+- Still not exercised live: the BUG-018 worker end, the 03:30 reindex (BUG-019), Todoist comments (BUG-026), the approval resend (BUG-022).
+- Finding: the BUG-027 probe noise is only partly gone. Cold `ui-components` = 2 probes, repeats = 0, but `/api/show` on :11435 still arrives ~180-240/h in the background. In an isolated service run `ui-state`, `ui-schedules` and `status` made no probe. Next step is to find the other periodic caller (not done).
+- MarkView lifecycle: bugs are `fixing` (set by the owner at 14:54 UTC). The process (standard bug) needs a merged pull request and a published GitHub release before `fixed` can be requested; none exists, so no status was moved. BUG-024 is `open`.

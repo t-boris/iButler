@@ -1,3 +1,3 @@
 """Butler modular core: durable events and tasks, shared authorization and reliable delivery."""
 
-__version__ = "0.17.1"
+__version__ = "0.18.0"

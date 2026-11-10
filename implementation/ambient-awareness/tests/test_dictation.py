@@ -58,8 +58,8 @@ class StateMachineTests(unittest.TestCase):
         self.assertEqual(self.dictation.start()["id"], first["id"])
 
     def test_every_reason_it_cannot_start_is_stated_and_nothing_is_claimed(self):
+        # Pause is no longer a reason: dictation then opens its own microphone session (DEC-049, tests/test_dictation_session.py).
         cases = {
-            "paused": (lambda s: setattr(s.gate, "enabled", False), "паузе"),
             "stopping": (lambda s: s.stop_event.set(), "останавливается"),
             "voice setup": (lambda s: setattr(s.owner_setup, "capturing", True), "эталона"),
             "hearing off": (lambda s: setattr(s.listening, "enabled", False), "не слушает"),
@@ -236,6 +236,7 @@ class HearingPathTests(unittest.TestCase):
         self.store.set("voice_enabled", True)
         self.store.set("voice_profile", "baritone")
         self.s.gate.enable(True, self.now)
+        self.store.set('voice_commands', True)   # the command path under test; off by default since 2026-11-02
         self.inputs.audio_status = {"input_muted": False, "input_volume": 0.6}
         self.inputs.input_signal = {"at": self.now, "rms_dbfs": -30.0}
         self.s.feedback.transcript = Mock()
