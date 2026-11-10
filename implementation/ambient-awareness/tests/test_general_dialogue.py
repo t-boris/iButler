@@ -31,6 +31,7 @@ class GeneralDialogueTests(unittest.TestCase):
         self.store.set('continuous_archive', True); self.store.set('face_wake_dialogue', True)
         self.store.set('voice_enabled', True); self.store.set('voice_profile', 'baritone')
         self.s.gate.enable(True, self.now)
+        self.store.set('voice_commands', True)   # the command path under test; off by default since 2026-11-02
         ready = patch.object(Conversation, 'ready', new_callable=PropertyMock, return_value=True)
         ready.start(); self.addCleanup(ready.stop)
 
@@ -456,6 +457,7 @@ class LocalGeneralModelTests(unittest.TestCase):
         self.s.voice = Conversation(self.s); self.s.listening = Listening(self.s)
         self.v = self.s.voice; self.v.model = model; self.v.speak = Mock(); self.s.visual = Mock()
         self.store.set('continuous_archive', True); self.store.set('voice_enabled', True)
+        self.store.set('voice_commands', True)   # the command path under test; off by default since 2026-11-02
         self.s.gate.enable(True, self.now)
 
     def tearDown(self):

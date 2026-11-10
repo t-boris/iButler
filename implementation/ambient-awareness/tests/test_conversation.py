@@ -31,6 +31,7 @@ class ConversationTests(unittest.TestCase):
         self.input_samples = 0
         self.store.execute("INSERT INTO agreements VALUES ('owner','owner',1,'{}')")
         self.service.gate.enable(True, self.now)
+        self.store.set('voice_commands', True)   # the command path under test; off by default since 2026-11-02
         for _ in range(3):
             self.now += .1
             self.service.gate.check(self.evidence(), self.now)
