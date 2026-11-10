@@ -158,6 +158,8 @@ test("reaction request shape and failures", async () => {
   assert.equal(offline.reason, "network");
 });
 
+const argv = process.argv;
+
 test("the plugin registers its hooks on the installed OpenClaw host and re-registers idempotently", async (t) => {
   const host = "/opt/homebrew/lib/node_modules/openclaw/package.json";
   if (!fs.existsSync(path.join(path.dirname(new URL(import.meta.url).pathname), "..", "node_modules", "openclaw"))) {
@@ -167,6 +169,8 @@ test("the plugin registers its hooks on the installed OpenClaw host and re-regis
   assert.equal(JSON.parse(fs.readFileSync(host, "utf8")).version, "2026.5.27");
   const plugin = (await import("../index.js")).default;
   assert.equal(plugin.id, "butler-core-bridge");
+  t.after(() => (process.argv = argv));
+  process.argv = [argv[0], "/opt/homebrew/lib/node_modules/openclaw/dist/index.js", "gateway", "--port", "18789"];
   const hooks = [];
   let subscriptions = 0;
   let unsubscribed = 0;
@@ -194,4 +198,94 @@ test("the plugin registers its hooks on the installed OpenClaw host and re-regis
   assert.equal(subscriptions, 2);
   assert.equal(unsubscribed, 1);
   clearInterval(globalThis[Symbol.for("butler-core-bridge")].timer);
+});
+
+test("in a short-lived CLI process the plugin stays dormant: no hooks, no subscription, no hello, no timer", async (t) => {
+  if (!fs.existsSync(path.join(path.dirname(new URL(import.meta.url).pathname), "..", "node_modules", "openclaw"))) {
+    t.skip("node_modules/openclaw link is created at deployment");
+    return;
+  }
+  const plugin = (await import("../index.js")).default;
+  t.after(() => (process.argv = argv));
+  const shared = Symbol.for("butler-core-bridge");
+  delete globalThis[shared];
+  for (const words of [["message", "send", "--channel", "telegram"], ["cron", "list"], ["gateway", "status"]]) {
+    process.argv = [argv[0], "/opt/homebrew/lib/node_modules/openclaw/dist/index.js", ...words];
+    const touched = [];
+    const api = {
+      pluginConfig: { socket: path.join(os.tmpdir(), "absent.sock"), timeoutMs: 100 },
+      logger: { warn: (m) => touched.push(m), info: (m) => touched.push(m), error: (m) => touched.push(m) },
+      runtime: { config: { current: () => ({}) }, events: { onAgentEvent: () => touched.push("subscribed") } },
+      on: (name) => touched.push(name),
+    };
+    plugin.register(api);
+    assert.deepEqual(touched, [], words.join(" "));
+    assert.equal(globalThis[shared], undefined, "no shared state, no refresh timer");
+  }
+});
+
+function logging(call, now = () => Date.now()) {
+  const lines = [];
+  const bridge = createBridge({
+    now,
+    call,
+    react: async () => ({ ok: true }),
+    instance: { id: "1@1", startedAt: 1 },
+    version: "0.1.0",
+    log: (level, message) => lines.push(`${level}: ${message}`),
+  });
+  return { bridge, lines };
+}
+
+test("a core outage is logged once when it begins and once when it ends, not on every call", async () => {
+  let up = false;
+  const { bridge, lines } = logging(async (method) => {
+    if (!up) throw new CoreUnavailable("core did not answer within 1200 ms");
+    return method === "bridge.hello" ? { ok: true, config: CONFIG } : CONFIG;
+  });
+  for (let i = 0; i < 5; i += 1) {
+    await bridge.beforeDispatch({ channel: "telegram", content: "x", sessionKey: SESSION }, ctx());
+  }
+  assert.equal(lines.filter((l) => l.startsWith("warn")).length, 1, lines.join("\n"));
+  assert.match(lines[0], /^warn: butler-core unavailable/);
+  assert.ok(bridge.stats.unreachable >= 5, "every failed call is still counted");
+  up = true;
+  await bridge.beforeDispatch({ channel: "telegram", content: "x", sessionKey: SESSION }, ctx());
+  assert.equal(lines.filter((l) => l.startsWith("info: butler-core reachable again")).length, 1, lines.join("\n"));
+  assert.match(lines.at(-1), /failed calls/);
+});
+
+test("a second outage is logged again", async () => {
+  let up = true;
+  const { bridge, lines } = logging(async (method) => {
+    if (!up) throw new CoreUnavailable("ENOENT");
+    return method === "bridge.hello" ? { ok: true, config: CONFIG } : CONFIG;
+  });
+  await bridge.refresh();
+  up = false;
+  await bridge.refresh();
+  await bridge.refresh();
+  up = true;
+  await bridge.refresh();
+  up = false;
+  await bridge.refresh();
+  assert.equal(lines.filter((l) => l.startsWith("warn")).length, 2, lines.join("\n"));
+});
+
+test("a long outage is mentioned again every ten minutes so that it is not mistaken for a recovery", async () => {
+  let clock = 1_790_000_000_000;
+  const { bridge, lines } = logging(async () => {
+    throw new CoreUnavailable("bridge.hello is not available to local callers");
+  }, () => clock);
+  await bridge.refresh();
+  clock += 5 * 60 * 1000;
+  await bridge.refresh();
+  assert.equal(lines.length, 1, "nothing new after five minutes");
+  clock += 5 * 60 * 1000;
+  await bridge.refresh();
+  assert.equal(lines.length, 2, lines.join("\n"));
+  assert.match(lines[1], /still unavailable after 600 s \(3 failed calls/);
+  clock += 60 * 1000;
+  await bridge.refresh();
+  assert.equal(lines.length, 2, "and then quiet again for ten minutes");
 });
