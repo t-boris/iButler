@@ -48,6 +48,8 @@ class FakeTodoist:
             if path.startswith("/tasks/"):
                 task = self.tasks.get(path.split("/")[-1])
                 return (404, None) if task is None else (200, task)
+            if path == "/comments" and method == "POST":
+                return self._post_comment(body)
             if path == "/comments":
                 return 200, {"results": [c for c in self.comments if c["task_id"] == query["task_id"]]}
             if path == "/projects":
@@ -55,6 +57,21 @@ class FakeTodoist:
             if path == "/labels":
                 return 200, {"results": list(self.labels)}
             return 404, None
+
+    def _post_comment(self, body):
+        """POST /comments. It has no command uuid, so a repeated request adds a second comment."""
+        fail, self.fail = self.fail, None
+        if fail == "timeout-before":
+            raise TimeoutError()
+        if fail == "http500":
+            raise HTTPFailure(500)
+        if fail == "http400" or str(body.get("task_id")) not in self.tasks:
+            raise HTTPFailure(400)
+        comment = {"task_id": str(body["task_id"]), "content": body["content"]}
+        self.comments.append(comment)
+        if fail == "timeout-after":
+            raise TimeoutError()
+        return 200, comment
 
     def _sync(self, commands):
         fail, self.fail = self.fail, None
@@ -68,6 +85,11 @@ class FakeTodoist:
         for command in commands:
             if fail == "refuse-command":
                 status[command["uuid"]] = {"error_tag": "INVALID_ARGUMENT", "http_code": 400, "error": "bad args"}
+                continue
+            if command["type"] == "note_add":
+                # The real service refuses this command for every argument name, on any open task (measured against it
+                # on 2026-11-10, BUG-026); a comment is added with POST /comments. The fake used to accept it.
+                status[command["uuid"]] = {"error_tag": "INVALID_ARGUMENT_VALUE", "http_code": 400, "error": "invalid argument"}
                 continue
             if command["uuid"] in self.seen:
                 status[command["uuid"]] = "ok"           # already executed: no effect, no id mapping
@@ -89,8 +111,6 @@ class FakeTodoist:
                 self.tasks.pop(args["id"], None)
             elif command["type"] == "item_update":
                 self.tasks[args["id"]].update({k: v for k, v in args.items() if k != "id"})
-            elif command["type"] == "note_add":
-                self.comments.append({"task_id": args["item_id"], "content": args["content"]})
             status[command["uuid"]] = "ok"
         if fail == "timeout-after":
             raise TimeoutError()
@@ -101,7 +121,10 @@ class FakeTodoist:
     def __call__(self, request, timeout):
         parsed = urllib.parse.urlparse(request.full_url)
         query = dict(urllib.parse.parse_qsl(parsed.query))
-        body = dict(urllib.parse.parse_qsl(request.data.decode())) if request.data else {}
+        if request.data and "json" in (request.get_header("Content-type") or ""):
+            body = json.loads(request.data.decode())
+        else:
+            body = dict(urllib.parse.parse_qsl(request.data.decode())) if request.data else {}
         try:
             status, payload = self.handle(request.get_method(), parsed.path, query, body)
         except HTTPFailure as failure:

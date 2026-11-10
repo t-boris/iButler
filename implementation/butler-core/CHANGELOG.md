@@ -14,6 +14,7 @@ Semantic versioning per package (DEC-040). Each entry names the migration wave a
 - `Delivery.rule()` and `Delivery.quiet()` expose the delivery settings so that `attention` needs no import of `delivery` (boundary map: one new entry, no existing rule relaxed).
 - Workspace only, no core release (BUG-019): `wait_for_quiet` treats an ambient service that the owner has paused (`enabled` false) as quiet and returns, instead of raising `background-analysis-paused`. The nightly semantic reindex failed every night while observation was paused although reindexing notes is not capture and there is no live hearing to yield to.
 - Prepare the workspace semantic reindexer to publish a rebuild in one SQLite transaction, preserving the previous index if a file is skipped or an embedding fails. Concurrent index writers may wait while a rebuild runs.
+- BUG-026: every `todoist.comment` operation ever submitted (4) was refused with INVALID_ARGUMENT_VALUE. Todoist no longer accepts the Sync `note_add` command, with either `item_id` or `task_id`, on any open task (measured against the service on 2026-11-10; the other Sync commands work). The adapter now adds a comment with `POST /comments`. That request has no command uuid, so an unknown outcome is reconciled by reading the task's comments back before any retry, as before. The test double accepted `note_add`, which hid the bug; it now refuses it like the service.
 
 ## 0.17.1 — 2026-10-27 (conversation learning report)
 

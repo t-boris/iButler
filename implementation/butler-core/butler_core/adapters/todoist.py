@@ -1,8 +1,13 @@
 """Todoist as idempotent core operations (W4; inventory 3 and 10).
 
-Every write goes through the Sync API, whose command ``uuid`` Todoist refuses
-to execute twice. The uuid is derived from the operation id, so a retry after
-an unknown outcome cannot create a second task, close twice or delete twice.
+Every write but a comment goes through the Sync API, whose command ``uuid``
+Todoist refuses to execute twice. The uuid is derived from the operation id, so
+a retry after an unknown outcome cannot create a second task, close twice or
+delete twice. A comment is the one exception (BUG-026): the Sync ``note_add``
+command is refused for every argument, on any task (measured against the service
+on 2026-11-10), so it is added with ``POST /comments``. That request has no
+uuid, which is why an unknown outcome is always reconciled by reading the
+comments back before it can be retried.
 Reconciliation reads the task back: a create is found by its exact content in
 the right project, close/reopen/update by the task's state, delete by its
 absence, a comment by its text.
@@ -31,8 +36,8 @@ TOKEN_NAME = "TODOIST_API_TOKEN"
 CREATE_FIELDS = ("content", "description", "project_id", "section_id", "parent_id", "priority", "labels")
 UPDATE_FIELDS = ("content", "description", "priority", "labels", "due_string")
 KINDS = {"todoist.create": "item_add", "todoist.update": "item_update", "todoist.close": "item_close",
-         "todoist.reopen": "item_uncomplete", "todoist.delete": "item_delete", "todoist.comment": "note_add",
-         "todoist.import": "item_add"}
+         "todoist.reopen": "item_uncomplete", "todoist.delete": "item_delete", "todoist.import": "item_add"}
+REST_KINDS = ("todoist.comment",)
 
 
 def api_token(env_file=ENV_FILE):
@@ -112,6 +117,12 @@ class TodoistClient:
         rows = payload.get("results", payload) if isinstance(payload, dict) else payload
         return [row for row in rows or [] if isinstance(row, dict)]
 
+    def add_comment(self, task_id, content):
+        """POST /comments. It carries no command uuid: a repeated call is a second comment (see the module docstring)."""
+        status, _ = self._request("POST", "/comments", body={"task_id": str(task_id), "content": content})
+        if status == 404:
+            raise Rejected("todoist task not found")
+
     def comments(self, task_id):
         _, payload = self._request("GET", "/comments", query={"task_id": str(task_id), "limit": 50})
         rows = payload.get("results", payload) if isinstance(payload, dict) else payload
@@ -146,10 +157,12 @@ class TodoistAdapter(Adapter):
 
     def execute(self, operation, cancel):
         kind, params = operation["kind"], operation["params"]
-        if kind not in KINDS:
+        if kind not in KINDS and kind not in REST_KINDS:
             raise Rejected(f"unknown todoist operation {kind}")
         if kind == "todoist.import":
             return self._import(operation)
+        if kind == "todoist.comment":
+            return self._comment(operation)
         command = {"type": KINDS[kind], "uuid": command_uuid(operation["id"]), "args": self._args(kind, params)}
         if kind == "todoist.create":
             command["temp_id"] = command_uuid(operation["id"], "temp")
@@ -163,8 +176,6 @@ class TodoistAdapter(Adapter):
                     raise Ambiguous("todoist accepted the create earlier but the task was not found")
                 return {"receipt": evidence["receipt"], "result": evidence["result"]}
             return {"receipt": f"todoist:task:{task_id}", "result": {"id": str(task_id), "content": params["content"]}}
-        if kind == "todoist.comment":
-            return {"receipt": f"todoist:comment:{command['uuid']}", "result": {"task_id": str(params["task_id"])}}
         return {"receipt": f"todoist:{kind.split('.')[1]}:{params['task_id']}", "result": {"id": str(params["task_id"])}}
 
     def _args(self, kind, params):
@@ -182,11 +193,16 @@ class TodoistAdapter(Adapter):
             if not fields:
                 raise Rejected("update needs at least one field")
             return {"id": task_id, **fields}
-        if kind == "todoist.comment":
-            if not params.get("content"):
-                raise Rejected("comment needs content")
-            return {"item_id": task_id, "content": str(params["content"])}
         return {"id": task_id}
+
+    def _comment(self, operation):
+        params = operation["params"]
+        if not params.get("task_id"):
+            raise Rejected("todoist.comment needs task_id")
+        if not params.get("content"):
+            raise Rejected("comment needs content")
+        self.client.add_comment(params["task_id"], str(params["content"]))
+        return {"receipt": f"todoist:comment:{command_uuid(operation['id'])}", "result": {"task_id": str(params["task_id"])}}
 
     def _import(self, operation):
         items = operation["params"].get("items") or []
