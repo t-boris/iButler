@@ -4,6 +4,10 @@ A failed notification never touches the completed operation: only delivery is
 retried, within configured bounds. An ambiguous transmission is never blindly
 repeated; it becomes ``uncertain`` unless the transport proves the retry is
 deduplicated (same gateway instance, same idempotency key, inside its window).
+The one owner-approved exception (BUG-022, 2026-11-10) is an approval request:
+an operation waits for it indefinitely, so an uncertain one is sent once more as
+a new delivery that says it may be a duplicate. Every other uncertain delivery
+stays listed for the owner and is never resent.
 Quiet hours and initiative limits apply to autonomous messages.
 """
 from __future__ import annotations
@@ -27,6 +31,9 @@ BACKOFF = (5, 20, 60)
 STALE = {"advice": 120}
 ATTACHMENT_LIMIT = 20 * 1024 * 1024
 TERMINAL = ("delivered", "failed", "cancelled", "uncertain")
+RESEND_KINDS = ("approval",)
+RESEND_SUFFIX = ":resend"
+DUPLICATE_NOTE = "⚠ Повтор запроса: предыдущая отправка не подтверждена, это может быть дубликат.\n"
 
 
 def settings(config):
@@ -67,6 +74,13 @@ class Delivery:
         self.transports, self.clock = transports, clock
         self.on_change = on_change or (lambda delivery_id, state: None)
         self.attachments = Path(store.root) / "attachments"
+
+    def rule(self):
+        """The active delivery settings (zone, quiet hours, limits) for modules that must not import this one."""
+        return settings(self.config)
+
+    def quiet(self, now=None):
+        return in_quiet(self.clock() if now is None else now, settings(self.config))
 
     def _stage(self, delivery_id, attachment):
         """Copy the file privately so the sent bytes cannot change after enqueue; return its record."""
@@ -251,8 +265,29 @@ class Delivery:
             self._set(db, delivery_id, state, reason, **fields)
             self.diagnostics.record("delivery." + state, {"after": outcome, "detail": detail}, row["correlation"],
                                     db=db)
+            resend = state == "uncertain" and self._worth_resending(db, row)
         self.on_change(delivery_id, state)
+        if resend:
+            self._resend(row)
         return state
+
+    def _worth_resending(self, db, row):
+        """An approval request is resent once, and only while its operation still waits for the answer."""
+        if row["kind"] not in RESEND_KINDS or row["idempotency_key"].endswith(RESEND_SUFFIX):
+            return False
+        if row["operation"] is None:
+            return True
+        op = db.execute("SELECT state FROM operations WHERE id=?", (row["operation"],)).fetchone()
+        return op is not None and op["state"] == "awaiting_approval"
+
+    def _resend(self, row):
+        """The key makes this at most one resend: a second attempt finds the first and is a duplicate."""
+        result = self.enqueue(recipient=row["recipient"], channel=row["channel"], persona=row["persona"],
+                              kind=row["kind"], content=DUPLICATE_NOTE + row["content"],
+                              idempotency_key=row["idempotency_key"] + RESEND_SUFFIX, task=row["task"],
+                              operation=row["operation"], correlation=row["correlation"])
+        if result.get("id") and not result.get("duplicate"):
+            self.diagnostics.record("delivery.resent", {"kind": row["kind"], "of": row["id"]}, row["correlation"])
 
     def observe(self, *, recipient, channel, persona, kind, receipt, idempotency_key, task=None, correlation=None):
         """Record a message the gateway delivered by itself (an agent reply)."""

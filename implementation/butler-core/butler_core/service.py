@@ -17,6 +17,7 @@ from pathlib import Path
 
 from . import __version__
 from .approvals import Approvals, review_code
+from .attention import Attention
 from .config import Config
 from .cron import agent_of
 from .delivery import Delivery
@@ -61,6 +62,7 @@ class Core:
         self.delivery = Delivery(self.store, self.config, self.policy, self.diagnostics, self.transports, clock,
                                  on_change=lambda *_: self.wake())
         self.feedback = Feedback(self.store, clock)
+        self.attention = Attention(self)
         self.rules = Rules(self)
         self.shadow = Shadow(self.store, self.config, model, clock)
         self.scheduler = Scheduler(self, interval=interval, clock=clock)
@@ -82,6 +84,7 @@ class Core:
         self.scheduler.every(60, "mail", self.schedule_mail_readings)
         self.scheduler.every(60, "backburner", self.schedule_backburner)
         self.scheduler.every(600, "system3", self.lessons.maybe_run)
+        self.scheduler.every(600, "attention", self.attention.maybe_send)
         if workers:
             self.scheduler.start()
         self.ready_at = self.clock()

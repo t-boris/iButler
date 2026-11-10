@@ -4,6 +4,9 @@ Semantic versioning per package (DEC-040). Each entry names the migration wave a
 
 ## Unreleased
 
+- BUG-022: an approval request whose delivery outcome is `uncertain` is now sent once more as a new delivery (idempotency key `<original>:resend`) that begins with a possible-duplicate note, and only while its operation still waits for the answer. It is the one kind that is resent, because the operation waits for it indefinitely; every other uncertain delivery stays unsent, as before.
+- BUG-022: new `attention` module and a 10-minute scheduler entry. Once per local day, outside quiet hours, the core sends the owner one `digest` message (key `attention:<date>`) that lists deliveries whose outcome nobody could confirm ("доставка не подтверждена"), newest since the last digest the owner received; imported history and approval requests are not listed; another persona's text is never shown. Nothing is sent when there is nothing to report.
+- `Delivery.rule()` and `Delivery.quiet()` expose the delivery settings so that `attention` needs no import of `delivery` (boundary map: one new entry, no existing rule relaxed).
 - Workspace only, no core release (BUG-019): `wait_for_quiet` treats an ambient service that the owner has paused (`enabled` false) as quiet and returns, instead of raising `background-analysis-paused`. The nightly semantic reindex failed every night while observation was paused although reindexing notes is not capture and there is no live hearing to yield to.
 - Prepare the workspace semantic reindexer to publish a rebuild in one SQLite transaction, preserving the previous index if a file is skipped or an embedding fails. Concurrent index writers may wait while a rebuild runs.
 
