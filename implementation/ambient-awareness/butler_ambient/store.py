@@ -88,14 +88,21 @@ class Store:
             except FileNotFoundError: size = 0
             self.db.execute('UPDATE media SET size_bytes=? WHERE id=?', (size,row['id']))
         self.db.execute('CREATE INDEX IF NOT EXISTS media_storage ON media(storage_class,analyzed) WHERE path IS NOT NULL')
+        self.db.execute('CREATE INDEX IF NOT EXISTS media_expiry ON media(retained_until) WHERE retained_until IS NOT NULL')
+        self.db.execute('CREATE INDEX IF NOT EXISTS media_raw_start ON media(start) WHERE path IS NOT NULL AND retained_until IS NULL')
+        self.db.execute('CREATE INDEX IF NOT EXISTS media_preserved ON media(storage_class,start,size_bytes) WHERE preserved IS NOT NULL')
+        self.db.execute('CREATE INDEX IF NOT EXISTS media_source_end ON media(source,end DESC)')
         self.db.execute('CREATE INDEX IF NOT EXISTS observation_media_source ON observation_media(media_id)')
         self.db.execute('CREATE INDEX IF NOT EXISTS observations_media ON observations(media_id)')
+        self.db.execute('CREATE INDEX IF NOT EXISTS transcripts_media ON recording_transcripts(media_id) WHERE media_id IS NOT NULL')
         self.db.commit()
         self.cleanup_error = None
         self.event_frame_error = None
         self._reconcile_event_frames()
         self.spool_blocked = False
         self.last_orphan_scan = None
+        self.last_metadata_scan = None
+        self.metadata_cursor = 0
         tracked = {Path(row['path']).name for row in self.db.execute('SELECT path FROM media WHERE path IS NOT NULL')}
         self.orphan_bytes = sum(path.stat().st_size for path in (self.root/'raw').iterdir()
             if path.name not in tracked and path.is_file())
@@ -294,7 +301,29 @@ class Store:
                 self.orphan_bytes = sum(path.stat().st_size for path in (self.root/'raw').iterdir()
                     if path.name not in tracked and path.is_file())
                 self.last_orphan_scan = now
+            if self.last_metadata_scan is None or now-self.last_metadata_scan >= 60:
+                self._prune_fileless_metadata(now)
+                self.last_metadata_scan = now
         return count
+
+    def _prune_fileless_metadata(self, now):
+        """Bound each sweep and retain every referenced row and latest capture."""
+        rows = self.execute('SELECT rowid FROM media WHERE rowid>? ORDER BY rowid LIMIT 5000', (self.metadata_cursor,))
+        if not rows:
+            self.metadata_cursor = 0
+            return
+        last = rows[-1]['rowid']
+        visual = self.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='visual_artifacts'")
+        visual_guard = 'AND NOT EXISTS (SELECT 1 FROM visual_artifacts v WHERE v.source_id=media.id)' if visual else ''
+        self.execute("""DELETE FROM media WHERE rowid>? AND rowid<=? AND end<?
+            AND path IS NULL AND preserved IS NULL AND retained_until IS NULL
+            AND NOT EXISTS (SELECT 1 FROM observations o WHERE o.media_id=media.id)
+            AND NOT EXISTS (SELECT 1 FROM observation_media r WHERE r.media_id=media.id)
+            AND NOT EXISTS (SELECT 1 FROM event_frames f WHERE f.media_id=media.id)
+            AND NOT EXISTS (SELECT 1 FROM recording_transcripts t WHERE t.media_id=media.id)
+            AND end < (SELECT MAX(m.end) FROM media m WHERE m.source=media.source) """ + visual_guard,
+            (self.metadata_cursor, last, now-86400))
+        self.metadata_cursor = last
 
     def preserve(self, mid, now=None):
         with self.lock:

@@ -69,6 +69,10 @@ def _read_lifetime(args):
 def command(cli, *args):
     lifetime = _read_lifetime(args)
     if not lifetime:
+        # Schedule polling lists Back Burner jobs; this fresh read is not a
+        # control action and must not invalidate model readiness.
+        if Path(cli).name == 'butler-backburner' and args == ('list', '--json'):
+            return _run(cli, *args)
         # A pause, a run, a model change: whatever it was, the listings may now differ.
         forget_cached_reads()
         try: return _run(cli,*args)

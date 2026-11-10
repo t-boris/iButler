@@ -33,8 +33,10 @@ def snapshot(service, *, want_preview=False):
         from .event_frames import local_day
         result['storage']['event_frames'] = service.store.event_frame_status(local_day(service.clock()))
         result.pop("agreements", None)
-        result["last_capture"] = {r["source"]: r["at"] for r in service.store.execute(
-            "SELECT source,MAX(end) AS at FROM media GROUP BY source")}
+        result["last_capture"] = {}
+        for source in ("camera", "microphone", "screen", "system-audio"):
+            rows = service.store.execute("SELECT end AS at FROM media WHERE source=? ORDER BY end DESC LIMIT 1", (source,))
+            if rows: result["last_capture"][source] = rows[0]["at"]
         result["last_analysis"] = {r["source"]: r["at"] for r in service.store.execute(
             "SELECT source,MAX(end) AS at FROM observations GROUP BY source")}
         from .recordings import _allowed, history_visible

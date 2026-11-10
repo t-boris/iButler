@@ -20,6 +20,21 @@ class StoragePolicyTests(unittest.TestCase):
     def add(self,data=b'complete original',**kwargs):
         return self.store.media('microphone',100,101,data,'wav',temporary=True,**kwargs)
 
+    def test_prune_keeps_references_latest_and_recent_media(self):
+        for mid, end in [('unused', 1), ('observed', 2), ('linked', 3), ('visual', 4), ('latest', 8), ('recent', 199999)]:
+            self.store.execute('INSERT INTO media(id,source,start,end) VALUES (?,\'camera\',?,?)', (mid, end, end))
+        self.store.execute("INSERT INTO observations VALUES ('o','observed','camera',2,2,'[]')")
+        self.store.execute("INSERT INTO observation_media VALUES ('o','linked')")
+        self.store.execute('CREATE TABLE visual_artifacts(source_id TEXT)')
+        self.store.execute("INSERT INTO visual_artifacts VALUES ('visual')")
+        self.store._prune_fileless_metadata(200000)
+        self.assertEqual({r['id'] for r in self.store.execute('SELECT id FROM media')},
+                         {'observed', 'linked', 'visual', 'recent'})
+        self.store.execute("UPDATE media SET end=1 WHERE id='recent'")
+        self.store.metadata_cursor = 0
+        self.store._prune_fileless_metadata(300000)
+        self.assertEqual(self.store.execute("SELECT id FROM media WHERE id='visual'")[0]['id'], 'visual')
+
     def test_spool_limit_is_configurable_and_validated(self):
         self.assertEqual(self.store.SPOOL_LIMIT, 512 * 1024 * 1024)                 # default unchanged
         with tempfile.TemporaryDirectory() as other:
